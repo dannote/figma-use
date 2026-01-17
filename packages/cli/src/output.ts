@@ -49,6 +49,29 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
     lines.push(`${indent}  ${detail}`)
   }
 
+  // Component property definitions (for component sets)
+  const propDefs = node.componentPropertyDefinitions as Record<string, { type: string; defaultValue?: string; variantOptions?: string[] }> | undefined
+  if (propDefs && Object.keys(propDefs).length > 0) {
+    lines.push('')
+    lines.push(`${indent}  variants:`)
+    for (const [propName, def] of Object.entries(propDefs)) {
+      if (def.type === 'VARIANT' && def.variantOptions) {
+        const defaultMark = def.defaultValue ? ` (default: ${def.defaultValue})` : ''
+        lines.push(`${indent}    ${propName}: ${def.variantOptions.join(' | ')}${defaultMark}`)
+      }
+    }
+  }
+
+  // Component properties (for instances)
+  const props = node.componentProperties as Record<string, { type: string; value: unknown }> | undefined
+  if (props && Object.keys(props).length > 0) {
+    lines.push('')
+    lines.push(`${indent}  properties:`)
+    for (const [propName, prop] of Object.entries(props)) {
+      lines.push(`${indent}    ${propName}: ${prop.value}`)
+    }
+  }
+
   return lines.join('\n')
 }
 
