@@ -1,0 +1,8 @@
+{
+  "name": "figma-bridge",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "dependencies": {
+    "consola": "^3.4.2"
+  }
+}

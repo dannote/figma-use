@@ -1,0 +1,14 @@
+{
+  "name": "@figma-bridge/plugin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run build --watch",
+    "build": "bun run build.ts"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.114.0",
+    "@types/bun": "^1.3.6",
+    "esbuild": "^0.27.2"
+  }
+}

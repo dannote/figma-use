@@ -1,0 +1,15 @@
+{
+  "name": "@figma-bridge/proxy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.4.22"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.6"
+  }
+}
