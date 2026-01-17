@@ -115,6 +115,75 @@ export const PAINT_TYPES = {
  */
 export const ZSTD_MAGIC = new Uint8Array([0x28, 0xB5, 0x2F, 0xFD])
 
+// ============================================================================
+// Kiwi Binary Format Constants
+// ============================================================================
+
+/**
+ * Kiwi uses field numbers to identify message fields.
+ * Field 1 with value = message type indicates the message kind.
+ */
+export const KIWI = {
+  /** First byte of valid Kiwi messages (field number 1) */
+  MESSAGE_MARKER: 1,
+  
+  /** Field number for sessionID in JOIN_START message */
+  SESSION_ID_FIELD: 2,
+  
+  /** Varint continuation bit (MSB set = more bytes follow) */
+  VARINT_CONTINUE_BIT: 0x80,
+  
+  /** Varint value mask (lower 7 bits contain data) */
+  VARINT_VALUE_MASK: 0x7F,
+  
+  /** Bits per varint byte */
+  VARINT_BITS_PER_BYTE: 7,
+} as const
+
+/**
+ * Valid session ID range (based on observed Figma behavior)
+ */
+export const SESSION_ID = {
+  MIN: 10000,
+  MAX: 1000000,
+} as const
+
+/**
+ * Parse a varint from a Uint8Array at given position
+ * Returns [value, newPosition]
+ */
+export function parseVarint(data: Uint8Array, pos: number): [number, number] {
+  let value = 0
+  let shift = 0
+  
+  while (pos < data.length) {
+    const byte = data[pos++]
+    value |= (byte & KIWI.VARINT_VALUE_MASK) << shift
+    
+    if (!(byte & KIWI.VARINT_CONTINUE_BIT)) {
+      break
+    }
+    shift += KIWI.VARINT_BITS_PER_BYTE
+  }
+  
+  return [value, pos]
+}
+
+/**
+ * Check if data is a valid Kiwi message
+ */
+export function isKiwiMessage(data: Uint8Array): boolean {
+  return data.length >= 2 && data[0] === KIWI.MESSAGE_MARKER
+}
+
+/**
+ * Get message type from Kiwi message
+ */
+export function getKiwiMessageType(data: Uint8Array): number | null {
+  if (!isKiwiMessage(data)) return null
+  return data[1]
+}
+
 /**
  * fig-wire header magic (first 8 bytes of some messages)
  */

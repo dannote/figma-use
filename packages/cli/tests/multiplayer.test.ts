@@ -2,10 +2,15 @@ import { describe, test, expect } from 'bun:test'
 import {
   MESSAGE_TYPES,
   NODE_TYPES,
+  KIWI,
+  SESSION_ID,
   buildMultiplayerUrl,
   isZstdCompressed,
   hasFigWireHeader,
   skipFigWireHeader,
+  isKiwiMessage,
+  getKiwiMessageType,
+  parseVarint,
 } from '../src/multiplayer/protocol.ts'
 import {
   initCodec,
@@ -73,6 +78,56 @@ describe('multiplayer/protocol', () => {
     expect(result[0]).toBe(0x28)
     expect(result[1]).toBe(0xb5)
     expect(result.length).toBe(6)
+  })
+
+  test('KIWI constants are defined', () => {
+    expect(KIWI.MESSAGE_MARKER).toBe(1)
+    expect(KIWI.SESSION_ID_FIELD).toBe(2)
+    expect(KIWI.VARINT_CONTINUE_BIT).toBe(0x80)
+    expect(KIWI.VARINT_VALUE_MASK).toBe(0x7F)
+  })
+
+  test('SESSION_ID range is defined', () => {
+    expect(SESSION_ID.MIN).toBe(10000)
+    expect(SESSION_ID.MAX).toBe(1000000)
+  })
+
+  test('isKiwiMessage detects valid messages', () => {
+    expect(isKiwiMessage(new Uint8Array([1, 0]))).toBe(true)
+    expect(isKiwiMessage(new Uint8Array([1, 5, 99]))).toBe(true)
+    expect(isKiwiMessage(new Uint8Array([2, 0]))).toBe(false)
+    expect(isKiwiMessage(new Uint8Array([0]))).toBe(false)
+    expect(isKiwiMessage(new Uint8Array([]))).toBe(false)
+  })
+
+  test('getKiwiMessageType returns message type', () => {
+    expect(getKiwiMessageType(new Uint8Array([1, 0]))).toBe(0)
+    expect(getKiwiMessageType(new Uint8Array([1, 3]))).toBe(3)
+    expect(getKiwiMessageType(new Uint8Array([1, 255]))).toBe(255)
+    expect(getKiwiMessageType(new Uint8Array([2, 0]))).toBe(null)
+  })
+
+  test('parseVarint parses single-byte values', () => {
+    // Value 0
+    expect(parseVarint(new Uint8Array([0]), 0)).toEqual([0, 1])
+    // Value 127 (max single byte)
+    expect(parseVarint(new Uint8Array([127]), 0)).toEqual([127, 1])
+    // Value 1
+    expect(parseVarint(new Uint8Array([1]), 0)).toEqual([1, 1])
+  })
+
+  test('parseVarint parses multi-byte values', () => {
+    // Value 128 = 0x80 0x01
+    expect(parseVarint(new Uint8Array([0x80, 0x01]), 0)).toEqual([128, 2])
+    // Value 300 = 0xAC 0x02
+    expect(parseVarint(new Uint8Array([0xAC, 0x02]), 0)).toEqual([300, 2])
+    // Value 16384 = 0x80 0x80 0x01
+    expect(parseVarint(new Uint8Array([0x80, 0x80, 0x01]), 0)).toEqual([16384, 3])
+  })
+
+  test('parseVarint respects offset', () => {
+    const data = new Uint8Array([0xFF, 0xFF, 0x80, 0x01])
+    expect(parseVarint(data, 2)).toEqual([128, 4])
   })
 })
 

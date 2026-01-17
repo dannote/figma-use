@@ -13,6 +13,11 @@ import {
   isZstdCompressed,
   hasFigWireHeader,
   skipFigWireHeader,
+  isKiwiMessage,
+  getKiwiMessageType,
+  parseVarint,
+  KIWI,
+  SESSION_ID,
 } from './protocol.ts'
 import { 
   initCodec, 
@@ -101,22 +106,15 @@ export class FigmaMultiplayerClient {
         try {
           const decompressed = decompress(data)
           
-          // Kiwi messages start with field 1 (0x01). Skip non-message data.
-          if (decompressed[0] !== 1) return
+          // Skip non-Kiwi message data (e.g., schema definitions)
+          if (!isKiwiMessage(decompressed)) return
           
-          const msgType = decompressed[1]
+          const msgType = getKiwiMessageType(decompressed)!
           
           // JOIN_START: extract sessionID from raw bytes
-          if (msgType === MESSAGE_TYPES.JOIN_START && decompressed[2] === 2) {
-            let pos = 3, val = 0, shift = 0
-            while (pos < decompressed.length && (decompressed[pos] & 0x80)) {
-              val |= (decompressed[pos++] & 0x7F) << shift
-              shift += 7
-            }
-            if (pos < decompressed.length) {
-              val |= decompressed[pos] << shift
-            }
-            if (val > 10000 && val < 1000000) {
+          if (msgType === MESSAGE_TYPES.JOIN_START && decompressed[2] === KIWI.SESSION_ID_FIELD) {
+            const [val] = parseVarint(decompressed, 3)
+            if (val > SESSION_ID.MIN && val < SESSION_ID.MAX) {
               sessionID = val
             }
           }
@@ -224,7 +222,7 @@ export class FigmaMultiplayerClient {
         
         try {
           const dec = decompress(data)
-          if (dec[0] === 1 && dec[1] === MESSAGE_TYPES.NODE_CHANGES) {
+          if (isKiwiMessage(dec) && getKiwiMessageType(dec) === MESSAGE_TYPES.NODE_CHANGES) {
             clearTimeout(timer)
             this.ws?.removeEventListener('message', handler)
             resolve()

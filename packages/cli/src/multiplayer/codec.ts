@@ -7,7 +7,7 @@
  */
 
 import { compileSchema, type Schema } from 'kiwi-schema'
-import { isZstdCompressed } from './protocol.ts'
+import { isZstdCompressed, isKiwiMessage, getKiwiMessageType } from './protocol.ts'
 import figmaSchema from './schema.ts'
 
 interface CompiledSchema {
@@ -77,11 +77,7 @@ export function decodeMessage(data: Uint8Array): FigmaMessage {
 export function peekMessageType(data: Uint8Array): number | null {
   try {
     const decompressed = decompress(data)
-    // Kiwi format: [field_number=1, value, ...]
-    if (decompressed.length >= 2 && decompressed[0] === 1) {
-      return decompressed[1]
-    }
-    return null
+    return getKiwiMessageType(decompressed)
   } catch {
     return null
   }
