@@ -3,6 +3,16 @@ import { consola } from 'consola'
 
 const PORT = Number(process.env.PORT) || 38451
 
+const TIMEOUT_LIGHT = 10_000   // 10s for most operations
+const TIMEOUT_HEAVY = 120_000  // 2min for export/screenshot
+
+const HEAVY_COMMANDS = new Set([
+  'export-node',
+  'screenshot', 
+  'export-selection',
+  'eval'
+])
+
 interface PendingRequest {
   resolve: (value: unknown) => void
   reject: (error: Error) => void
@@ -45,17 +55,21 @@ new Elysia()
       return { error: 'Plugin not connected' }
     }
 
-    const { command, args } = body as { command: string; args?: unknown }
+    const { command, args, timeout: customTimeout } = body as { command: string; args?: unknown; timeout?: number }
     const id = crypto.randomUUID()
 
     consola.info(`${command}`, args || '')
 
     try {
+      const defaultTimeout = HEAVY_COMMANDS.has(command) ? TIMEOUT_HEAVY : TIMEOUT_LIGHT
+      const timeoutMs = customTimeout || defaultTimeout
+      consola.info(`Timeout: ${timeoutMs}ms (custom: ${customTimeout}, default: ${defaultTimeout})`)
+      
       const result = await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           pendingRequests.delete(id)
           reject(new Error('Request timeout'))
-        }, 10000)
+        }, timeoutMs)
 
         pendingRequests.set(id, { resolve, reject, timeout })
         sendToPlugin!(JSON.stringify({ id, command, args }))

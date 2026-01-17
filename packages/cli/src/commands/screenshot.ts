@@ -7,13 +7,14 @@ export default defineCommand({
   args: {
     json: { type: 'boolean', description: 'Output as JSON' },
     output: { type: 'string', description: 'Output file path', default: '/tmp/figma-screenshot.png' },
-    scale: { type: 'string', description: 'Export scale', default: '1' }
+    scale: { type: 'string', description: 'Export scale', default: '1' },
+    timeout: { type: 'string', description: 'Timeout in seconds' }
   },
   async run({ args }) {
     try {
       const result = await sendCommand('screenshot', {
         scale: Number(args.scale)
-      }) as { data: string }
+      }, { timeout: args.timeout ? Number(args.timeout) * 1000 : undefined }) as { data: string }
       
       const buffer = Buffer.from(result.data, 'base64')
       writeFileSync(args.output, buffer)

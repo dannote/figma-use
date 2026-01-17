@@ -673,4 +673,19 @@ describe('Figma Bridge CLI', () => {
       expect(result).toBeGreaterThan(0)
     })
   })
+
+  describe('timeout', () => {
+    test('short timeout triggers error on slow operation', async () => {
+      // 1 sec timeout, 2 sec sleep - should timeout
+      await expect(
+        run(`eval "await new Promise(r => setTimeout(r, 2000)); return 'done'" --timeout 1 --json`)
+      ).rejects.toThrow('timeout')
+    })
+
+    test('long timeout allows slow operation to complete', async () => {
+      // 3 sec timeout, 1 sec sleep - should complete
+      const result = await run(`eval "await new Promise(r => setTimeout(r, 1000)); return 'done'" --timeout 3 --json`)
+      expect(result).toBe('done')
+    })
+  })
 })

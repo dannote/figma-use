@@ -9,7 +9,8 @@ export default defineCommand({
     id: { type: 'string', description: 'Node ID', required: true },
     format: { type: 'string', description: 'Format: PNG, JPG, SVG, PDF', default: 'PNG' },
     scale: { type: 'string', description: 'Export scale', default: '1' },
-    output: { type: 'string', description: 'Output file path' }
+    output: { type: 'string', description: 'Output file path' },
+    timeout: { type: 'string', description: 'Timeout in seconds' }
   },
   async run({ args }) {
     try {
@@ -17,7 +18,7 @@ export default defineCommand({
         id: args.id,
         format: args.format.toUpperCase(),
         scale: Number(args.scale)
-      }) as { data: string; filename: string }
+      }, { timeout: args.timeout ? Number(args.timeout) * 1000 : undefined }) as { data: string; filename: string }
       
       if (args.output) {
         const buffer = Buffer.from(result.data, 'base64')

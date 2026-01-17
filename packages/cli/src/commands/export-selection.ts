@@ -9,7 +9,8 @@ export default defineCommand({
     output: { type: 'string', description: 'Output file path', default: '/tmp/figma-selection.png' },
     format: { type: 'string', description: 'Format: PNG, JPG, SVG, PDF', default: 'PNG' },
     scale: { type: 'string', description: 'Export scale', default: '2' },
-    padding: { type: 'string', description: 'Padding around selection', default: '0' }
+    padding: { type: 'string', description: 'Padding around selection', default: '0' },
+    timeout: { type: 'string', description: 'Timeout in seconds' }
   },
   async run({ args }) {
     try {
@@ -17,7 +18,7 @@ export default defineCommand({
         format: args.format.toUpperCase(),
         scale: Number(args.scale),
         padding: Number(args.padding)
-      }) as { data: string }
+      }, { timeout: args.timeout ? Number(args.timeout) * 1000 : undefined }) as { data: string }
       
       const buffer = Buffer.from(result.data, 'base64')
       writeFileSync(args.output, buffer)
