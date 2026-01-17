@@ -106,7 +106,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }
       
       const pages = page 
-        ? figma.root.children.filter(p => p.id === page || p.name === page)
+        ? figma.root.children.filter(p => p.id === page || p.name === page || p.name.includes(page))
         : figma.root.children
       
       for (const pageNode of pages) {
