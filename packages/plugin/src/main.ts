@@ -44,13 +44,35 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'get-all-components': {
+      const { name, limit = 50, page } = (args as { name?: string; limit?: number; page?: string }) || {}
       const components: object[] = []
-      figma.root.findAll((node) => {
+      const nameLower = name?.toLowerCase()
+      
+      const searchNode = (node: SceneNode): boolean => {
+        if (components.length >= limit) return false
         if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
-          components.push(serializeNode(node))
+          if (!nameLower || node.name.toLowerCase().includes(nameLower)) {
+            components.push(serializeNode(node))
+          }
         }
-        return false
-      })
+        if ('children' in node) {
+          for (const child of (node as FrameNode).children) {
+            if (!searchNode(child)) return false
+          }
+        }
+        return components.length < limit
+      }
+      
+      const pages = page 
+        ? figma.root.children.filter(p => p.id === page || p.name === page)
+        : figma.root.children
+      
+      for (const pageNode of pages) {
+        if (components.length >= limit) break
+        for (const child of pageNode.children) {
+          if (!searchNode(child)) break
+        }
+      }
       return components
     }
 
@@ -547,10 +569,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'find-by-name': {
-      const { name, type, exact } = args as { name: string; type?: string; exact?: boolean }
+      const { name, type, exact } = args as { name?: string; type?: string; exact?: boolean }
       const results: object[] = []
       figma.currentPage.findAll(n => {
-        const nameMatch = exact ? n.name === name : n.name.toLowerCase().includes(name.toLowerCase())
+        const nameMatch = !name || (exact ? n.name === name : n.name.toLowerCase().includes(name.toLowerCase()))
         const typeMatch = !type || n.type === type
         if (nameMatch && typeMatch) results.push(serializeNode(n))
         return false
@@ -1124,7 +1146,11 @@ function serializeNode(node: BaseNode): object {
   }
 
   if ('componentPropertyDefinitions' in node) {
-    base.componentPropertyDefinitions = node.componentPropertyDefinitions
+    try {
+      base.componentPropertyDefinitions = node.componentPropertyDefinitions
+    } catch {
+      // Variant components throw when accessing componentPropertyDefinitions
+    }
   }
   if ('componentProperties' in node) {
     base.componentProperties = node.componentProperties

@@ -97,9 +97,13 @@ export default defineCommand({
       const id = args.id || (await sendCommand('get-current-page', {}) as { id: string }).id
       const result = await sendCommand('get-node-tree', { id }) as FigmaNode
       
-      const countNodes = (n: FigmaNode): number => 
-        1 + (n.children?.reduce((sum, c) => sum + countNodes(c), 0) || 0)
-      const total = countNodes(result)
+      const maxDepth = Number(args.depth)
+      
+      const countNodes = (n: FigmaNode, depth: number): number => {
+        if (maxDepth !== -1 && depth > maxDepth) return 0
+        return 1 + (n.children?.reduce((sum, c) => sum + countNodes(c, depth + 1), 0) || 0)
+      }
+      const total = countNodes(result, 0)
       
       if (!args.force && total > MAX_NODES) {
         console.error(fail(`Tree has ${total} nodes (limit: ${MAX_NODES}). Use --depth to limit or --force to override.`))
@@ -113,7 +117,7 @@ export default defineCommand({
       
       const options = {
         showHidden: args.hidden || false,
-        maxDepth: Number(args.depth),
+        maxDepth,
         interactive: args.interactive || false
       }
       

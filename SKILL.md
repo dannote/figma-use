@@ -52,8 +52,9 @@ figma-use create text --x 0 --y 0 --text "Hello" \
 ```bash
 figma-use node get <id>                      # Get properties
 figma-use node tree [id]                     # Get formatted tree (see structure at a glance)
-figma-use node tree --depth 2                # Limit tree depth
+figma-use node tree --depth 2                # Limit tree depth (also limits node count)
 figma-use node tree -i                       # Only interactive elements
+figma-use node tree --force                  # Skip 500 node limit
 figma-use node children <id>                 # List children
 figma-use node move <id> --x 100 --y 200
 figma-use node resize <id> --width 300 --height 200
@@ -133,7 +134,9 @@ figma-use viewport zoom-to-fit <ids...>
 ```bash
 figma-use find --name "Button"
 figma-use find --type FRAME
-figma-use get components
+figma-use find --type INSTANCE              # All instances on page
+figma-use get components --name "Button"    # Filter components by name
+figma-use get components --limit 50         # Limit results
 ```
 
 ### Boolean & Group

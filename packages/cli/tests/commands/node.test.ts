@@ -75,4 +75,17 @@ describe('node', () => {
     expect(output).toContain('frame')
     expect(output).not.toContain('[0] rectangle')
   })
+
+  test('tree depth affects node count', async () => {
+    const frame = await run('create frame --x 0 --y 800 --width 200 --height 200 --name "TreeDepthTest" --json') as any
+    trackNode(frame.id)
+    await run(`create rect --x 10 --y 10 --width 50 --height 50 --parent "${frame.id}" --json`)
+    await run(`create rect --x 70 --y 10 --width 50 --height 50 --parent "${frame.id}" --json`)
+    
+    const depth0 = await run(`node tree ${frame.id} --depth 0`, false) as string
+    expect(depth0).toContain('1 nodes')
+    
+    const depth1 = await run(`node tree ${frame.id} --depth 1`, false) as string
+    expect(depth1).toContain('3 nodes')
+  })
 })

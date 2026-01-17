@@ -93,8 +93,9 @@ All create commands support inline styling — no need for separate `set` calls.
 ```bash
 figma-use node get <id>                    # Get node properties
 figma-use node tree [id]                   # Get formatted tree (default: current page)
-figma-use node tree --depth 2              # Limit tree depth
+figma-use node tree --depth 2              # Limit tree depth (also limits node count check)
 figma-use node tree -i                     # Only interactive elements
+figma-use node tree --force                # Skip 500 node limit
 figma-use node children <id>               # Get child nodes
 figma-use node delete <id>                 # Delete node
 figma-use node clone <id>                  # Clone node
@@ -225,8 +226,10 @@ figma-use viewport zoom-to-fit <ids...>
 ```bash
 figma-use find --name "Button"
 figma-use find --name "Icon" --type FRAME
+figma-use find --type INSTANCE              # Find all instances on current page
 figma-use get pages
-figma-use get components
+figma-use get components --name "Button"    # Filter by name
+figma-use get components --limit 50         # Limit results (default: 100)
 figma-use get styles
 ```
 

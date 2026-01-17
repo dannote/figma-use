@@ -18,4 +18,10 @@ describe('find', () => {
     const results = await run('find --name "Searchable" --type RECTANGLE --json') as any[]
     expect(results.every(r => r.type === 'RECTANGLE')).toBe(true)
   })
+
+  test('finds by type only (without name)', async () => {
+    const results = await run('find --type RECTANGLE --json') as any[]
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.every(r => r.type === 'RECTANGLE')).toBe(true)
+  })
 })
