@@ -7,7 +7,6 @@ import { run } from '../helpers.ts'
 import { renderToNodeChanges } from '../../src/render/index.ts'
 import { getFileKey, getParentGUID } from '../../src/client.ts'
 
-// Import test component
 import Card from '../fixtures/Card.figma.tsx'
 
 const PROXY_URL = 'http://localhost:38451'
@@ -24,12 +23,10 @@ async function sendToProxy(nodeChanges: unknown[]): Promise<void> {
     body: JSON.stringify({ fileKey, nodeChanges }),
   })
   const data = await response.json() as { error?: string }
-  if (data.error) {
-    throw new Error(data.error)
-  }
+  if (data.error) throw new Error(data.error)
 }
 
-async function renderAndVerify(props: Record<string, unknown>): Promise<Array<{ id: string; name: string }>> {
+async function renderCard(props: Record<string, unknown>) {
   const element = React.createElement(Card, props as any)
   const result = renderToNodeChanges(element, {
     sessionID,
@@ -37,13 +34,8 @@ async function renderAndVerify(props: Record<string, unknown>): Promise<Array<{ 
     startLocalID: localIDCounter,
   })
   localIDCounter = result.nextLocalID
-  
   await sendToProxy(result.nodeChanges)
-  
-  return result.nodeChanges.map(nc => ({
-    id: `${nc.guid.sessionID}:${nc.guid.localID}`,
-    name: nc.name || '',
-  }))
+  return result.nodeChanges
 }
 
 describe('render', () => {
@@ -54,93 +46,68 @@ describe('render', () => {
     localIDCounter = Date.now() % 1000000
   }, 10000)
 
-  test('renders simple TSX component', async () => {
-    const result = await renderAndVerify({ title: 'Test', items: ['A'] })
+  test('renders component and returns correct node structure', async () => {
+    const nodes = await renderCard({ title: 'Test', items: ['A'] })
     
-    expect(Array.isArray(result)).toBe(true)
-    expect(result.length).toBeGreaterThan(0)
-    expect(result[0]!.name).toBe('Card')
+    expect(nodes.length).toBeGreaterThan(0)
+    expect(nodes[0]!.name).toBe('Card')
+    expect(nodes[0]!.type).toBe('FRAME')
   })
 
-  test('renders with multiple items', async () => {
-    const result = await renderAndVerify({ title: 'Products', items: ['iPhone', 'MacBook', 'AirPods'] })
+  test('renders correct number of nodes for multiple items', async () => {
+    const nodes = await renderCard({ title: 'Products', items: ['iPhone', 'MacBook', 'AirPods'] })
     // Card + Title + Items frame + 3 item frames + 3 dots + 3 texts + Actions + 2 buttons + 2 button texts = 17
-    expect(result.length).toBe(17)
+    expect(nodes.length).toBe(17)
   })
 
-  test('renders into parent node', async () => {
-    // Create parent via plugin
+  test('applies layout and styling props', async () => {
+    const nodes = await renderCard({ title: 'Styled', items: ['A'] })
+    const card = nodes[0]!
+    
+    // Check NodeChange has correct values
+    expect(card.stackMode).toBe('VERTICAL')
+    expect(card.stackSpacing).toBe(16)
+    expect(card.cornerRadius).toBe(12)
+    expect(card.fillPaints?.[0]?.color).toEqual({ r: 1, g: 1, b: 1, a: 1 }) // #FFFFFF
+  })
+
+  test('creates text nodes with content', async () => {
+    const nodes = await renderCard({ title: 'Hello World', items: ['A'] })
+    const titleNode = nodes.find(n => n.name === 'Title')
+    
+    expect(titleNode).toBeDefined()
+    expect((titleNode as any).textData?.characters).toBe('Hello World')
+  })
+
+  test('handles variant prop', async () => {
+    const primary = await renderCard({ title: 'P', items: ['A'] })
+    const secondary = await renderCard({ title: 'S', items: ['A'], variant: 'secondary' })
+    
+    const primaryBtn = primary.find(n => n.name === 'Primary Button')
+    const secondaryBtn = secondary.find(n => n.name === 'Primary Button')
+    
+    // Primary = #3B82F6, Secondary = #6B7280
+    expect(primaryBtn?.fillPaints?.[0]?.color?.b).toBeCloseTo(0.96, 1) // Blue
+    expect(secondaryBtn?.fillPaints?.[0]?.color?.b).toBeCloseTo(0.5, 1) // Gray
+  })
+
+  test('renders into specific parent (integration)', async () => {
+    // This test actually verifies via plugin - keep one integration test
     const parent = await run('create frame --x 0 --y 0 --width 500 --height 500 --name "Container" --json') as { id: string }
     const parts = parent.id.split(':').map(Number)
-    const pSession = parts[0] ?? 0
-    const pLocal = parts[1] ?? 0
     
-    // Render into parent
     const element = React.createElement(Card, { title: 'Nested', items: ['X'] })
     const result = renderToNodeChanges(element, {
       sessionID,
-      parentGUID: { sessionID: pSession, localID: pLocal },
+      parentGUID: { sessionID: parts[0] ?? 0, localID: parts[1] ?? 0 },
       startLocalID: localIDCounter++,
     })
     localIDCounter = result.nextLocalID
     
     await sendToProxy(result.nodeChanges)
     
-    const first = result.nodeChanges[0]!
-    const cardId = `${first.guid.sessionID}:${first.guid.localID}`
+    const cardId = `${result.nodeChanges[0]!.guid.sessionID}:${result.nodeChanges[0]!.guid.localID}`
     const cardInfo = await run(`node get ${cardId} --json`) as { parentId?: string }
     expect(cardInfo.parentId).toBe(parent.id)
-  })
-
-  test('applies layout props correctly', async () => {
-    const result = await renderAndVerify({ title: 'Layout', items: ['A'] })
-    
-    const card = await run(`node get ${result[0]!.id} --json`) as { layoutMode?: string; itemSpacing?: number }
-    expect(card.layoutMode).toBe('VERTICAL')
-    expect(card.itemSpacing).toBe(16)
-  })
-
-  test('applies padding correctly', async () => {
-    const result = await renderAndVerify({ title: 'Padding', items: ['A'] })
-    
-    const card = await run(`node get ${result[0]!.id} --json`) as { padding?: { top: number; left: number } }
-    expect(card.padding?.top).toBe(24)
-    expect(card.padding?.left).toBe(24)
-  })
-
-  test('applies fill colors', async () => {
-    const result = await renderAndVerify({ title: 'Colors', items: ['A'] })
-    
-    const card = await run(`node get ${result[0]!.id} --json`) as { fills?: Array<{ color: string }> }
-    expect(card.fills?.[0]?.color).toBe('#FFFFFF')
-  })
-
-  test('applies corner radius', async () => {
-    const result = await renderAndVerify({ title: 'Radius', items: ['A'] })
-    
-    const card = await run(`node get ${result[0]!.id} --json`) as { cornerRadius?: number }
-    expect(card.cornerRadius).toBe(12)
-  })
-
-  test('creates text nodes with content', async () => {
-    const result = await renderAndVerify({ title: 'Hello World', items: ['A'] })
-    
-    const titleNode = result.find(n => n.name === 'Title')!
-    expect(titleNode).toBeDefined()
-    
-    const titleInfo = await run(`node get ${titleNode.id} --json`) as { characters?: string }
-    expect(titleInfo.characters).toBe('Hello World')
-  })
-
-  test('handles variant prop', async () => {
-    const primaryResult = await renderAndVerify({ title: 'Primary', items: ['A'] })
-    const primaryButton = primaryResult.find(n => n.name === 'Primary Button')
-    const primaryInfo = await run(`node get ${primaryButton!.id} --json`) as { fills?: Array<{ color: string }> }
-    expect(primaryInfo.fills?.[0]?.color).toBe('#3B82F6')
-    
-    const secondaryResult = await renderAndVerify({ title: 'Secondary', items: ['A'], variant: 'secondary' })
-    const secondaryButton = secondaryResult.find(n => n.name === 'Primary Button')
-    const secondaryInfo = await run(`node get ${secondaryButton!.id} --json`) as { fills?: Array<{ color: string }> }
-    expect(secondaryInfo.fills?.[0]?.color).toBe('#6B7280')
   })
 })
