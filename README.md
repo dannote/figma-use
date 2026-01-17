@@ -4,6 +4,25 @@ Control Figma from the command line. Like [browser-use](https://github.com/brows
 
 Built for AI agents to create and manipulate Figma designs programmatically.
 
+## Why not the official Figma MCP?
+
+The [official Figma MCP server](https://developers.figma.com/docs/figma-mcp-server/) is **read-only** — it can extract design context and take screenshots, but cannot create or modify anything.
+
+| Feature | Official MCP | figma-use |
+|---------|-------------|-----------|
+| Read node properties | ✓ | ✓ |
+| Take screenshots | ✓ | ✓ |
+| Extract variables/styles | ✓ | ✓ |
+| **Create shapes** | ✗ | ✓ |
+| **Create text** | ✗ | ✓ |
+| **Create frames & components** | ✗ | ✓ |
+| **Modify properties** | ✗ | ✓ |
+| **Set fills, strokes, effects** | ✗ | ✓ |
+| **Auto-layout** | ✗ | ✓ |
+| **Execute arbitrary code** | ✗ | ✓ |
+
+figma-use gives AI agents full control over Figma — not just reading, but **creating and editing** designs.
+
 ## How it works
 
 ```
@@ -53,21 +72,22 @@ Start Figma and find the plugin in **Plugins → Development → Figma Use**.
 ### 3. Run commands
 
 ```bash
-# Create shapes
-figma-use create-rectangle --x 0 --y 0 --width 200 --height 100 --fill "#3B82F6" --radius 8
+# Create a styled button in one command (fill + stroke + radius + layout)
+figma-use create-frame --x 0 --y 0 --width 200 --height 48 \
+  --fill "#3B82F6" --stroke "#1D4ED8" --radius 8 \
+  --layoutMode HORIZONTAL --itemSpacing 8 --padding "12,24,12,24" \
+  --name "Button"
 
-# Create text
-figma-use create-text --x 50 --y 40 --text "Hello Figma" --fontSize 24 --fill "#FFFFFF"
-
-# Get node info
-figma-use get-node --id "1:2"
+# Add text with font styling
+figma-use create-text --x 0 --y 0 --text "Click me" \
+  --fontSize 16 --fontFamily "Inter" --fontStyle "Medium" --fill "#FFFFFF" \
+  --parentId "1:23"
 
 # Export to PNG
-figma-use export-node --id "1:2" --format PNG --scale 2 --output design.png
-
-# Take screenshot
-figma-use screenshot --output viewport.png
+figma-use export-node --id "1:23" --format PNG --scale 2 --output button.png
 ```
+
+All create commands support inline styling — no need for separate `set-*` calls.
 
 ## Output Format
 
@@ -222,39 +242,26 @@ figma-use eval "const node = await figma.getNodeByIdAsync('1:2'); return node.na
 
 ## For AI Agents
 
-figma-use is designed for AI agents. Example with Claude:
+figma-use is designed to work with AI coding agents like [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://cursor.sh), or any agent that can execute shell commands.
 
-```python
-import anthropic
-import subprocess
+### Using with Claude Code
 
-def figma(cmd):
-    result = subprocess.run(
-        f"figma-use {cmd} --json",
-        shell=True, capture_output=True, text=True
-    )
-    return result.stdout
+Add the [web-to-figma skill](https://github.com/anthropics/claude-code/tree/main/skills) to your agent:
 
-client = anthropic.Anthropic()
-
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    messages=[{
-        "role": "user", 
-        "content": "Create a blue button with white text 'Click me'"
-    }],
-    tools=[{
-        "name": "figma",
-        "description": "Run figma-use CLI command",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "command": {"type": "string"}
-            }
-        }
-    }]
-)
+```bash
+# The skill teaches the agent how to:
+# - Extract styles from web pages
+# - Recreate UI components in Figma
+# - Match colors, fonts, spacing, and layout
 ```
+
+Then just ask:
+
+```
+Recreate this login form in Figma: https://example.com/login
+```
+
+The agent will use `figma-use` commands to build the design.
 
 ## License
 

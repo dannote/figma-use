@@ -1,6 +1,6 @@
 {
   "name": "@dannote/figma-use",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Control Figma from the command line. Like browser-use, but for Figma.",
   "type": "module",
   "bin": {
@@ -46,14 +46,8 @@
     "elysia": "^1.2.25"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.52.0",
-    "@anthropic-ai/tokenizer": "^0.0.4",
     "@types/bun": "^1.3.6",
     "esbuild": "^0.25.4",
     "typescript": "^5.8.3"
-  },
-  "engines": {
-    "node": ">=18",
-    "bun": ">=1.0"
   }
 }
