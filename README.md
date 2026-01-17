@@ -246,6 +246,69 @@ figma-use group ungroup <id>
 figma-use group flatten "1:2,1:3"
 ```
 
+### Render React Components
+
+Render TSX/JSX components directly to Figma via WebSocket (bypasses plugin API for ~100x speed):
+
+```bash
+# From file
+figma-use render ./Card.figma.tsx
+
+# With props
+figma-use render --file ./Card.figma.tsx --props '{"title": "Hello", "items": ["A", "B"]}'
+
+# From stdin (useful for AI-generated components)
+cat component.tsx | figma-use render --stdin
+
+# Into specific parent
+figma-use render --file ./Card.figma.tsx --parent "1:23"
+
+# Dry run (output NodeChanges JSON without sending)
+figma-use render --file ./Card.figma.tsx --dryRun
+```
+
+**Important:** The `render` command requires Figma to be started with remote debugging enabled:
+
+```bash
+figma --remote-debugging-port=9222
+```
+
+Example component (`Card.figma.tsx`):
+
+```tsx
+import * as React from 'react'
+import { Frame, Text, Rectangle } from '@dannote/figma-use/components'
+
+interface CardProps {
+  title: string
+  items: string[]
+}
+
+export default function Card({ title, items }: CardProps) {
+  return (
+    <Frame name="Card" style={{
+      width: 300,
+      flexDirection: 'column',
+      padding: 24,
+      gap: 16,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+    }}>
+      <Text name="Title" style={{ fontSize: 24, fontWeight: 'bold', color: '#000' }}>
+        {title}
+      </Text>
+      <Frame name="Items" style={{ flexDirection: 'column', gap: 8 }}>
+        {items.map((item, i) => (
+          <Text key={i} style={{ fontSize: 16, color: '#666' }}>{item}</Text>
+        ))}
+      </Frame>
+    </Frame>
+  )
+}
+```
+
+Available components: `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Polygon`, `Vector`, `Component`, `Instance`, `Group`, `Page`
+
 ### Advanced
 
 ```bash

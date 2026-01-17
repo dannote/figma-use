@@ -5,6 +5,10 @@
   "bin": {
     "figma": "src/index.ts"
   },
+  "exports": {
+    ".": "./src/index.ts",
+    "./components": "./src/render/components.tsx"
+  },
   "scripts": {
     "dev": "bun run src/index.ts",
     "start": "bun run src/index.ts"
