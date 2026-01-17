@@ -116,10 +116,3 @@ export const Page: React.FC<BaseProps> = (props) => {
 
 // Alias for react-native compatibility
 export const View = Frame
-
-// Component names for detection in JSX snippets
-export const COMPONENT_NAMES = [
-  'Frame', 'Rectangle', 'Ellipse', 'Text', 'Line', 
-  'Star', 'Polygon', 'Vector', 'Component', 'Instance', 
-  'Group', 'Page', 'View'
-] as const

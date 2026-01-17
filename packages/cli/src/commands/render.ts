@@ -8,7 +8,6 @@ import { join } from 'path'
 import * as React from 'react'
 import { renderToNodeChanges } from '../render/index.ts'
 import { FigmaMultiplayerClient, getCookiesFromDevTools, initCodec } from '../multiplayer/index.ts'
-import { COMPONENT_NAMES } from '../render/components.tsx'
 import { transformSync } from 'esbuild'
 
 async function readStdin(): Promise<string> {
@@ -32,43 +31,32 @@ function findNodeModulesDir(): string | null {
   return null
 }
 
+// Map PascalCase component names to lowercase intrinsic elements via esbuild define
+const JSX_DEFINE = Object.fromEntries(
+  ['Frame', 'Rectangle', 'Ellipse', 'Text', 'Line', 'Star', 'Polygon', 'Vector', 'Component', 'Instance', 'Group', 'Page', 'View']
+    .map(name => [name, JSON.stringify(name.toLowerCase())])
+)
+
 /**
- * Transform JSX snippet to a factory function using esbuild
+ * Transform JSX snippet to ES module using esbuild.
+ * PascalCase components (Frame, Text, etc.) are converted to lowercase intrinsic elements.
  */
 function transformJsxSnippet(code: string): string {
-  const trimmed = code.trim()
+  const snippet = code.trim()
+  const isModule = snippet.includes('import ') || snippet.includes('export ')
   
-  // Already a complete module - return as is
-  if (trimmed.includes('import ') || trimmed.includes('export ')) {
-    return code
-  }
+  // Wrap snippet in factory function, or use module as-is
+  const fullCode = isModule ? snippet : `export default (React) => () => (${snippet});`
   
-  // Detect which components are used
-  const usedComponents = COMPONENT_NAMES.filter(name => 
-    new RegExp(`<${name}[\\s/>]`).test(trimmed)
-  )
-  
-  // Component definitions using passed React
-  const componentDefs = usedComponents.map(name => {
-    const elementType = name.toLowerCase()
-    return `const ${name} = ({ children, ...props }) => React.createElement('${elementType}', props, children);`
-  }).join('\n')
-  
-  // Use esbuild to transform JSX to React.createElement
-  const jsxCode = `(${trimmed})`
-  const result = transformSync(jsxCode, {
+  const result = transformSync(fullCode, {
     loader: 'tsx',
     jsx: 'transform',
     jsxFactory: 'React.createElement',
     jsxFragment: 'React.Fragment',
+    define: JSX_DEFINE,
   })
   
-  const transformedJsx = result.code.trim().replace(/;\s*$/, '')
-  
-  return `export default function createComponent(React) {
-${componentDefs}
-return () => ${transformedJsx};
-}`
+  return result.code
 }
 
 export default defineCommand({
