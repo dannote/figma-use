@@ -226,10 +226,10 @@ figma-use viewport zoom-to-fit <ids...>
 ```bash
 figma-use find --name "Button"
 figma-use find --name "Icon" --type FRAME
-figma-use find --type INSTANCE              # Find all instances on current page
+figma-use find --type INSTANCE --limit 50   # Limit results (default: 100)
 figma-use get pages
 figma-use get components --name "Button"    # Filter by name
-figma-use get components --limit 50         # Limit results (default: 100)
+figma-use get components --limit 50         # Limit results (default: 50)
 figma-use get styles
 ```
 

@@ -33,14 +33,56 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const { id } = args as { id: string }
       const node = await figma.getNodeByIdAsync(id)
       if (!node) throw new Error('Node not found')
-      const serializeTree = (n: BaseNode): object => {
-        const base = serializeNode(n) as Record<string, unknown>
+      
+      const serializeTreeNode = (n: BaseNode): object => {
+        const base: Record<string, unknown> = {
+          id: n.id,
+          name: n.name,
+          type: n.type
+        }
+        if ('x' in n) base.x = Math.round(n.x)
+        if ('y' in n) base.y = Math.round(n.y)
+        if ('width' in n) base.width = Math.round(n.width)
+        if ('height' in n) base.height = Math.round(n.height)
+        
+        // Only essential properties for tree view
+        if ('fills' in n && Array.isArray(n.fills)) {
+          const solid = n.fills.find((f: Paint) => f.type === 'SOLID') as SolidPaint | undefined
+          if (solid) base.fills = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
+        }
+        if ('strokes' in n && Array.isArray(n.strokes) && n.strokes.length > 0) {
+          const solid = n.strokes.find((s: Paint) => s.type === 'SOLID') as SolidPaint | undefined
+          if (solid) base.strokes = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
+        }
+        if ('strokeWeight' in n && typeof n.strokeWeight === 'number' && n.strokeWeight > 0) {
+          base.strokeWeight = n.strokeWeight
+        }
+        if ('cornerRadius' in n && typeof n.cornerRadius === 'number' && n.cornerRadius > 0) {
+          base.cornerRadius = n.cornerRadius
+        }
+        if ('opacity' in n && n.opacity !== 1) base.opacity = n.opacity
+        if ('visible' in n && !n.visible) base.visible = false
+        if ('locked' in n && n.locked) base.locked = true
+        if ('layoutMode' in n && n.layoutMode !== 'NONE') {
+          base.layoutMode = n.layoutMode
+          if ('itemSpacing' in n) base.itemSpacing = n.itemSpacing
+        }
+        if (n.type === 'TEXT') {
+          const t = n as TextNode
+          base.characters = t.characters
+          if (typeof t.fontSize === 'number') base.fontSize = t.fontSize
+          if (typeof t.fontName === 'object') {
+            base.fontFamily = t.fontName.family
+            base.fontStyle = t.fontName.style
+          }
+        }
+        
         if ('children' in n && (n as FrameNode).children) {
-          base.children = (n as FrameNode).children.map(serializeTree)
+          base.children = (n as FrameNode).children.map(serializeTreeNode)
         }
         return base
       }
-      return serializeTree(node)
+      return serializeTreeNode(node)
     }
 
     case 'get-all-components': {
@@ -569,14 +611,26 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'find-by-name': {
-      const { name, type, exact } = args as { name?: string; type?: string; exact?: boolean }
+      const { name, type, exact, limit = 100 } = args as { name?: string; type?: string; exact?: boolean; limit?: number }
       const results: object[] = []
-      figma.currentPage.findAll(n => {
-        const nameMatch = !name || (exact ? n.name === name : n.name.toLowerCase().includes(name.toLowerCase()))
-        const typeMatch = !type || n.type === type
-        if (nameMatch && typeMatch) results.push(serializeNode(n))
-        return false
-      })
+      const nameLower = name?.toLowerCase()
+      
+      const searchNode = (node: SceneNode): boolean => {
+        if (results.length >= limit) return false
+        const nameMatch = !nameLower || (exact ? node.name === name : node.name.toLowerCase().includes(nameLower))
+        const typeMatch = !type || node.type === type
+        if (nameMatch && typeMatch) results.push(serializeNode(node))
+        if ('children' in node) {
+          for (const child of (node as FrameNode).children) {
+            if (!searchNode(child)) return false
+          }
+        }
+        return results.length < limit
+      }
+      
+      for (const child of figma.currentPage.children) {
+        if (!searchNode(child)) break
+      }
       return results
     }
 
