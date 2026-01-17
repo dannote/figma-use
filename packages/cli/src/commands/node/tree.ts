@@ -1,18 +1,9 @@
 import { defineCommand } from 'citty'
 import { sendCommand, handleError } from '../../client.ts'
 import type { FigmaNode } from '../../types.ts'
+import { formatFill, formatStroke, formatLayout, formatText, formatFont, fail } from '../../format.ts'
 
-function formatColor(fill: { type: string; color?: string; opacity?: number }): string {
-  if (fill.type === 'SOLID' && fill.color) {
-    const alpha = fill.opacity !== undefined && fill.opacity < 1 
-      ? Math.round(fill.opacity * 255).toString(16).padStart(2, '0').toUpperCase()
-      : ''
-    return fill.color + alpha
-  }
-  return fill.type.toLowerCase()
-}
-
-function formatNode(node: FigmaNode, depth: number, index: number, options: { 
+function formatTreeNode(node: FigmaNode, depth: number, index: number, options: { 
   showHidden: boolean
   maxDepth: number
   interactive: boolean
@@ -31,7 +22,7 @@ function formatNode(node: FigmaNode, depth: number, index: number, options: {
     if (node.children) {
       for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i]
-        if (child) lines.push(...formatNode(child, depth, i, options))
+        if (child) lines.push(...formatTreeNode(child, depth, i, options))
       }
     }
     return lines
@@ -47,42 +38,24 @@ function formatNode(node: FigmaNode, depth: number, index: number, options: {
     props.push(`${Math.round(node.width)}×${Math.round(node.height)} at (${x}, ${y})`)
   }
   
-  if (node.fills?.length) {
-    const solidFill = node.fills.find(f => f.type === 'SOLID')
-    if (solidFill) {
-      props.push(`fill: ${formatColor(solidFill)}`)
-    }
-  }
+  const fill = formatFill(node.fills)
+  if (fill) props.push(`fill: ${fill}`)
   
-  if (node.strokes?.length && node.strokeWeight) {
-    const solidStroke = node.strokes.find(s => s.type === 'SOLID')
-    if (solidStroke?.color) {
-      props.push(`stroke: ${solidStroke.color} ${node.strokeWeight}px`)
-    }
-  }
+  const stroke = formatStroke(node.strokes, node.strokeWeight)
+  if (stroke) props.push(`stroke: ${stroke}`)
   
   if (node.cornerRadius) {
     props.push(`radius: ${node.cornerRadius}`)
   }
   
-  if (node.layoutMode && node.layoutMode !== 'NONE') {
-    const layout = node.layoutMode === 'HORIZONTAL' ? 'row' : 'col'
-    const gap = node.itemSpacing ? ` gap=${node.itemSpacing}` : ''
-    props.push(`layout: ${layout}${gap}`)
-  }
+  const layout = formatLayout(node)
+  if (layout) props.push(layout)
   
-  if (node.characters) {
-    const text = node.characters.length > 40 
-      ? node.characters.slice(0, 40) + '…' 
-      : node.characters
-    props.push(`"${text.replace(/\n/g, '↵')}"`)
-  }
+  const text = formatText(node.characters)
+  if (text) props.push(text)
   
-  if (node.fontSize) {
-    const font = node.fontFamily || ''
-    const style = node.fontStyle && node.fontStyle !== 'Regular' ? ` ${node.fontStyle}` : ''
-    props.push(`font: ${node.fontSize}px${font ? ` ${font}${style}` : ''}`)
-  }
+  const font = formatFont(node)
+  if (font) props.push(font)
   
   if (node.opacity !== undefined && node.opacity < 1) {
     props.push(`opacity: ${Math.round(node.opacity * 100)}%`)
@@ -100,7 +73,7 @@ function formatNode(node: FigmaNode, depth: number, index: number, options: {
   if (node.children && (options.maxDepth === -1 || depth < options.maxDepth)) {
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i]
-      if (child) lines.push(...formatNode(child, depth + 1, i, options))
+      if (child) lines.push(...formatTreeNode(child, depth + 1, i, options))
     }
   }
   
@@ -129,7 +102,7 @@ export default defineCommand({
       const total = countNodes(result)
       
       if (!args.force && total > MAX_NODES) {
-        console.error(`✗ Tree has ${total} nodes (limit: ${MAX_NODES}). Use --depth to limit or --force to override.`)
+        console.error(fail(`Tree has ${total} nodes (limit: ${MAX_NODES}). Use --depth to limit or --force to override.`))
         process.exit(1)
       }
       
@@ -144,7 +117,7 @@ export default defineCommand({
         interactive: args.interactive || false
       }
       
-      const lines = formatNode(result, 0, 0, options)
+      const lines = formatTreeNode(result, 0, 0, options)
       console.log(lines.join('\n'))
       console.log(`\n${total} nodes`)
       

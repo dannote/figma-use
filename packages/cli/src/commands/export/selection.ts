@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty'
 import { sendCommand, handleError } from '../../client.ts'
 import { checkSelectionSize } from '../../export-guard.ts'
+import { fail } from '../../format.ts'
 import { writeFileSync } from 'fs'
 
 export default defineCommand({
@@ -20,7 +21,7 @@ export default defineCommand({
 
       const check = await checkSelectionSize(scale, padding, args.force || false)
       if (!check.ok) {
-        console.error(`✗ ${check.message}`)
+        console.error(fail(check.message!))
         process.exit(1)
       }
 

@@ -1,49 +1,9 @@
-type NodeType = 'FRAME' | 'RECTANGLE' | 'ELLIPSE' | 'TEXT' | 'COMPONENT' | 'INSTANCE' | 'GROUP' | 'VECTOR' | 'LINE' | 'POLYGON' | 'STAR' | 'BOOLEAN_OPERATION'
-
-const TYPE_LABELS: Record<string, string> = {
-  FRAME: 'frame',
-  RECTANGLE: 'rect',
-  ELLIPSE: 'ellipse',
-  TEXT: 'text',
-  COMPONENT: 'component',
-  INSTANCE: 'instance',
-  GROUP: 'group',
-  VECTOR: 'vector',
-  LINE: 'line',
-  POLYGON: 'polygon',
-  STAR: 'star',
-  BOOLEAN_OPERATION: 'boolean'
-}
-
-function formatColor(color: string): string {
-  return color.startsWith('#') ? color : color
-}
-
-function formatFills(fills: Array<{ type: string; color?: string }>): string | null {
-  if (!fills || fills.length === 0) return null
-  const solid = fills.find(f => f.type === 'SOLID')
-  return solid?.color ? formatColor(solid.color) : null
-}
-
-function formatStrokes(strokes: Array<{ type: string; color?: string }>, weight?: number): string | null {
-  if (!strokes || strokes.length === 0) return null
-  const solid = strokes.find(f => f.type === 'SOLID')
-  if (!solid?.color) return null
-  return weight ? `${formatColor(solid.color)} ${weight}px` : formatColor(solid.color)
-}
-
-function formatBox(node: { width?: number; height?: number; x?: number; y?: number }): string | null {
-  if (node.width === undefined || node.height === undefined) return null
-  const size = `${Math.round(node.width)}x${Math.round(node.height)}`
-  if (node.x !== undefined && node.y !== undefined) {
-    return `${size} at (${Math.round(node.x)}, ${Math.round(node.y)})`
-  }
-  return size
-}
+import type { FigmaNode } from './types.ts'
+import { TYPE_LABELS, formatFill, formatStroke, formatBox, formatType, ok, fail } from './format.ts'
 
 function formatNode(node: Record<string, unknown>, indent = ''): string {
   const lines: string[] = []
-  const type = TYPE_LABELS[node.type as string] || (node.type as string)?.toLowerCase() || 'node'
+  const type = formatType(node.type as string)
   const name = node.name || node.characters || ''
   const id = node.id
 
@@ -51,48 +11,36 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
 
   const details: string[] = []
 
-  // Box
   const box = formatBox(node as { width?: number; height?: number; x?: number; y?: number })
   if (box) details.push(`box: ${box}`)
 
-  // Fill
-  const fill = formatFills(node.fills as Array<{ type: string; color?: string }>)
+  const fill = formatFill(node.fills as FigmaNode['fills'])
   if (fill) details.push(`fill: ${fill}`)
 
-  // Stroke
-  const stroke = formatStrokes(
-    node.strokes as Array<{ type: string; color?: string }>,
-    node.strokeWeight as number
-  )
+  const stroke = formatStroke(node.strokes as FigmaNode['strokes'], node.strokeWeight as number)
   if (stroke) details.push(`stroke: ${stroke}`)
 
-  // Radius
   if (node.cornerRadius && node.cornerRadius !== 0) {
     details.push(`radius: ${node.cornerRadius}px`)
   }
 
-  // Font (for text)
   if (node.fontSize) {
     const weight = node.fontWeight || ''
     details.push(`font: ${node.fontSize}px ${weight}`.trim())
   }
 
-  // Characters (for text)
   if (node.characters && !name) {
     details.push(`text: "${node.characters}"`)
   }
 
-  // Children count
   if (node.childCount !== undefined && typeof node.childCount === 'number' && node.childCount > 0) {
     details.push(`children: ${node.childCount}`)
   }
 
-  // Layout
   if (node.layoutMode) {
     details.push(`layout: ${node.layoutMode}`)
   }
 
-  // Opacity
   if (node.opacity !== undefined && node.opacity !== 1) {
     details.push(`opacity: ${node.opacity}`)
   }
@@ -106,7 +54,7 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
 
 function formatNodeList(nodes: Array<Record<string, unknown>>): string {
   return nodes.map((node, i) => {
-    const type = TYPE_LABELS[node.type as string] || (node.type as string)?.toLowerCase() || 'node'
+    const type = formatType(node.type as string)
     const name = node.name || node.characters || ''
     const id = node.id
     const box = formatBox(node as { width?: number; height?: number; x?: number; y?: number })
@@ -114,13 +62,10 @@ function formatNodeList(nodes: Array<Record<string, unknown>>): string {
     const details: string[] = []
     if (box) details.push(`box: ${box}`)
     
-    const fill = formatFills(node.fills as Array<{ type: string; color?: string }>)
+    const fill = formatFill(node.fills as FigmaNode['fills'])
     if (fill) details.push(`fill: ${fill}`)
     
-    const stroke = formatStrokes(
-      node.strokes as Array<{ type: string; color?: string }>,
-      node.strokeWeight as number
-    )
+    const stroke = formatStroke(node.strokes as FigmaNode['strokes'], node.strokeWeight as number)
     if (stroke) details.push(`stroke: ${stroke}`)
 
     if (node.cornerRadius && node.cornerRadius !== 0) {
@@ -136,22 +81,19 @@ function formatNodeList(nodes: Array<Record<string, unknown>>): string {
 }
 
 function formatCreated(node: Record<string, unknown>, action = 'Created'): string {
-  const type = TYPE_LABELS[node.type as string] || (node.type as string)?.toLowerCase() || 'node'
+  const type = formatType(node.type as string)
   const name = node.name || node.characters || ''
   
-  const lines = [`\x1b[32m✓\x1b[0m ${action} ${type} "${name}"`]
+  const lines = [ok(`${action} ${type} "${name}"`)]
   lines.push(`  id: ${node.id}`)
   
   const box = formatBox(node as { width?: number; height?: number; x?: number; y?: number })
   if (box) lines.push(`  box: ${box}`)
 
-  const fill = formatFills(node.fills as Array<{ type: string; color?: string }>)
+  const fill = formatFill(node.fills as FigmaNode['fills'])
   if (fill) lines.push(`  fill: ${fill}`)
 
-  const stroke = formatStrokes(
-    node.strokes as Array<{ type: string; color?: string }>,
-    node.strokeWeight as number
-  )
+  const stroke = formatStroke(node.strokes as FigmaNode['strokes'], node.strokeWeight as number)
   if (stroke) lines.push(`  stroke: ${stroke}`)
 
   if (node.cornerRadius && node.cornerRadius !== 0) {
@@ -166,17 +108,11 @@ function formatCreated(node: Record<string, unknown>, action = 'Created'): strin
 }
 
 function formatExport(result: { path?: string }): string {
-  if (result.path) {
-    return `\x1b[32m✓\x1b[0m Exported to ${result.path}`
-  }
-  return '\x1b[32m✓\x1b[0m Exported'
+  return result.path ? ok(`Exported to ${result.path}`) : ok('Exported')
 }
 
 function formatDeleted(result: { deleted?: boolean }): string {
-  if (result.deleted) {
-    return '\x1b[32m✓\x1b[0m Deleted'
-  }
-  return '\x1b[31m✗\x1b[0m Delete failed'
+  return result.deleted ? ok('Deleted') : fail('Delete failed')
 }
 
 function formatPages(pages: Array<{ id: string; name: string }>): string {
@@ -184,10 +120,7 @@ function formatPages(pages: Array<{ id: string; name: string }>): string {
 }
 
 function formatStatus(status: { pluginConnected: boolean }): string {
-  if (status.pluginConnected) {
-    return '\x1b[32m✓\x1b[0m Plugin connected'
-  }
-  return '\x1b[31m✗\x1b[0m Plugin not connected'
+  return status.pluginConnected ? ok('Plugin connected') : fail('Plugin not connected')
 }
 
 export function formatResult(result: unknown, context?: string): string {
@@ -195,16 +128,13 @@ export function formatResult(result: unknown, context?: string): string {
     return ''
   }
 
-  // String result (e.g., file path)
   if (typeof result === 'string') {
     return result
   }
 
-  // Array of nodes
   if (Array.isArray(result)) {
     if (result.length === 0) return '(empty)'
     if (result[0]?.id && result[0]?.name !== undefined) {
-      // Pages or nodes list
       if (result[0]?.type) {
         return formatNodeList(result as Array<Record<string, unknown>>)
       }
@@ -213,26 +143,21 @@ export function formatResult(result: unknown, context?: string): string {
     return JSON.stringify(result, null, 2)
   }
 
-  // Object
   if (typeof result === 'object') {
     const obj = result as Record<string, unknown>
 
-    // Deleted
     if (obj.deleted !== undefined) {
       return formatDeleted(obj as { deleted?: boolean })
     }
 
-    // Export
     if (context === 'export' || obj.path) {
       return formatExport(obj as { path?: string })
     }
 
-    // Status
     if (obj.pluginConnected !== undefined) {
       return formatStatus(obj as { pluginConnected: boolean })
     }
 
-    // Node with id and type (created/updated node)
     if (obj.id && obj.type) {
       if (context === 'create') {
         return formatCreated(obj, 'Created')
@@ -243,24 +168,20 @@ export function formatResult(result: unknown, context?: string): string {
       return formatNode(obj)
     }
 
-    // Node with just id and name (page)
     if (obj.id && obj.name && !obj.type) {
       return `[page] "${obj.name}" (${obj.id})`
     }
 
-    // Zoom result
     if (obj.center && obj.zoom) {
-      return `\x1b[32m✓\x1b[0m Zoomed to fit (${(obj.zoom as number * 100).toFixed(0)}%)`
+      return ok(`Zoomed to fit (${(obj.zoom as number * 100).toFixed(0)}%)`)
     }
 
-    // Selection
     if (obj.selection !== undefined) {
       const sel = obj.selection as string[]
       if (sel.length === 0) return '(no selection)'
       return `Selected: ${sel.join(', ')}`
     }
 
-    // Fallback to JSON
     return JSON.stringify(obj, null, 2)
   }
 
@@ -277,5 +198,5 @@ export function printResult(result: unknown, jsonMode = false, context?: string)
 
 export function printError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error)
-  console.error(`\x1b[31m✗\x1b[0m ${message}`)
+  console.error(fail(message))
 }
