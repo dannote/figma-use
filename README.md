@@ -258,6 +258,22 @@ figma-use eval "await figma.loadFontAsync({family: 'Inter', style: 'Bold'})"
 figma-use import --svg "<svg>...</svg>" --x 0 --y 0
 ```
 
+### Performance Profiling
+
+Profile any command using Chrome DevTools Protocol:
+
+```bash
+# Start Figma with debug port
+/Applications/Figma.app/Contents/MacOS/Figma --remote-debugging-port=9222
+
+# Profile a command
+figma-use profile "get components --limit 20"
+figma-use profile "node tree --depth 2"
+figma-use profile "find --type INSTANCE"
+```
+
+Output shows time breakdown (Figma WASM vs JS vs GC) and top functions by CPU time.
+
 ## Output Format
 
 Human-readable by default:
