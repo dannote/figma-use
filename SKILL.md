@@ -148,7 +148,9 @@ figma-use group create "1:2,1:3"
 figma-use group ungroup <id>
 ```
 
-### Render React Components
+### Render React Components (Experimental)
+
+> ⚠️ Uses Figma's internal multiplayer protocol — may break without notice.
 
 Render TSX/JSX directly to Figma (~100x faster than plugin API):
 
@@ -177,6 +179,25 @@ figma-use render ./Card.figma.tsx --parent "1:23"
 2. Proxy running: `figma-use proxy`
 
 Available elements: `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Polygon`, `Vector`, `Component`, `Instance`, `Group`
+
+#### Variable Bindings (Experimental)
+
+Bind Figma variables to colors by name:
+
+```tsx
+import { defineVars, Frame } from '@dannote/figma-use'
+
+const colors = defineVars({
+  primary: 'Colors/Gray/50',    // Use Figma variable names
+  border: 'Colors/Gray/500',
+})
+
+export default () => (
+  <Frame style={{ backgroundColor: colors.primary, borderColor: colors.border }} />
+)
+```
+
+Supports: `backgroundColor`, `borderColor`, text `color`.
 
 ### Eval (Arbitrary Code)
 
