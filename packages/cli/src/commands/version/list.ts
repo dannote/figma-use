@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty'
-import { getVersions } from '../../rest-api.ts'
-import { getFileKey, handleError } from '../../client.ts'
+import { getVersions } from '../../cdp-api.ts'
+import { handleError } from '../../client.ts'
 import { dim, accent } from '../../format.ts'
 
 export default defineCommand({
@@ -12,11 +12,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const fileKey = args.file || await getFileKey()
-      let versions = await getVersions(fileKey)
-      
-      const limit = Number(args.limit)
-      if (limit > 0) versions = versions.slice(0, limit)
+      const versions = await getVersions(args.file, Number(args.limit))
       
       if (args.json) {
         console.log(JSON.stringify(versions, null, 2))

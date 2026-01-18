@@ -26,8 +26,7 @@ export { default as boolean } from './boolean/index.ts'
 export { default as group } from './group/index.ts'
 export { default as component } from './component/index.ts'
 
-// REST API commands
+// CDP commands (no token required)
 export { default as comment } from './comment/index.ts'
 export { default as version } from './version/index.ts'
 export { default as file } from './file/index.ts'
-export { default as project } from './project/index.ts'

@@ -256,3 +256,27 @@ export async function deleteComment(commentId: string, fileKey?: string): Promis
   
   if (result.error) throw new Error('Failed to delete comment')
 }
+
+export interface Version {
+  id: string
+  created_at: string
+  label: string | null
+  description: string | null
+  user: User
+}
+
+export async function getVersions(fileKey?: string, limit = 20): Promise<Version[]> {
+  const key = fileKey || await getFileKeyFromBrowser()
+  
+  const result = await cdpEval<{ meta?: { versions: Version[] }; error?: boolean }>(`
+    (async () => {
+      const resp = await fetch('https://www.figma.com/api/versions/${key}?page_size=${limit}', {
+        credentials: 'include'
+      });
+      return await resp.json();
+    })()
+  `)
+  
+  if (result.error) throw new Error('Failed to fetch versions')
+  return result.meta?.versions || []
+}

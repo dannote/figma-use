@@ -260,6 +260,18 @@ figma-use style list
 figma-use style create-paint "Brand/Primary" --color "#E11D48"
 ```
 
+### Comments & History
+
+```bash
+figma-use comment list                       # List file comments
+figma-use comment add "Review this"          # Add comment
+figma-use comment add "Here" --x 200 --y 100 # Comment at position
+figma-use comment delete <id>                # Delete comment
+figma-use version list                       # Version history
+figma-use me                                 # Current user info
+figma-use file info                          # File key and name
+```
+
 ### Escape Hatch
 
 ```bash
