@@ -1,6 +1,6 @@
 {
   "name": "@dannote/figma-use",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Control Figma from the command line. Full read/write access for AI agents.",
   "type": "module",
   "bin": {
