@@ -149,6 +149,9 @@ function styleToNodeChange(
   // Auto-layout
   if (style.flexDirection) {
     nodeChange.stackMode = style.flexDirection === 'row' ? 'HORIZONTAL' : 'VERTICAL'
+    // Required for layout to actually apply
+    nodeChange.stackPrimarySizing = 'RESIZE_TO_FIT'
+    nodeChange.stackCounterSizing = 'RESIZE_TO_FIT'
   }
   if (style.gap !== undefined) {
     nodeChange.stackSpacing = Number(style.gap)

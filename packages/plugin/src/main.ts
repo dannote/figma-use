@@ -1304,6 +1304,33 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const fn = new AsyncFunction('figma', wrappedCode)
       return await fn(figma)
     }
+    
+    // ==================== LAYOUT ====================
+    case 'trigger-layout': {
+      // Trigger auto-layout recalculation for a node and all descendants
+      // Multiplayer protocol creates nodes but doesn't trigger layout engine
+      const { nodeId } = args as { nodeId: string }
+      const root = await figma.getNodeByIdAsync(nodeId)
+      if (!root) return null
+      
+      // Recursively trigger layout for all frames with auto-layout
+      const triggerRecursive = (node: SceneNode) => {
+        if ('layoutMode' in node && node.layoutMode !== 'NONE' && 'resize' in node) {
+          const w = node.width
+          const h = node.height
+          node.resize(w + 0.01, h + 0.01)
+          node.resize(w, h)
+        }
+        if ('children' in node) {
+          for (const child of node.children) {
+            triggerRecursive(child)
+          }
+        }
+      }
+      
+      triggerRecursive(root as SceneNode)
+      return { triggered: true }
+    }
 
     // ==================== VARIABLES ====================
     case 'get-variables': {

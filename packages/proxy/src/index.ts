@@ -147,6 +147,24 @@ new Elysia()
       
       await client.sendNodeChangesSync(nodeChanges)
       
+      // Trigger layout recalculation via plugin (multiplayer doesn't auto-apply)
+      if (sendToPlugin) {
+        const rootId = `${nodeChanges[0].guid.sessionID}:${nodeChanges[0].guid.localID}`
+        const layoutId = crypto.randomUUID()
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              pendingRequests.delete(layoutId)
+              reject(new Error('Layout trigger timeout'))
+            }, 5000)
+            pendingRequests.set(layoutId, { resolve: () => resolve(), reject, timeout })
+            sendToPlugin!(JSON.stringify({ id: layoutId, command: 'trigger-layout', args: { nodeId: rootId } }))
+          })
+        } catch {
+          // Layout trigger failed, nodes will overlap but still work
+        }
+      }
+      
       const ids = nodeChanges.map(nc => ({
         id: `${nc.guid.sessionID}:${nc.guid.localID}`,
         name: nc.name,
