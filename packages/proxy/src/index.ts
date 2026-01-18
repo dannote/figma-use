@@ -151,7 +151,6 @@ new Elysia()
       if (sendToPlugin) {
         const rootId = `${nodeChanges[0].guid.sessionID}:${nodeChanges[0].guid.localID}`
         const layoutId = crypto.randomUUID()
-        consola.info(`trigger-layout for ${rootId}`)
         try {
           await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {

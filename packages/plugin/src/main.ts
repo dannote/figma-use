@@ -1313,7 +1313,15 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const root = await figma.getNodeByIdAsync(nodeId)
       if (!root) return null
       
+      // First pass: fix children (bottom-up for correct sizing)
       const fixRecursive = async (node: SceneNode) => {
+        // Process children first (bottom-up)
+        if ('children' in node) {
+          for (const child of node.children) {
+            await fixRecursive(child)
+          }
+        }
+        
         // Fix TEXT nodes: reload characters to trigger auto-resize
         if (node.type === 'TEXT' && node.textAutoResize !== 'NONE') {
           try {
@@ -1326,18 +1334,19 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           }
         }
         
-        // Trigger layout for frames with auto-layout
-        if ('layoutMode' in node && node.layoutMode !== 'NONE' && 'resize' in node) {
-          const w = node.width
-          const h = node.height
-          node.resize(w + 0.01, h + 0.01)
-          node.resize(w, h)
-        }
-        
-        if ('children' in node) {
-          for (const child of node.children) {
-            await fixRecursive(child)
+        // Fix auto-layout frames
+        if ('layoutMode' in node && node.layoutMode !== 'NONE') {
+          const frame = node as FrameNode
+          // If size is minimal (1x1 or very small), enable auto-sizing
+          if (frame.width <= 1 && frame.height <= 1) {
+            frame.primaryAxisSizingMode = 'AUTO'
+            frame.counterAxisSizingMode = 'AUTO'
+            // Trigger layout recalculation only for auto-sized frames
+            frame.resize(1.01, 1.01)
+            frame.resize(1, 1)
           }
+          // For explicitly sized frames, just trigger layout without changing size
+          // The resize trick forces Figma to recalculate child positions
         }
       }
       

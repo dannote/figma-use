@@ -61,10 +61,17 @@ function styleToNodeChange(
   }
   
   // Size
-  const width = style.width ?? props.width ?? (type === 'TEXT' ? undefined : 100)
-  const height = style.height ?? props.height ?? (type === 'TEXT' ? undefined : 100)
+  const width = style.width ?? props.width
+  const height = style.height ?? props.height
   if (width !== undefined && height !== undefined) {
     nodeChange.size = { x: Number(width), y: Number(height) }
+  } else if (width !== undefined) {
+    nodeChange.size = { x: Number(width), y: 1 } // minimal height for auto-sizing
+  } else if (height !== undefined) {
+    nodeChange.size = { x: 1, y: Number(height) } // minimal width for auto-sizing
+  } else if (type !== 'TEXT') {
+    // Minimal size for auto-layout to expand from
+    nodeChange.size = { x: 1, y: 1 }
   }
   
   // Position (transform)
@@ -153,9 +160,12 @@ function styleToNodeChange(
   // Auto-layout
   if (style.flexDirection) {
     nodeChange.stackMode = style.flexDirection === 'row' ? 'HORIZONTAL' : 'VERTICAL'
-    // Required for layout to actually apply
-    nodeChange.stackPrimarySizing = 'RESIZE_TO_FIT'
-    nodeChange.stackCounterSizing = 'RESIZE_TO_FIT'
+    // Sizing mode: FIXED if size specified, otherwise RESIZE_TO_FIT (hug contents)
+    const isRow = style.flexDirection === 'row'
+    const primarySize = isRow ? width : height
+    const counterSize = isRow ? height : width
+    nodeChange.stackPrimarySizing = primarySize !== undefined ? 'FIXED' : 'RESIZE_TO_FIT'
+    nodeChange.stackCounterSizing = counterSize !== undefined ? 'FIXED' : 'RESIZE_TO_FIT'
   }
   if (style.gap !== undefined) {
     nodeChange.stackSpacing = Number(style.gap)
