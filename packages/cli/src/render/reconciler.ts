@@ -247,10 +247,9 @@ function styleToNodeChange(
   // Alignment - NOTE: field names differ from Plugin API!
   // Plugin API uses primaryAxisAlignItems/counterAxisAlignItems
   // Multiplayer uses stackPrimaryAlignItems/stackCounterAlignItems
-  // Note: 'space-between' is not supported in multiplayer protocol (StackJustify enum)
   if (style.justifyContent) {
     const validValues: Record<string, string> = {
-      'flex-start': 'MIN', 'center': 'CENTER', 'flex-end': 'MAX', 'space-evenly': 'SPACE_EVENLY'
+      'flex-start': 'MIN', 'center': 'CENTER', 'flex-end': 'MAX', 'space-between': 'SPACE_BETWEEN'
     }
     const mapped = validValues[style.justifyContent as string]
     if (mapped) {

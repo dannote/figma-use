@@ -315,7 +315,7 @@ enum StackJustify {
   MIN = 0;
   CENTER = 1;
   MAX = 2;
-  SPACE_EVENLY = 3;
+  SPACE_BETWEEN = 3;
 }
 
 enum StackSize {
