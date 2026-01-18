@@ -16,6 +16,60 @@ export {
   type FigmaVariable 
 } from './vars.ts'
 
+// Component registry - tracks defined components and their instances
+interface ComponentDef {
+  name: string
+  element: React.ReactElement
+  guid?: string // Set after first render creates the component
+}
+
+const componentRegistry = new Map<symbol, ComponentDef>()
+
+export function resetComponentRegistry() {
+  componentRegistry.clear()
+}
+
+export function getComponentRegistry() {
+  return componentRegistry
+}
+
+/**
+ * Define a reusable Figma component
+ * 
+ * @example
+ * const Button = defineComponent('Button',
+ *   <Frame style={{ padding: 12, backgroundColor: "#3B82F6" }}>
+ *     <Text style={{ color: "#FFF" }}>Click</Text>
+ *   </Frame>
+ * )
+ * 
+ * export default () => (
+ *   <Frame>
+ *     <Button />
+ *     <Button />
+ *   </Frame>
+ * )
+ */
+export function defineComponent<P extends BaseProps = BaseProps>(
+  name: string,
+  element: React.ReactElement
+): React.FC<P> {
+  const sym = Symbol(name)
+  componentRegistry.set(sym, { name, element })
+  
+  // Return a component that renders as a special marker
+  const ComponentInstance: React.FC<P> = (props) => {
+    return React.createElement('__component_instance__', {
+      __componentSymbol: sym,
+      __componentName: name,
+      ...props,
+    })
+  }
+  ComponentInstance.displayName = name
+  
+  return ComponentInstance
+}
+
 // Style types
 interface Style {
   width?: number | string

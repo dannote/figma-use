@@ -6,7 +6,7 @@ import { existsSync, writeFileSync, unlinkSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import * as React from 'react'
-import { renderToNodeChanges, INTRINSIC_ELEMENTS, loadVariablesIntoRegistry, isRegistryLoaded } from '../render/index.ts'
+import { renderToNodeChanges, INTRINSIC_ELEMENTS, loadVariablesIntoRegistry, isRegistryLoaded, resetRenderedComponents } from '../render/index.ts'
 import { transformSync } from 'esbuild'
 
 const PROXY_URL = process.env.FIGMA_PROXY_URL || 'http://localhost:38451'
@@ -193,6 +193,9 @@ export default defineCommand({
       // Create React element and render to NodeChanges
       const props = args.props ? JSON.parse(args.props) : {}
       const element = React.createElement(Component, props)
+      
+      // Reset rendered component tracking (but NOT the registry - it's populated by defineComponent)
+      resetRenderedComponents()
       
       const result = renderToNodeChanges(element, {
         sessionID,

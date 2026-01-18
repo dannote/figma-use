@@ -2,7 +2,7 @@
  * React → Figma Renderer
  */
 
-export { renderToNodeChanges, type RenderOptions, type RenderResult } from './reconciler.ts'
+export { renderToNodeChanges, resetRenderedComponents, type RenderOptions, type RenderResult } from './reconciler.ts'
 export { 
   Frame, 
   Rectangle, 
@@ -25,4 +25,8 @@ export {
   loadVariablesIntoRegistry,
   isRegistryLoaded,
   type FigmaVariable,
+  // Component definitions
+  defineComponent,
+  resetComponentRegistry,
+  getComponentRegistry,
 } from './components.tsx'

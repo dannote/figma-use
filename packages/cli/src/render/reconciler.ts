@@ -10,6 +10,10 @@ import { consola } from 'consola'
 import type { NodeChange, Paint } from '../multiplayer/codec.ts'
 import { parseColor } from '../color.ts'
 import { isVariable, resolveVariable, type FigmaVariable } from './vars.ts'
+import { getComponentRegistry } from './components.tsx'
+
+// Track rendered components: symbol -> GUID
+const renderedComponents = new Map<symbol, { sessionID: number; localID: number }>()
 
 export interface RenderOptions {
   sessionID: number
@@ -315,8 +319,97 @@ function collectNodeChanges(
   sessionID: number,
   parentGUID: { sessionID: number; localID: number },
   position: string,
-  result: NodeChange[]
+  result: NodeChange[],
+  container: Container
 ): void {
+  // Handle defineComponent instances
+  if (instance.type === '__component_instance__') {
+    const sym = instance.props.__componentSymbol as symbol
+    const name = instance.props.__componentName as string
+    const registry = getComponentRegistry()
+    const def = registry.get(sym)
+    
+    if (!def) {
+      consola.error(`Component "${name}" not found in registry`)
+      return
+    }
+    
+    // Check if component already rendered
+    let componentGUID = renderedComponents.get(sym)
+    
+    if (!componentGUID) {
+      // First instance: render as Component
+      const componentLocalID = container.localIDCounter++
+      componentGUID = { sessionID, localID: componentLocalID }
+      renderedComponents.set(sym, componentGUID)
+      
+      // Render the component's element tree
+      const componentResult = renderToNodeChanges(def.element, {
+        sessionID,
+        parentGUID, // Will be fixed below
+        startLocalID: container.localIDCounter,
+      })
+      
+      // Update counter
+      container.localIDCounter = componentResult.nextLocalID
+      
+      // Change first node to be SYMBOL type and add to results
+      if (componentResult.nodeChanges.length > 0) {
+        const rootChange = componentResult.nodeChanges[0]
+        const originalRootGUID = { ...rootChange.guid }
+        
+        // Replace root node's guid with componentGUID
+        rootChange.guid = componentGUID
+        rootChange.type = 'SYMBOL'
+        rootChange.name = name
+        rootChange.parentIndex = { guid: parentGUID, position }
+        
+        // Fix children's parentIndex to point to componentGUID instead of original root
+        for (let i = 1; i < componentResult.nodeChanges.length; i++) {
+          const child = componentResult.nodeChanges[i]
+          if (child.parentIndex?.guid.localID === originalRootGUID.localID &&
+              child.parentIndex?.guid.sessionID === originalRootGUID.sessionID) {
+            child.parentIndex.guid = componentGUID
+          }
+        }
+        
+        // Merge style props from instance onto component
+        const style = (instance.props.style || {}) as Record<string, unknown>
+        if (style.x !== undefined || style.y !== undefined) {
+          const x = Number(style.x ?? 0)
+          const y = Number(style.y ?? 0)
+          rootChange.transform = { m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y }
+        }
+        
+        result.push(...componentResult.nodeChanges)
+      }
+    } else {
+      // Subsequent instance: create Instance node
+      const instanceLocalID = container.localIDCounter++
+      const style = (instance.props.style || {}) as Record<string, unknown>
+      const x = Number(style.x ?? 0)
+      const y = Number(style.y ?? 0)
+      
+      const instanceChange: NodeChange = {
+        guid: { sessionID, localID: instanceLocalID },
+        phase: 'CREATED',
+        parentIndex: { guid: parentGUID, position },
+        type: 'INSTANCE',
+        name,
+        visible: true,
+        opacity: 1,
+        transform: { m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y },
+      }
+      
+      // Link to component
+      const nc = instanceChange as unknown as Record<string, unknown>
+      nc.symbolData = { symbolID: componentGUID }
+      
+      result.push(instanceChange)
+    }
+    return
+  }
+  
   const nodeChange = styleToNodeChange(
     instance.type,
     instance.props,
@@ -331,7 +424,7 @@ function collectNodeChanges(
   const thisGUID = { sessionID, localID: instance.localID }
   instance.children.forEach((child, i) => {
     const childPosition = String.fromCharCode(33 + (i % 90))
-    collectNodeChanges(child, sessionID, thisGUID, childPosition, result)
+    collectNodeChanges(child, sessionID, thisGUID, childPosition, result, container)
   })
 }
 
@@ -536,11 +629,16 @@ export function renderToNodeChanges(
   const nodeChanges: NodeChange[] = []
   container.children.forEach((child, i) => {
     const position = String.fromCharCode(33 + (i % 90))
-    collectNodeChanges(child, options.sessionID, options.parentGUID, position, nodeChanges)
+    collectNodeChanges(child, options.sessionID, options.parentGUID, position, nodeChanges, container)
   })
   
   return {
     nodeChanges,
     nextLocalID: container.localIDCounter,
   }
+}
+
+// Reset component tracking between renders
+export function resetRenderedComponents() {
+  renderedComponents.clear()
 }
