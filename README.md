@@ -12,6 +12,8 @@ No JSON schemas, no MCP protocol overhead — just JSX that any LLM can write.
 
 📄 **Includes [SKILL.md](./SKILL.md)** — drop-in reference for Claude Code and other AI agents.
 
+## Demo
+
 <table>
 <tr>
 <td width="50%">
