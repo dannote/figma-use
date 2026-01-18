@@ -27,19 +27,24 @@ interface PendingRequest {
 const pendingRequests = new Map<string, PendingRequest>()
 let sendToPlugin: ((data: string) => void) | null = null
 
-async function executeCommand<T = unknown>(command: string, args?: unknown): Promise<T> {
+async function executeCommand<T = unknown>(
+  command: string,
+  args?: unknown,
+  timeoutMs?: number
+): Promise<T> {
   if (!sendToPlugin) {
     throw new Error('Plugin not connected')
   }
 
   const id = crypto.randomUUID()
   const defaultTimeout = HEAVY_COMMANDS.has(command) ? TIMEOUT_HEAVY : TIMEOUT_LIGHT
+  const timeoutDuration = timeoutMs ?? defaultTimeout
 
   const result = await new Promise<T>((resolve, reject) => {
     const timeout = setTimeout(() => {
       pendingRequests.delete(id)
       reject(new Error('Request timeout'))
-    }, defaultTimeout)
+    }, timeoutDuration)
 
     pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, timeout })
     sendToPlugin!(JSON.stringify({ id, command, args }))
@@ -191,11 +196,11 @@ new Elysia()
     }
   })
   .post('/command', async ({ body }) => {
-    const { command, args } = body as { command: string; args?: unknown }
+    const { command, args, timeout } = body as { command: string; args?: unknown; timeout?: number }
     consola.info(`${command}`, args || '')
 
     try {
-      const result = await executeCommand(command, args)
+      const result = await executeCommand(command, args, timeout)
       return { result }
     } catch (e) {
       consola.error(`${command} failed:`, e instanceof Error ? e.message : e)
@@ -265,7 +270,7 @@ new Elysia()
       consola.info(`render: ${nodeChanges.length} nodes to ${fileKey}`)
       
       try {
-        await client.sendNodeChangesSync(nodeChanges)
+        await client.sendNodeChangesSync(nodeChanges, 15000)
       } catch (codecError) {
         const msg = codecError instanceof Error ? codecError.message : String(codecError)
         // Handle unsupported enum values gracefully
