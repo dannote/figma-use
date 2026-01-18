@@ -448,7 +448,7 @@ MIT
 
 ### Variable Bindings (Experimental)
 
-> ⚠️ **Experimental**: Variable binding uses reverse-engineered protocol. Only `backgroundColor` binding is currently supported.
+> ⚠️ **Experimental**: Variable binding uses reverse-engineered protocol. Currently supports `backgroundColor` and text `color`. Stroke binding (`borderColor`) is parsed but not yet encoded.
 
 Bind Figma variables to colors using human-readable names:
 

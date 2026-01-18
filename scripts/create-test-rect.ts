@@ -26,7 +26,6 @@ const stroke = getArg('--stroke')
 const x = parseInt(getArg('--x') || '0')
 const y = parseInt(getArg('--y') || '0')
 const varId = getArg('--var')
-
 console.log(`Creating rectangle "${name}"...`)
 
 // Create rectangle
