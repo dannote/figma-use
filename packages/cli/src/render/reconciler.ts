@@ -6,6 +6,7 @@
  */
 
 import Reconciler from 'react-reconciler'
+import { consola } from 'consola'
 import type { NodeChange, Paint } from '../multiplayer/codec.ts'
 import { parseColor } from '../color.ts'
 import { isVariable, resolveVariable, type FigmaVariable } from './vars.ts'
@@ -173,16 +174,28 @@ function styleToNodeChange(
   
   // Alignment
   if (style.justifyContent) {
-    const map: Record<string, string> = {
-      'flex-start': 'MIN', 'center': 'CENTER', 'flex-end': 'MAX', 'space-between': 'SPACE_BETWEEN'
+    const validValues: Record<string, string> = {
+      'flex-start': 'MIN', 'center': 'CENTER', 'flex-end': 'MAX', 'space-evenly': 'SPACE_EVENLY'
     }
-    nodeChange.stackJustify = map[style.justifyContent as string] || 'MIN'
+    const mapped = validValues[style.justifyContent as string]
+    if (mapped) {
+      nodeChange.stackJustify = mapped
+    } else {
+      consola.warn(`justifyContent: "${style.justifyContent}" not supported, using "flex-start"`)
+      nodeChange.stackJustify = 'MIN'
+    }
   }
   if (style.alignItems) {
-    const map: Record<string, string> = {
+    const validValues: Record<string, string> = {
       'flex-start': 'MIN', 'center': 'CENTER', 'flex-end': 'MAX', 'stretch': 'STRETCH'
     }
-    nodeChange.stackCounterAlign = map[style.alignItems as string] || 'MIN'
+    const mapped = validValues[style.alignItems as string]
+    if (mapped) {
+      nodeChange.stackCounterAlign = mapped
+    } else {
+      consola.warn(`alignItems: "${style.alignItems}" not supported, using "flex-start"`)
+      nodeChange.stackCounterAlign = 'MIN'
+    }
   }
   
   // Text-specific
