@@ -1,0 +1,16 @@
+{
+  "name": "@dannote/figma-use-mcp",
+  "version": "0.5.3",
+  "description": "MCP server module for Figma",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "typescript": "^5.9.3"
+  }
+}

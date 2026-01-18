@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-01-18
+
+### Added
+
+- **MCP server** — proxy exposes `/mcp` endpoint with 80+ auto-generated tools
+  - JSON-RPC over HTTP (no SDK dependency)
+  - Tools generated from CLI command definitions via TypeScript AST
+  - String args coerced to numbers using Zod
+  - `figma-use mcp` command shows client configuration
+- MCP schema validation tests against official JSON schema
+- MCP integration tests
+
 ## [0.5.3] - 2026-01-18
 
 ### Added

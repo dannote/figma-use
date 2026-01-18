@@ -310,6 +310,12 @@ Use `figma-use` CLI. For complex layouts, use `figma-use render --stdin` with JS
 Run `figma-use --help` for all commands.
 ```
 
+## MCP Server
+
+If your client only supports MCP, the proxy exposes an endpoint at `http://localhost:38451/mcp` with 80+ auto-generated tools. Run `figma-use mcp` for config snippet.
+
+---
+
 ## How It Works
 
 ```
@@ -318,7 +324,7 @@ Run `figma-use --help` for all commands.
 │             │ CLI │    proxy    │ WS  │             │
 └─────────────┘     └──────┬──────┘     └─────────────┘
                            │
-                           │ WebSocket (multiplayer)
+                    MCP ───┤ WebSocket (multiplayer)
                            ▼
                     ┌─────────────┐
                     │   Figma     │
@@ -327,6 +333,7 @@ Run `figma-use --help` for all commands.
 ```
 
 - **CLI commands** → Plugin API (full Figma access)
+- **MCP endpoint** → Same as CLI, JSON-RPC protocol
 - **render command** → Multiplayer protocol (~100x faster, experimental)
 
 ## License

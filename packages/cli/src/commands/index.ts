@@ -7,6 +7,7 @@ export { default as render } from './render.ts'
 export { default as eval } from './eval.ts'
 export { default as find } from './find.ts'
 export { default as import } from './import.ts'
+export { default as mcp } from './mcp.ts'
 
 // Subcommand groups
 export { default as node } from './node/index.ts'
