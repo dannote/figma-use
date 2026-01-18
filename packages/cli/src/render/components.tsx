@@ -6,6 +6,9 @@
 
 import * as React from 'react'
 
+// Re-export defineVars for use in .figma.tsx files
+export { defineVars, figmaVar, isVariable, type FigmaVariable } from './vars.ts'
+
 // Style types
 interface Style {
   width?: number | string

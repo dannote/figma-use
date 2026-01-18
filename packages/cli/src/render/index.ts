@@ -18,4 +18,9 @@ export {
   Page,
   View,
   INTRINSIC_ELEMENTS,
+  // Variable bindings (StyleX-inspired)
+  defineVars,
+  figmaVar,
+  isVariable,
+  type FigmaVariable,
 } from './components.tsx'

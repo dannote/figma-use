@@ -111,3 +111,48 @@ describe('render', () => {
     expect(cardInfo.parentId).toBe(parent.id)
   })
 })
+
+describe('render with variables', () => {
+  test('defineVars creates variable references', async () => {
+    const { defineVars, isVariable } = await import('../../src/render/index.ts')
+    
+    const colors = defineVars({
+      primary: 'VariableID:38448:122296',
+      secondary: '38448:122301', // shorthand
+    })
+    
+    expect(isVariable(colors.primary)).toBe(true)
+    expect(colors.primary.sessionID).toBe(38448)
+    expect(colors.primary.localID).toBe(122296)
+    expect(colors.secondary.sessionID).toBe(38448)
+    expect(colors.secondary.localID).toBe(122301)
+  })
+  
+  test('renders frame with variable backgroundColor', async () => {
+    const React = (await import('react')).default
+    const { renderToNodeChanges } = await import('../../src/render/index.ts')
+    const { defineVars } = await import('../../src/render/vars.ts')
+    
+    const colors = defineVars({
+      primary: 'VariableID:38448:122296',
+    })
+    
+    const element = React.createElement('frame', {
+      name: 'VarFrame',
+      style: { backgroundColor: colors.primary, width: 100, height: 100 }
+    })
+    
+    const result = renderToNodeChanges(element, {
+      sessionID: 1,
+      parentGUID: { sessionID: 1, localID: 1 },
+    })
+    
+    expect(result.nodeChanges).toHaveLength(1)
+    const node = result.nodeChanges[0]
+    expect(node.fillPaints?.[0]?.colorVariableBinding).toBeDefined()
+    expect(node.fillPaints?.[0]?.colorVariableBinding?.variableID).toEqual({
+      sessionID: 38448,
+      localID: 122296,
+    })
+  })
+})

@@ -443,3 +443,30 @@ Workflow:
 ## License
 
 MIT
+
+### Variable Bindings (StyleX-inspired)
+
+Bind Figma variables to colors in your components:
+
+```tsx
+// tokens.figma.ts
+import { defineVars } from '@dannote/figma-use'
+
+export const colors = defineVars({
+  primary: 'VariableID:38448:122296',
+  secondary: '38448:122301', // shorthand works too
+})
+
+// Card.figma.tsx
+import { colors } from './tokens.figma'
+
+export function Card({ title }: { title: string }) {
+  return (
+    <Frame style={{ backgroundColor: colors.primary }}>
+      <Text style={{ color: colors.secondary }}>{title}</Text>
+    </Frame>
+  )
+}
+```
+
+Variables are bound at the protocol level — no plugin API calls needed, instant updates.
