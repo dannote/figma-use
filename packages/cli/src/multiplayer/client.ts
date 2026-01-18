@@ -111,14 +111,7 @@ export class FigmaMultiplayerClient {
           if (!isKiwiMessage(decompressed)) return
           
           const msgType = getKiwiMessageType(decompressed)!
-          
-          // JOIN_START: extract sessionID from raw bytes
-          if (msgType === MESSAGE_TYPES.JOIN_START && decompressed[2] === KIWI.SESSION_ID_FIELD) {
-            const [val] = parseVarint(decompressed, 3)
-            if (val > SESSION_ID.MIN && val < SESSION_ID.MAX) {
-              sessionID = val
-            }
-          }
+
           
           // JOIN_END: sync complete
           if (msgType === MESSAGE_TYPES.JOIN_END) {
@@ -145,10 +138,11 @@ export class FigmaMultiplayerClient {
           }
           
           // Check if handshake complete
-          if (sessionID && reconnectSequenceNumber && joinEndReceived && (this.state === 'connecting' || this.state === 'connected')) {
+          // Note: sessionID may be 0 if Figma changed protocol; caller gets it from plugin API
+          if (joinEndReceived && (this.state === 'connecting' || this.state === 'connected')) {
             clearTimeout(timeout)
             this.state = 'ready'
-            this.sessionInfo = { sessionID, reconnectSequenceNumber }
+            this.sessionInfo = { sessionID: sessionID || 0, reconnectSequenceNumber }
             resolve(this.sessionInfo)
           }
         } catch {
@@ -255,6 +249,13 @@ export class FigmaMultiplayerClient {
    */
   isReady(): boolean {
     return this.state === 'ready'
+  }
+
+  /**
+   * Check if connection is still alive
+   */
+  isConnected(): boolean {
+    return this.state === 'connected' && this.ws !== null && this.ws.readyState === WebSocket.OPEN
   }
 
   /**

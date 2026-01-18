@@ -60,12 +60,28 @@ export async function getMultiplayerConnection(fileKey: string): Promise<{
 }> {
   await ensureInitialized()
   
-  // Check for existing connection
+  // Close connections to OTHER files (user switched files)
+  for (const [key, conn] of connectionPool) {
+    if (key !== fileKey) {
+      consola.info(`Closing stale connection to ${key} (switched to ${fileKey})`)
+      conn.client.close()
+      connectionPool.delete(key)
+    }
+  }
+  
+  // Check for existing connection to this file
   const existing = connectionPool.get(fileKey)
   if (existing) {
-    existing.lastUsed = Date.now()
-    consola.debug(`Reusing multiplayer connection for ${fileKey}`)
-    return { client: existing.client, sessionID: existing.sessionID }
+    // Verify connection is still alive
+    if (existing.client.isConnected()) {
+      existing.lastUsed = Date.now()
+      consola.debug(`Reusing multiplayer connection for ${fileKey}`)
+      return { client: existing.client, sessionID: existing.sessionID }
+    } else {
+      // Connection died, remove it
+      consola.warn(`Multiplayer connection to ${fileKey} died, reconnecting...`)
+      connectionPool.delete(fileKey)
+    }
   }
   
   // Create new connection

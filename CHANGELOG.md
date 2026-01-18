@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-01-18
+
+### Fixed
+
+- Multiplayer connection works with Figma's updated protocol (sessionID now from plugin API)
+- Proxy properly handles file switches (closes stale connections)
+- `figma-use status` now shows full connection diagnostics (proxy, plugin, DevTools, file)
+
 ## [0.5.1] - 2026-01-18
 
 ### Added
