@@ -203,16 +203,19 @@ function styleToNodeChange(
     // Text content via textData.characters
     const nc = nodeChange as unknown as Record<string, unknown>
     nc.textData = { characters: textContent }
+    nc.textAutoResize = 'WIDTH_AND_HEIGHT'
+    nc.textAlignVertical = 'TOP'  // Required for text height calculation
     
     if (style.fontSize) nc.fontSize = Number(style.fontSize)
-    if (style.fontFamily || style.fontWeight) {
-      const family = (style.fontFamily as string) || 'Inter'
-      const fontStyle = mapFontWeight(style.fontWeight as string)
-      nc.fontName = {
-        family,
-        style: fontStyle,
-        postscript: `${family}-${fontStyle}`.replace(/\s+/g, ''),
-      }
+    // Set lineHeight to 100% (AUTO in Figma = 100% of fontSize)
+    nc.lineHeight = { value: 100, units: 'PERCENT' }
+    // Always set fontName for TEXT nodes (required for text to render)
+    const family = (style.fontFamily as string) || 'Inter'
+    const fontStyle = mapFontWeight(style.fontWeight as string)
+    nc.fontName = {
+      family,
+      style: fontStyle,
+      postscript: `${family}-${fontStyle}`.replace(/\s+/g, ''),
     }
     if (style.textAlign) {
       const map: Record<string, string> = { 'left': 'LEFT', 'center': 'CENTER', 'right': 'RIGHT' }
