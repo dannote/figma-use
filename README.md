@@ -457,9 +457,9 @@ Bind Figma variables to colors using human-readable names:
 import { defineVars } from '@dannote/figma-use'
 
 export const colors = defineVars({
-  primary: 'Colors/Gray/50',      // Use variable names!
-  secondary: 'Colors/Gray/500',
-  accent: 'Colors/Blue/500',
+  primary: { name: 'Colors/Gray/50', value: '#F8FAFC' },
+  accent: { name: 'Colors/Blue/500', value: '#3B82F6' },
+  text: { name: 'Colors/Gray/900', value: '#0F172A' },
 })
 
 // Card.figma.tsx
@@ -468,9 +468,10 @@ import { colors } from './tokens.figma'
 export function Card({ title }: { title: string }) {
   return (
     <Frame style={{ backgroundColor: colors.primary }}>
-      <Text style={{ color: colors.secondary }}>{title}</Text>
+      <Text style={{ color: colors.text }}>{title}</Text>
     </Frame>
   )
 }
 ```
-Variables are bound at the protocol level — no plugin API calls needed, instant updates.
+
+The `value` field provides a fallback color for display. Variables are bound at the protocol level — no plugin API calls needed.

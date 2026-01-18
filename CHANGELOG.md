@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.1] - 2025-01-18
+## [0.4.0] - 2026-01-18
+
+### Added
+
+- **`defineVars` API for Figma variables** — bind colors to variables by name
+  ```tsx
+  const colors = defineVars({
+    primary: { name: 'Colors/Gray/50', value: '#F8FAFC' },
+    accent: { name: 'Colors/Blue/500', value: '#3B82F6' },
+  })
+  <Frame style={{ backgroundColor: colors.primary }} />
+  ```
+- Variable binding for `backgroundColor`, `borderColor`, and text `color`
+- Variables resolved by name at render time (no more magic IDs)
+- `defineVars` support in stdin snippets
+- Explicit fallback values in `defineVars` for proper color display
+
+### Fixed
+
+- Auto-layout now works correctly via `trigger-layout` post-render
+- Nested auto-layout frames trigger recursively
+- Variable binding encoding matches Figma's exact wire format
+
+### Changed
+
+- Marked React render and variable bindings as **experimental** in docs
+
+## [0.3.1] - 2026-01-18
 
 ### Added
 

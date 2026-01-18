@@ -182,14 +182,14 @@ Available elements: `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Po
 
 #### Variable Bindings (Experimental)
 
-Bind Figma variables to colors by name:
+Bind Figma variables to colors by name with fallback values:
 
 ```tsx
 import { defineVars, Frame } from '@dannote/figma-use'
 
 const colors = defineVars({
-  primary: 'Colors/Gray/50',    // Use Figma variable names
-  border: 'Colors/Gray/500',
+  primary: { name: 'Colors/Gray/50', value: '#F8FAFC' },
+  border: { name: 'Colors/Gray/500', value: '#64748B' },
 })
 
 export default () => (
