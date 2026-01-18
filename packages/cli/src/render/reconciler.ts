@@ -11,9 +11,20 @@ import type { NodeChange, Paint } from '../multiplayer/codec.ts'
 import { parseColor } from '../color.ts'
 import { isVariable, resolveVariable, type FigmaVariable } from './vars.ts'
 import { getComponentRegistry } from './components.tsx'
+import { 
+  getComponentSetRegistry, 
+  generateVariantCombinations, 
+  buildVariantName, 
+  buildStateGroupPropertyValueOrders 
+} from './component-set.tsx'
 
 // Track rendered components: symbol -> GUID
 const renderedComponents = new Map<symbol, { sessionID: number; localID: number }>()
+
+// Track rendered ComponentSets: symbol -> ComponentSet GUID
+const renderedComponentSets = new Map<symbol, { sessionID: number; localID: number }>()
+// Track variant component IDs within each ComponentSet
+const renderedComponentSetVariants = new Map<symbol, Map<string, { sessionID: number; localID: number }>>()
 
 export interface RenderOptions {
   sessionID: number
@@ -410,6 +421,153 @@ function collectNodeChanges(
     return
   }
   
+  // Handle defineComponentSet instances
+  if (instance.type === '__component_set_instance__') {
+    const sym = instance.props.__componentSetSymbol as symbol
+    const name = instance.props.__componentSetName as string
+    const variantProps = (instance.props.__variantProps || {}) as Record<string, string>
+    const csRegistry = getComponentSetRegistry()
+    const csDef = csRegistry.get(sym)
+    
+    if (!csDef) {
+      consola.error(`ComponentSet "${name}" not found in registry`)
+      return
+    }
+    
+    // Check if ComponentSet already rendered
+    let componentSetGUID = renderedComponentSets.get(sym)
+    
+    if (!componentSetGUID) {
+      // First instance: create ComponentSet with all variant components
+      const componentSetLocalID = container.localIDCounter++
+      componentSetGUID = { sessionID, localID: componentSetLocalID }
+      renderedComponentSets.set(sym, componentSetGUID)
+      
+      const variants = csDef.variants
+      const combinations = generateVariantCombinations(variants)
+      const variantComponentIds = new Map<string, { sessionID: number; localID: number }>()
+      
+      // Create ComponentSet node (FRAME with isStateGroup)
+      const setChange: NodeChange = {
+        guid: componentSetGUID,
+        phase: 'CREATED',
+        parentIndex: { guid: parentGUID, position },
+        type: 'FRAME',
+        name,
+        visible: true,
+        opacity: 1,
+        size: { x: 1, y: 1 }, // Will be auto-sized
+      }
+      const setNc = setChange as unknown as Record<string, unknown>
+      setNc.isStateGroup = true
+      setNc.stateGroupPropertyValueOrders = buildStateGroupPropertyValueOrders(variants)
+      setNc.stackMode = 'HORIZONTAL'
+      setNc.stackSpacing = 20
+      setNc.stackPrimarySizing = 'RESIZE_TO_FIT'
+      setNc.stackCounterSizing = 'RESIZE_TO_FIT'
+      
+      result.push(setChange)
+      
+      // Create Component for each variant combination
+      combinations.forEach((combo, i) => {
+        const variantName = buildVariantName(combo)
+        const variantLocalID = container.localIDCounter++
+        const variantGUID = { sessionID, localID: variantLocalID }
+        variantComponentIds.set(variantName, variantGUID)
+        
+        // Render the variant's element
+        const variantElement = csDef.render(combo)
+        const variantResult = renderToNodeChanges(variantElement, {
+          sessionID,
+          parentGUID: componentSetGUID!,
+          startLocalID: container.localIDCounter,
+        })
+        container.localIDCounter = variantResult.nextLocalID
+        
+        if (variantResult.nodeChanges.length > 0) {
+          const rootChange = variantResult.nodeChanges[0]
+          const originalRootGUID = { ...rootChange.guid }
+          
+          rootChange.guid = variantGUID
+          rootChange.type = 'SYMBOL'
+          rootChange.name = variantName
+          rootChange.parentIndex = {
+            guid: componentSetGUID!,
+            position: String.fromCharCode(33 + i)
+          }
+          
+          // Fix children's parentIndex
+          for (let j = 1; j < variantResult.nodeChanges.length; j++) {
+            const child = variantResult.nodeChanges[j]
+            if (child.parentIndex?.guid.localID === originalRootGUID.localID &&
+                child.parentIndex?.guid.sessionID === originalRootGUID.sessionID) {
+              child.parentIndex.guid = variantGUID
+            }
+          }
+          
+          result.push(...variantResult.nodeChanges)
+        }
+      })
+      
+      // Store variant IDs for creating instances
+      renderedComponentSetVariants.set(sym, variantComponentIds)
+      
+      // Now create instance for the requested variant
+      const requestedVariantName = buildVariantName({
+        ...getDefaultVariants(variants),
+        ...variantProps
+      })
+      const targetGUID = variantComponentIds.get(requestedVariantName)
+      
+      if (targetGUID) {
+        const instanceLocalID = container.localIDCounter++
+        const style = (instance.props.style || {}) as Record<string, unknown>
+        const instanceChange: NodeChange = {
+          guid: { sessionID, localID: instanceLocalID },
+          phase: 'CREATED',
+          parentIndex: { guid: parentGUID, position: String.fromCharCode(34 + combinations.length) },
+          type: 'INSTANCE',
+          name,
+          visible: true,
+          opacity: 1,
+          transform: { m00: 1, m01: 0, m02: Number(style.x ?? 0), m10: 0, m11: 1, m12: Number(style.y ?? 0) },
+        }
+        const instNc = instanceChange as unknown as Record<string, unknown>
+        instNc.symbolData = { symbolID: targetGUID }
+        result.push(instanceChange)
+      }
+    } else {
+      // Subsequent instance: just create Instance
+      const variantComponentIds = renderedComponentSetVariants.get(sym)
+      if (!variantComponentIds) return
+      
+      const requestedVariantName = buildVariantName({
+        ...getDefaultVariants(csDef.variants),
+        ...variantProps
+      })
+      const targetGUID = variantComponentIds.get(requestedVariantName)
+      
+      if (targetGUID) {
+        const instanceLocalID = container.localIDCounter++
+        const style = (instance.props.style || {}) as Record<string, unknown>
+        const instanceChange: NodeChange = {
+          guid: { sessionID, localID: instanceLocalID },
+          phase: 'CREATED',
+          parentIndex: { guid: parentGUID, position },
+          type: 'INSTANCE',
+          name,
+          visible: true,
+          opacity: 1,
+          transform: { m00: 1, m01: 0, m02: Number(style.x ?? 0), m10: 0, m11: 1, m12: Number(style.y ?? 0) },
+        }
+        const instNc = instanceChange as unknown as Record<string, unknown>
+        instNc.symbolData = { symbolID: targetGUID }
+        result.push(instanceChange)
+      }
+    }
+    return
+  }
+  
   const nodeChange = styleToNodeChange(
     instance.type,
     instance.props,
@@ -638,7 +796,20 @@ export function renderToNodeChanges(
   }
 }
 
+// Get default variant values (first value for each property)
+function getDefaultVariants(variants: Record<string, readonly string[]>): Record<string, string> {
+  const defaults: Record<string, string> = {}
+  for (const [key, values] of Object.entries(variants)) {
+    if (values.length > 0) {
+      defaults[key] = values[0]
+    }
+  }
+  return defaults
+}
+
 // Reset component tracking between renders
 export function resetRenderedComponents() {
   renderedComponents.clear()
+  renderedComponentSets.clear()
+  renderedComponentSetVariants.clear()
 }

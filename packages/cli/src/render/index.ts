@@ -30,3 +30,10 @@ export {
   resetComponentRegistry,
   getComponentRegistry,
 } from './components.tsx'
+
+export {
+  // ComponentSet (variants)
+  defineComponentSet,
+  resetComponentSetRegistry,
+  getComponentSetRegistry,
+} from './component-set.tsx'
