@@ -5,7 +5,7 @@ export default defineCommand({
   meta: { description: 'Set rotation angle' },
   args: {
     id: { type: 'positional', description: 'Node ID', required: true },
-    angle: { type: 'positional', description: 'Angle in degrees', required: true },
+    angle: { type: 'string', description: 'Angle in degrees', required: true },
     json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {

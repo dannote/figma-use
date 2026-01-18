@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-01-19
+
+### Added
+
+- **`diff visual`** — create visual diff between two nodes as PNG
+  ```bash
+  figma-use diff visual --from <id1> --to <id2> --output diff.png
+  ```
+  Red pixels show differences. Options: `--scale`, `--threshold`
+
+### Changed
+
+- `set rotation` now uses `--angle` flag instead of positional argument (fixes negative values like `--angle -15`)
+
 ## [0.6.2] - 2026-01-19
 
 ### Added

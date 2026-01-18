@@ -62,6 +62,8 @@ Output (unified diff format):
 +opacity: 1
 ```
 
+⚠️ **Don't forget space prefix on context lines** — `size: 48 40` will fail, ` size: 48 40` works.
+
 ### Apply patch (validates old values!)
 ```bash
 # Dry run — preview changes
@@ -76,6 +78,14 @@ figma-use diff apply patch.diff --force
 # From stdin
 cat patch.diff | figma-use diff apply --stdin
 ```
+
+### Visual diff (PNG)
+```bash
+figma-use diff visual --from <id1> --to <id2> --output diff.png
+figma-use diff visual --from <id1> --to <id2> --output diff.png --threshold 0.05  # Stricter
+```
+
+Red pixels show differences. Useful for verifying modifications.
 
 ### Workflow: Iterative design with critique
 
@@ -317,6 +327,18 @@ After any operation, export a screenshot to confirm the result:
 figma-use export node <id> --scale 0.5 --output /tmp/check.png  # Overview
 figma-use export node <id> --scale 2 --output /tmp/detail.png   # Details
 ```
+
+For modifications, use visual diff to highlight changes:
+
+```bash
+# Before modifying, export original
+figma-use export node <id> --output /tmp/before.png
+
+# After changes, compare visually
+figma-use diff visual --from <original-id> --to <modified-id> --output /tmp/diff.png
+```
+
+Red pixels = differences. Use `--threshold 0.05` for stricter comparison.
 
 ### Copying Elements Between Pages
 
