@@ -57,9 +57,10 @@ export function encodeMessage(message: FigmaMessage): Uint8Array {
     throw new Error('Codec not initialized. Call initCodec() first.')
   }
   
-  // Check if any nodeChange has variable bindings
+  // Check if any nodeChange has variable bindings (fill or stroke)
   const hasVariables = message.nodeChanges?.some(nc => 
-    nc.fillPaints?.some(p => p.colorVariableBinding)
+    nc.fillPaints?.some(p => p.colorVariableBinding) ||
+    nc.strokePaints?.some(p => p.colorVariableBinding)
   )
   
   if (!hasVariables) {
@@ -415,7 +416,7 @@ export function parseVariableId(variableId: string): { sessionID: number; localI
 }
 
 /**
- * Encode a NodeChange with variable bindings in fillPaints
+ * Encode a NodeChange with variable bindings in fillPaints and/or strokePaints
  * This is needed because kiwi-schema cannot produce Figma's exact variable binding format
  */
 export function encodeNodeChangeWithVariables(nodeChange: NodeChange): Uint8Array {
@@ -423,11 +424,10 @@ export function encodeNodeChangeWithVariables(nodeChange: NodeChange): Uint8Arra
     throw new Error('Codec not initialized. Call initCodec() first.')
   }
   
-  // Check if any fillPaints have variable bindings
-  const hasVariableBinding = nodeChange.fillPaints?.some(p => p.colorVariableBinding)
+  const hasFillBinding = nodeChange.fillPaints?.some(p => p.colorVariableBinding)
+  const hasStrokeBinding = nodeChange.strokePaints?.some(p => p.colorVariableBinding)
   
-  if (!hasVariableBinding) {
-    // No variable bindings, use standard encoding
+  if (!hasFillBinding && !hasStrokeBinding) {
     return (compiledSchema as any).encodeNodeChange(nodeChange)
   }
   
@@ -440,63 +440,72 @@ export function encodeNodeChangeWithVariables(nodeChange: NodeChange): Uint8Arra
       return clean
     })
   }
+  if (cleanNodeChange.strokePaints) {
+    cleanNodeChange.strokePaints = cleanNodeChange.strokePaints.map(p => {
+      const clean = { ...p }
+      delete (clean as any).colorVariableBinding
+      return clean
+    })
+  }
   
   // Encode clean version
   const baseBytes = (compiledSchema as any).encodeNodeChange(cleanNodeChange)
-  const baseHex = Buffer.from(baseBytes).toString('hex')
+  let hex = Buffer.from(baseBytes).toString('hex')
   
-  // Find fillPaints in the encoded bytes (field 38 = 0x26)
-  // Pattern: 2601 (field 38, array length 1) followed by paint
-  const fillPaintsMarker = '2601' // field 38, length 1
-  const markerIdx = baseHex.indexOf(fillPaintsMarker)
-  
-  if (markerIdx === -1 || !nodeChange.fillPaints?.[0]?.colorVariableBinding) {
-    return baseBytes
+  // Inject fill variable binding (field 38 = 0x26)
+  if (hasFillBinding && nodeChange.fillPaints?.[0]?.colorVariableBinding) {
+    hex = injectVariableBinding(hex, '2601', nodeChange.fillPaints[0].colorVariableBinding)
   }
   
-  // Find visible=true pattern in paint
-  // Pattern: 04 01 (visible=true) followed by 00 (terminator) or 05 01 (blendMode)
-  // We need to insert BEFORE the terminator
+  // Inject stroke variable binding (field 39 = 0x27)
+  if (hasStrokeBinding && nodeChange.strokePaints?.[0]?.colorVariableBinding) {
+    hex = injectVariableBinding(hex, '2701', nodeChange.strokePaints[0].colorVariableBinding)
+  }
+  
+  return new Uint8Array(hex.match(/.{2}/g)!.map(b => parseInt(b, 16)))
+}
+
+/**
+ * Inject variable binding into a paint at the specified marker
+ */
+function injectVariableBinding(
+  hex: string, 
+  marker: string, 
+  binding: { variableID: { sessionID: number; localID: number } }
+): string {
+  const markerIdx = hex.indexOf(marker)
+  if (markerIdx === -1) return hex
+  
+  // Find visible=true pattern (04 01) after the marker
   const visiblePattern = '0401'
-  let patternIdx = baseHex.indexOf(visiblePattern, markerIdx)
-  
-  if (patternIdx === -1) {
-    return baseBytes
-  }
+  let patternIdx = hex.indexOf(visiblePattern, markerIdx)
+  if (patternIdx === -1) return hex
   
   // Move past 0401 to find where to insert
   let insertPoint = patternIdx + visiblePattern.length
   
   // Check if blendMode follows (05 01)
-  if (baseHex.slice(insertPoint, insertPoint + 4) === '0501') {
-    insertPoint += 4 // skip blendMode
+  if (hex.slice(insertPoint, insertPoint + 4) === '0501') {
+    insertPoint += 4
   }
   
-  // Insert variable binding after visible/blendMode, before terminator
-  // Original: ...04010501 00 33... (terminator, next field)
-  // New:      ...04010501 1501 0401 <varints> 0000020303040000 00 33...
-  
-  const binding = nodeChange.fillPaints[0].colorVariableBinding!
+  // Build variable binding bytes
   const varBytes = [
     0x15, 0x01, // Field 21 (variableBinding) = 1
     0x04, 0x01, // Nested field 4 = 1
     ...encodeVarint(binding.variableID.sessionID),
     ...encodeVarint(binding.variableID.localID),
-    0x00, 0x00, 0x02, 0x03, 0x03, 0x04, 0x00, 0x00 // Terminators (observed from Figma)
+    0x00, 0x00, 0x02, 0x03, 0x03, 0x04, 0x00, 0x00 // Terminators
   ]
   const varHex = Buffer.from(varBytes).toString('hex')
   
-  const beforeVar = baseHex.slice(0, insertPoint)
-  // Skip original paint terminator (00) but keep one for nodeChange
+  const beforeVar = hex.slice(0, insertPoint)
+  // Skip original paint terminator (00) - our varHex includes terminators
   let afterIdx = insertPoint
-  if (baseHex.slice(afterIdx, afterIdx + 2) === '00') {
-    afterIdx += 2 // skip first 00 (paint terminator - our varHex includes this)
+  if (hex.slice(afterIdx, afterIdx + 2) === '00') {
+    afterIdx += 2
   }
-  const afterVar = baseHex.slice(afterIdx)
+  const afterVar = hex.slice(afterIdx)
   
-  const newHex = beforeVar + varHex + afterVar
-  
-  return new Uint8Array(newHex.match(/.{2}/g)!.map(b => parseInt(b, 16)))
+  return beforeVar + varHex + afterVar
 }
-
-
