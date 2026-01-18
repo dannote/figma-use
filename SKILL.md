@@ -71,12 +71,19 @@ echo '<Frame name="Buttons" style={{gap: 16, flexDirection: "row", padding: 24}}
 
 ### Converting Frames to Components
 
-After creating frames, convert them to components:
-
 ```bash
 figma-use node to-component <id>           # Single frame
 figma-use node to-component "1:2 1:3 1:4"  # Multiple frames
 ```
+
+### Grouping and Auto-Layout
+
+```bash
+figma-use group create "1:2 1:3"           # Group nodes (auto-converts to frame)
+figma-use set layout <id> --mode HORIZONTAL --gap 8 --padding 16
+```
+
+Note: Groups auto-convert to frames after sync, so `set layout` works immediately.
 
 ### Advanced: ComponentSets with Variants (via files)
 
@@ -122,6 +129,7 @@ figma-use set radius <id> 12
 figma-use set opacity <id> 0.5
 figma-use set text <id> "New text"
 figma-use set font <id> --family "Inter" --style "Bold" --size 20
+figma-use set font-range <id> --start 0 --end 5 --style Bold --color "#FF0000"
 figma-use set layout <id> --mode VERTICAL --gap 12 --padding 16
 figma-use node move <id> --x 100 --y 200
 figma-use node resize <id> --width 300 --height 200

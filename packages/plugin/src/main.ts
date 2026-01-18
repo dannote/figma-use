@@ -826,6 +826,34 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return serializeNode(node)
     }
 
+    case 'set-font-range': {
+      const { id, start, end, family, style, size, color } = args as {
+        id: string; start: number; end: number
+        family?: string; style?: string; size?: number; color?: string
+      }
+      const node = await figma.getNodeByIdAsync(id) as TextNode | null
+      if (!node || node.type !== 'TEXT') throw new Error('Text node not found')
+      
+      if (family || style) {
+        const currentFont = node.getRangeFontName(start, end) as FontName
+        const newFamily = family || currentFont.family
+        const newStyle = style || currentFont.style
+        await loadFont(newFamily, newStyle)
+        node.setRangeFontName(start, end, { family: newFamily, style: newStyle })
+      }
+      
+      if (size !== undefined) {
+        node.setRangeFontSize(start, end, size)
+      }
+      
+      if (color) {
+        const rgb = hexToRgb(color)
+        node.setRangeFills(start, end, [{ type: 'SOLID', color: rgb }])
+      }
+      
+      return serializeNode(node)
+    }
+
     case 'get-children': {
       const { id, depth } = args as { id: string; depth?: number }
       const node = await figma.getNodeByIdAsync(id) as SceneNode | null

@@ -96,4 +96,30 @@ describe('node', () => {
     const node = await run(`node get ${instance.id} --json`) as any
     expect(node.type).toBe('INSTANCE')
   })
+
+  test('to-component converts frame to component', async () => {
+    const frame = await run('create frame --x 0 --y 500 --width 100 --height 50 --name "ToCompTest" --json') as any
+    trackNode(frame.id)
+    
+    const result = await run(`node to-component ${frame.id} --json`) as any[]
+    expect(result.length).toBe(1)
+    expect(result[0].name).toBe('ToCompTest')
+    trackNode(result[0].id)
+    
+    const comp = await run(`node get ${result[0].id} --json`) as any
+    expect(comp.type).toBe('COMPONENT')
+  })
+
+  test('to-component converts multiple frames', async () => {
+    const frame1 = await run('create frame --x 150 --y 500 --width 50 --height 50 --name "Multi1" --json') as any
+    const frame2 = await run('create frame --x 210 --y 500 --width 50 --height 50 --name "Multi2" --json') as any
+    trackNode(frame1.id)
+    trackNode(frame2.id)
+    
+    const result = await run(`node to-component "${frame1.id} ${frame2.id}" --json`) as any[]
+    expect(result.length).toBe(2)
+    for (const comp of result) {
+      trackNode(comp.id)
+    }
+  })
 })

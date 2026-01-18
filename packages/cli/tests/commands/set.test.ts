@@ -91,4 +91,23 @@ describe('set', () => {
       expect(result.characters).toBe('New Text')
     })
   })
+
+  describe('font-range', () => {
+    test('changes font style for range', async () => {
+      // Set text to known value first
+      await run(`set text ${textId} "Hello World" --json`)
+      const result = await run(`set font-range ${textId} --start 0 --end 5 --style Bold --json`) as any
+      expect(result.characters).toBe('Hello World')
+    })
+
+    test('changes color for range', async () => {
+      const result = await run(`set font-range ${textId} --start 6 --end 11 --color "#FF0000" --json`) as any
+      expect(result.characters).toBe('Hello World')
+    })
+
+    test('changes font size for range', async () => {
+      const result = await run(`set font-range ${textId} --start 0 --end 5 --size 24 --json`) as any
+      expect(result.characters).toBe('Hello World')
+    })
+  })
 })

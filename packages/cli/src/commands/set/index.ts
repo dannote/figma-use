@@ -9,6 +9,7 @@ import visible from './visible.ts'
 import locked from './locked.ts'
 import text from './text.ts'
 import font from './font.ts'
+import fontRange from './font-range.ts'
 import effect from './effect.ts'
 import layout from './layout.ts'
 import constraints from './constraints.ts'
@@ -30,6 +31,7 @@ export default defineCommand({
     locked,
     text,
     font,
+    'font-range': fontRange,
     effect,
     layout,
     constraints,
