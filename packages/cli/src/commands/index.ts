@@ -11,6 +11,7 @@ export { default as mcp } from './mcp.ts'
 export { default as me } from './me.ts'
 
 // Subcommand groups
+export { default as diff } from './diff/index.ts'
 export { default as node } from './node/index.ts'
 export { default as path } from './path/index.ts'
 export { default as create } from './create/index.ts'

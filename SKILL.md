@@ -34,6 +34,61 @@ figma-use plugin install
 
 ---
 
+## ⚠️ Incremental Updates (CRITICAL)
+
+**After initial render, NEVER re-render the full JSX tree.**
+
+When modifying an existing design:
+1. Save node IDs from the initial render (`--json` output)
+2. Use targeted CLI commands to modify individual nodes
+3. Only re-render if the structure fundamentally changes (>50% new elements)
+
+### Modify properties by ID
+```bash
+figma-use set fill <id> "#FF0000"           # Change color
+figma-use set opacity <id> 0.5              # Change opacity  
+figma-use set radius <id> 12                # Change corner radius
+figma-use node resize <id> --width 300 --height 200
+figma-use node move <id> --x 100 --y 200
+figma-use node rename <id> "New Name"
+```
+
+### Add new elements to existing parent
+```bash
+figma-use create rect --parent <parent-id> --width 50 --height 50 --fill "#00F"
+figma-use create text --parent <parent-id> --text "Label" --fontSize 14
+```
+
+### Delete elements
+```bash
+figma-use node delete <id>
+```
+
+### Example: Fixing transparency issues
+```bash
+# BAD: Re-rendering 60 elements to fix one opacity
+cat <<'EOF' | figma-use render --stdin
+<Frame>... 60 elements ...</Frame>
+EOF
+
+# GOOD: Fix the specific node
+figma-use set opacity 123:456 1.0
+```
+
+### Example: Adjusting colors after critique
+```bash
+# Change shadow color from black to warm orange
+figma-use set fill 123:789 "#D97706"
+
+# Move misaligned element
+figma-use node move 123:790 --x 240 --y 100
+
+# Resize tail to better proportions  
+figma-use node resize 123:791 --width 120 --height 30
+```
+
+---
+
 ## JSX Rendering (Fastest Way)
 
 Use `render --stdin` with **pure JSX only**. No variables, no functions, no imports — just JSX tags:
