@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`render --examples`** — full API reference for JSX rendering
+- Main CLI help now mentions JSX rendering and points to `render --examples`
 - **`defineComponent` for reusable components**
   ```tsx
   const Button = defineComponent('Button',
