@@ -21,6 +21,7 @@
     "picocolors": "^1.1.1",
     "react": "18",
     "react-reconciler": "0.29",
+    "ws": "^8.19.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

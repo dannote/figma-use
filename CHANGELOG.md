@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-01-18
+
+### Added
+
+- **Comment commands** — no token required, works via CDP:
+  - `comment list` — list file comments
+  - `comment add "message"` — add a comment (supports `--node`, `--x`, `--y`, `--reply`)
+  - `comment delete <id>` — delete a comment
+- **REST API commands** — features not available in plugin API:
+  - `version list` — view file version history (requires token)
+  - `file info` — get file metadata (works via browser or token)
+  - `project list|files` — list team projects and files (requires token)
+  - `me` — get current user info (works via browser or token)
+- Browser fallback via CDP: extracts data from Figma when no token set
+- Plugin now has `currentuser` permission for `figma.currentUser` access
+
 ## [0.5.4] - 2026-01-18
 
 ### Added

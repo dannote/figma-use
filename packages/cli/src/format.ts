@@ -21,6 +21,8 @@ export const TYPE_LABELS: Record<string, string> = {
 
 export const ok = (msg: string) => `${pc.green('✓')} ${msg}`
 export const fail = (msg: string) => `${pc.red('✗')} ${msg}`
+export const success = pc.green
+export const accent = pc.cyan
 export const dim = pc.dim
 export const bold = pc.bold
 

@@ -41,15 +41,19 @@ export function handleError(error: unknown): never {
  * Get current Figma file key from Chrome DevTools
  */
 export async function getFileKey(): Promise<string> {
-  const response = await fetch('http://localhost:9222/json')
-  const targets = await response.json() as ChromeDevToolsTarget[]
-  
-  for (const target of targets) {
-    const match = target.url.match(/figma\.com\/(?:file|design)\/([a-zA-Z0-9]+)/)
-    if (match?.[1]) return match[1]
+  try {
+    const response = await fetch('http://localhost:9222/json')
+    const targets = await response.json() as ChromeDevToolsTarget[]
+    
+    for (const target of targets) {
+      const match = target.url.match(/figma\.com\/(?:file|design)\/([a-zA-Z0-9]+)/)
+      if (match?.[1]) return match[1]
+    }
+  } catch {
+    // DevTools not available
   }
   
-  throw new Error('No Figma file found in Chrome. Open a Figma file first.')
+  throw new Error('No Figma file found. Start Figma with: figma --remote-debugging-port=9222')
 }
 
 /**

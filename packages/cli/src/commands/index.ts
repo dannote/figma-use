@@ -8,6 +8,7 @@ export { default as eval } from './eval.ts'
 export { default as find } from './find.ts'
 export { default as import } from './import.ts'
 export { default as mcp } from './mcp.ts'
+export { default as me } from './me.ts'
 
 // Subcommand groups
 export { default as node } from './node/index.ts'
@@ -24,3 +25,9 @@ export { default as style } from './style/index.ts'
 export { default as boolean } from './boolean/index.ts'
 export { default as group } from './group/index.ts'
 export { default as component } from './component/index.ts'
+
+// REST API commands
+export { default as comment } from './comment/index.ts'
+export { default as version } from './version/index.ts'
+export { default as file } from './file/index.ts'
+export { default as project } from './project/index.ts'

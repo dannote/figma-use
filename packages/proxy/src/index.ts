@@ -63,7 +63,7 @@ async function handleMcpRequest(req: JSONRPCRequest, sessionId?: string): Promis
           id,
           result: {
             protocolVersion: MCP_VERSION,
-            serverInfo: { name: 'figma-use', version: '0.5.4' },
+            serverInfo: { name: 'figma-use', version: '0.5.5' },
             capabilities: { tools: {} },
             instructions: 'Figma MCP Server. Node IDs: "sessionID:localID". Colors: hex #RRGGBB.',
             sessionId: newSessionId
