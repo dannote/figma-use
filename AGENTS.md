@@ -90,3 +90,5 @@ Plugin uses esbuild (not Bun) because Figma requires ES2015. Build outputs to `p
    ```
 
 4. **Never auto-commit unreviewed changes** — especially new commands/features
+
+5. **npm publish requires passkey** — user must run `npm publish` manually (2FA via passkey, not OTP)
