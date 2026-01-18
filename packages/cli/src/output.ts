@@ -1,5 +1,5 @@
 import type { FigmaNode, FigmaPage, DeletedResult, ExportResult, StatusResult } from './types.ts'
-import { TYPE_LABELS, formatFill, formatStroke, formatBox, formatType, ok, fail } from './format.ts'
+import { TYPE_LABELS, formatFill, formatStroke, formatBox, formatType, ok, fail, dim } from './format.ts'
 
 function formatNode(node: Record<string, unknown>, indent = ''): string {
   const lines: string[] = []
@@ -172,6 +172,15 @@ export function formatResult(result: unknown, context?: string): string {
 
     if ('deleted' in obj && obj.deleted !== undefined) {
       return formatDeleted({ deleted: Boolean(obj.deleted) })
+    }
+
+    if (context === 'path' && 'paths' in obj) {
+      const paths = obj.paths as Array<{ data: string }>
+      return ok('Path updated') + '\n' + paths.map(p => dim(p.data)).join('\n')
+    }
+
+    if ('updated' in obj && obj.updated === true) {
+      return ok('Updated')
     }
 
     if (context === 'export' || 'data' in obj) {

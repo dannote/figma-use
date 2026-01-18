@@ -12,6 +12,7 @@ export { default as me } from './me.ts'
 
 // Subcommand groups
 export { default as node } from './node/index.ts'
+export { default as path } from './path/index.ts'
 export { default as create } from './create/index.ts'
 export { default as set } from './set/index.ts'
 export { default as get } from './get/index.ts'

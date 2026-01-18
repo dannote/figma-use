@@ -10,5 +10,8 @@
     "@figma/plugin-typings": "^1.114.0",
     "@types/bun": "^1.3.6",
     "esbuild": "^0.27.2"
+  },
+  "dependencies": {
+    "svgpath": "^2.6.0"
   }
 }

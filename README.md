@@ -230,9 +230,21 @@ figma-use set effect <id> --type DROP_SHADOW --radius 10 --color "#00000040"
 figma-use node get <id>              # Get node properties
 figma-use node tree                  # Page structure as readable tree
 figma-use node children <id>         # List children
+figma-use node bounds <id>           # Position, size, center point
 figma-use find --name "Button"       # Find by name
 figma-use find --type FRAME          # Find by type
 figma-use selection get              # Current selection
+```
+
+### Vector Paths
+
+```bash
+figma-use create vector --x 0 --y 0 --path "M 0 0 L 100 50 L 0 100 Z" --fill "#F00"
+figma-use path get <id>              # Read path data
+figma-use path set <id> "M 0 0 ..."  # Replace path
+figma-use path move <id> --dx 10 --dy -5   # Translate points
+figma-use path scale <id> --factor 1.5     # Scale from center
+figma-use path flip <id> --axis x          # Mirror horizontally
 ```
 
 ### Export

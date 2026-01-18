@@ -1,3 +1,5 @@
+import svgpath from 'svgpath'
+
 console.log('[Figma Bridge] Plugin main loaded at', new Date().toISOString())
 
 figma.showUI(__html__, { width: 300, height: 200 })
@@ -1334,6 +1336,82 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return { deleted: true }
     }
 
+    // ==================== BOUNDS ====================
+    case 'node-bounds': {
+      const { id } = args as { id: string }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || !('x' in node)) throw new Error('Node not found')
+      const sn = node as SceneNode
+      return {
+        x: Math.round(sn.x * 100) / 100,
+        y: Math.round(sn.y * 100) / 100,
+        width: Math.round(sn.width * 100) / 100,
+        height: Math.round(sn.height * 100) / 100,
+        centerX: Math.round((sn.x + sn.width / 2) * 100) / 100,
+        centerY: Math.round((sn.y + sn.height / 2) * 100) / 100,
+        right: Math.round((sn.x + sn.width) * 100) / 100,
+        bottom: Math.round((sn.y + sn.height) * 100) / 100
+      }
+    }
+
+    // ==================== PATH ====================
+    case 'path-get': {
+      const { id } = args as { id: string }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || node.type !== 'VECTOR') throw new Error('Vector node not found')
+      return { paths: node.vectorPaths }
+    }
+
+    case 'path-set': {
+      const { id, path, windingRule = 'NONZERO' } = args as { id: string; path: string; windingRule?: string }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || node.type !== 'VECTOR') throw new Error('Vector node not found')
+      node.vectorPaths = [{ windingRule: windingRule as WindingRule, data: path }]
+      return { updated: true }
+    }
+
+    case 'path-move': {
+      const { id, dx = 0, dy = 0 } = args as { id: string; dx?: number; dy?: number }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || node.type !== 'VECTOR') throw new Error('Vector node not found')
+      
+      const newPaths = node.vectorPaths.map(p => ({
+        windingRule: p.windingRule,
+        data: svgPathToString(svgpath(p.data).translate(dx, dy).round(2))
+      }))
+      node.vectorPaths = newPaths
+      return { updated: true, paths: newPaths }
+    }
+
+    case 'path-scale': {
+      const { id, factor } = args as { id: string; factor: number }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || node.type !== 'VECTOR') throw new Error('Vector node not found')
+      
+      const newPaths = node.vectorPaths.map(p => ({
+        windingRule: p.windingRule,
+        data: svgPathToString(svgpath(p.data).scale(factor).round(2))
+      }))
+      node.vectorPaths = newPaths
+      return { updated: true, paths: newPaths }
+    }
+
+    case 'path-flip': {
+      const { id, axis } = args as { id: string; axis: 'x' | 'y' }
+      const node = await figma.getNodeByIdAsync(id)
+      if (!node || node.type !== 'VECTOR') throw new Error('Vector node not found')
+      
+      // Flip using scale with negative value
+      const newPaths = node.vectorPaths.map(p => ({
+        windingRule: p.windingRule,
+        data: axis === 'x' 
+          ? svgPathToString(svgpath(p.data).scale(-1, 1).round(2))
+          : svgPathToString(svgpath(p.data).scale(1, -1).round(2))
+      }))
+      node.vectorPaths = newPaths
+      return { updated: true, paths: newPaths }
+    }
+
     // ==================== EVAL ====================
     case 'eval': {
       const { code } = args as { code: string }
@@ -1765,4 +1843,9 @@ function parseVariableValue(value: string, type: string): VariableValue {
     default:
       return value
   }
+}
+
+// Convert svgpath segments to string with spaces (Figma requires spaces between commands)
+function svgPathToString(sp: ReturnType<typeof svgpath>): string {
+  return sp.segments.map((seg: (string | number)[]) => seg.join(' ')).join(' ')
 }

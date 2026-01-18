@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-01-18
+
+### Added
+
+- **`node bounds`** — get node position, size, center point, edges
+- **`path` commands** — vector path manipulation:
+  - `path get <id>` — read SVG path data
+  - `path set <id> "M..."` — replace path data
+  - `path move <id> --dx --dy` — translate all points
+  - `path scale <id> --factor` — scale from center
+  - `path flip <id> --axis x|y` — mirror horizontally/vertically
+- Uses [svgpath](https://github.com/fontello/svgpath) library for path transformations
+- Path command tests
+
 ## [0.5.9] - 2026-01-18
 
 ### Changed

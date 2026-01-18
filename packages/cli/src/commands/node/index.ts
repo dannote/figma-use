@@ -9,6 +9,7 @@ import move from './move.ts'
 import resize from './resize.ts'
 import setParent from './set-parent.ts'
 import toComponent from './to-component.ts'
+import bounds from './bounds.ts'
 
 export default defineCommand({
   meta: { description: 'Node operations' },
@@ -23,5 +24,6 @@ export default defineCommand({
     resize,
     'set-parent': setParent,
     'to-component': toComponent,
+    bounds,
   }
 })

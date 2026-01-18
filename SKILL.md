@@ -315,3 +315,76 @@ figma-use set text "I123:456;789:10" "New text"  # Modify text inside instance
 figma-use find --type FRAME 2>&1 | grep "stroke: #EF4444"  # Red border
 figma-use find --type TEXT 2>&1 | grep "Bold"              # Bold text
 ```
+
+---
+
+## Vector Drawing
+
+Work iteratively: bounds → draw → screenshot → adjust → repeat.
+
+### Path Commands
+
+```bash
+figma-use node bounds <id>                    # Position, size, center
+figma-use create vector --path "M 0 0 L 100 50 Z" --fill "#F00"
+figma-use path get <id>                       # Read path data
+figma-use path set <id> "M 0 0 L 100 100 Z"   # Replace path
+figma-use path move <id> --dx 10 --dy -5      # Translate points
+figma-use path scale <id> --factor 1.5        # Scale from center
+figma-use path flip <id> --axis x             # Mirror horizontally
+figma-use path flip <id> --axis y             # Mirror vertically
+```
+
+### SVG Path Syntax
+
+```
+M x y       Move to          L x y       Line to
+H x         Horizontal to    V y         Vertical to
+C x1 y1 x2 y2 x y   Cubic Bezier    Q x1 y1 x y   Quadratic Bezier
+Z           Close path
+```
+
+### Iterative Workflow
+
+```bash
+# 1. Create canvas, get bounds
+figma-use create frame --width 300 --height 300 --fill "#F0F4FF" --name "Drawing"
+figma-use node bounds 123:456
+
+# 2. Draw shape with Bezier curves
+figma-use create vector --path "M 80 180 C 50 180 50 140 80 140 C 180 130 200 150 180 195 Z" --fill "#FFD700" --parent 123:456
+
+# 3. Screenshot to verify
+figma-use export node 123:456 --output /tmp/check.png
+
+# 4. Adjust if needed
+figma-use path scale 123:457 --factor 0.9
+figma-use path move 123:457 --dx 20 --dy 0
+
+# 5. Get bounds of first shape, position next relative to it
+figma-use node bounds 123:457
+```
+
+### Common Shapes
+
+```bash
+# Triangle
+figma-use create vector --path "M 50 0 L 100 100 L 0 100 Z" --fill "#F00"
+
+# Star
+figma-use create vector --path "M 50 0 L 61 35 L 98 35 L 68 57 L 79 91 L 50 70 L 21 91 L 32 57 L 2 35 L 39 35 Z" --fill "#FFD700"
+
+# Heart
+figma-use create vector --path "M 50 90 C 20 60 0 30 25 10 C 40 0 50 10 50 25 C 50 10 60 0 75 10 C 100 30 80 60 50 90 Z" --fill "#E11D48"
+
+# Arrow right
+figma-use create vector --path "M 0 20 L 60 20 L 60 10 L 80 25 L 60 40 L 60 30 L 0 30 Z" --fill "#000"
+```
+
+### Complex Illustrations
+
+For intricate artwork, import SVG instead:
+
+```bash
+figma-use import --svg "$(cat icon.svg)"
+```
