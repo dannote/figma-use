@@ -45,6 +45,8 @@ export {
 
 export { preloadIcons, loadIconSvg, getIconData, collectIcons } from './icon.ts'
 
+export { transformJsxSnippet } from './jsx-transform.ts'
+
 export {
   // ComponentSet (variants)
   defineComponentSet,
