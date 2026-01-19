@@ -44,7 +44,11 @@ interface ComponentSetDef<V extends VariantDef> {
   symbol: symbol
 }
 
-const componentSetRegistry = new Map<symbol, ComponentSetDef<VariantDef>>()
+// Use global registry to avoid module duplication issues between bundled CLI and source imports
+const REGISTRY_KEY = '__figma_use_component_set_registry__'
+const componentSetRegistry: Map<symbol, ComponentSetDef<VariantDef>> =
+  (globalThis as Record<string, unknown>)[REGISTRY_KEY] as Map<symbol, ComponentSetDef<VariantDef>> ||
+  ((globalThis as Record<string, unknown>)[REGISTRY_KEY] = new Map<symbol, ComponentSetDef<VariantDef>>())
 
 export function resetComponentSetRegistry() {
   componentSetRegistry.clear()
