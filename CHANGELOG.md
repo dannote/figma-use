@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
   Supports: mdi, lucide, heroicons, tabler, fa-solid, fa-regular, ri, ph, carbon, fluent, ion, bi, and more.
 
+- **Variable references in CLI color options** — use `var:Name` or `$Name` syntax:
+  ```bash
+  figma-use create rect --x 0 --y 0 --width 100 --height 100 --fill 'var:Colors/Primary'
+  figma-use create icon mdi:home --color '$Brand/Accent'
+  ```
+
 - **Tailwind-like style shorthands** for JSX render:
   - Size: `w`, `h` → `width`, `height`
   - Colors: `bg` → `backgroundColor`, `rounded` → `borderRadius`

@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+import { colorArgToPayload } from '../../color-arg.ts'
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -10,8 +11,8 @@ export default defineCommand({
     height: { type: 'string', description: 'Height', required: true },
     name: { type: 'string', description: 'Name' },
     parent: { type: 'string', description: 'Parent node ID' },
-    fill: { type: 'string', description: 'Fill color (hex)' },
-    stroke: { type: 'string', description: 'Stroke color (hex)' },
+    fill: { type: 'string', description: 'Fill color (hex or var:Name)' },
+    stroke: { type: 'string', description: 'Stroke color (hex or var:Name)' },
     'stroke-weight': { type: 'string', description: 'Stroke weight' },
     radius: { type: 'string', description: 'Corner radius' },
     opacity: { type: 'string', description: 'Opacity (0-1)' },
@@ -39,8 +40,8 @@ export default defineCommand({
         height: Number(args.height),
         name: args.name,
         parentId: args.parent,
-        fill: args.fill,
-        stroke: args.stroke,
+        fill: colorArgToPayload(args.fill),
+        stroke: colorArgToPayload(args.stroke),
         strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined,
         radius: args.radius ? Number(args.radius) : undefined,
         opacity: args.opacity ? Number(args.opacity) : undefined,

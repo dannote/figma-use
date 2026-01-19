@@ -71,8 +71,8 @@ async function createNodeFast(
     height?: number
     name?: string
     parentId?: string
-    fill?: string
-    stroke?: string
+    fill?: ColorArg
+    stroke?: ColorArg
     strokeWeight?: number
     radius?: number
     opacity?: number
@@ -94,8 +94,8 @@ async function createNodeFast(
       frame.y = y
       frame.resize(width || 100, height || 100)
       if (name) frame.name = name
-      if (fill) frame.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) frame.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) frame.fills = [{ type: 'SOLID', color: hexToRgb(getHexColor(fill)) }]
+      if (stroke) frame.strokes = [{ type: 'SOLID', color: hexToRgb(getHexColor(stroke)) }]
       if (strokeWeight) frame.strokeWeight = strokeWeight
       if (typeof radius === 'number') frame.cornerRadius = radius
       if (typeof opacity === 'number') frame.opacity = opacity
@@ -116,8 +116,8 @@ async function createNodeFast(
       rect.y = y
       rect.resize(width || 100, height || 100)
       if (name) rect.name = name
-      if (fill) rect.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) rect.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) rect.fills = [{ type: 'SOLID', color: hexToRgb(getHexColor(fill)) }]
+      if (stroke) rect.strokes = [{ type: 'SOLID', color: hexToRgb(getHexColor(stroke)) }]
       if (strokeWeight) rect.strokeWeight = strokeWeight
       if (typeof radius === 'number') rect.cornerRadius = radius
       if (typeof opacity === 'number') rect.opacity = opacity
@@ -130,8 +130,8 @@ async function createNodeFast(
       ellipse.y = y
       ellipse.resize(width || 100, height || 100)
       if (name) ellipse.name = name
-      if (fill) ellipse.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) ellipse.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) ellipse.fills = [{ type: 'SOLID', color: hexToRgb(getHexColor(fill)) }]
+      if (stroke) ellipse.strokes = [{ type: 'SOLID', color: hexToRgb(getHexColor(stroke)) }]
       if (strokeWeight) ellipse.strokeWeight = strokeWeight
       if (typeof opacity === 'number') ellipse.opacity = opacity
       node = ellipse
@@ -148,7 +148,7 @@ async function createNodeFast(
       textNode.y = y
       if (name) textNode.name = name
       if (fontSize) textNode.fontSize = fontSize
-      if (fill) textNode.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
+      if (fill) textNode.fills = [{ type: 'SOLID', color: hexToRgb(getHexColor(fill)) }]
       if (typeof opacity === 'number') textNode.opacity = opacity
       node = textNode
       break
@@ -504,8 +504,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           height: number
           name?: string
           parentId?: string
-          fill?: string
-          stroke?: string
+          fill?: ColorArg
+          stroke?: ColorArg
           strokeWeight?: number
           radius?: number
           opacity?: number
@@ -515,8 +515,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       rect.y = y
       rect.resize(width, height)
       if (name) rect.name = name
-      if (fill) rect.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) rect.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) rect.fills = [await createSolidPaint(fill)]
+      if (stroke) rect.strokes = [await createSolidPaint(stroke)]
       if (strokeWeight !== undefined) rect.strokeWeight = strokeWeight
       if (radius !== undefined) rect.cornerRadius = radius
       if (opacity !== undefined) rect.opacity = opacity
@@ -532,8 +532,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         height: number
         name?: string
         parentId?: string
-        fill?: string
-        stroke?: string
+        fill?: ColorArg
+        stroke?: ColorArg
         strokeWeight?: number
         opacity?: number
       }
@@ -542,8 +542,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       ellipse.y = y
       ellipse.resize(width, height)
       if (name) ellipse.name = name
-      if (fill) ellipse.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) ellipse.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) ellipse.fills = [await createSolidPaint(fill)]
+      if (stroke) ellipse.strokes = [await createSolidPaint(stroke)]
       if (strokeWeight !== undefined) ellipse.strokeWeight = strokeWeight
       if (opacity !== undefined) ellipse.opacity = opacity
       await appendToParent(ellipse, parentId)
@@ -649,8 +649,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         height: number
         name?: string
         parentId?: string
-        fill?: string
-        stroke?: string
+        fill?: ColorArg
+        stroke?: ColorArg
         strokeWeight?: number
         radius?: number
         opacity?: number
@@ -663,8 +663,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       frame.y = y
       frame.resize(width, height)
       if (name) frame.name = name
-      if (fill) frame.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
-      if (stroke) frame.strokes = [{ type: 'SOLID', color: hexToRgb(stroke) }]
+      if (fill) frame.fills = [await createSolidPaint(fill)]
+      if (stroke) frame.strokes = [await createSolidPaint(stroke)]
       if (strokeWeight !== undefined) frame.strokeWeight = strokeWeight
       if (radius !== undefined) frame.cornerRadius = radius
       if (opacity !== undefined) frame.opacity = opacity
@@ -724,7 +724,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           fontSize?: number
           fontFamily?: string
           fontStyle?: string
-          fill?: string
+          fill?: ColorArg
           opacity?: number
           name?: string
           parentId?: string
@@ -738,7 +738,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       textNode.fontName = { family, style }
       textNode.characters = text
       if (fontSize) textNode.fontSize = fontSize
-      if (fill) textNode.fills = [{ type: 'SOLID', color: hexToRgb(fill) }]
+      if (fill) textNode.fills = [await createSolidPaint(fill)]
       if (opacity !== undefined) textNode.opacity = opacity
       if (name) textNode.name = name
       await appendToParent(textNode, parentId)
@@ -2164,6 +2164,40 @@ function hexToRgb(hex: string): RGB {
     g: parseInt(clean.slice(2, 4), 16) / 255,
     b: parseInt(clean.slice(4, 6), 16) / 255
   }
+}
+
+type ColorArg = string | { variable: string }
+
+/**
+ * Get hex color from ColorArg (for sync operations, ignores variables)
+ */
+function getHexColor(color: ColorArg): string {
+  return typeof color === 'string' ? color : '#000000'
+}
+
+/**
+ * Create a solid paint from hex color or variable reference
+ */
+async function createSolidPaint(color: ColorArg): Promise<SolidPaint> {
+  if (typeof color === 'string') {
+    return { type: 'SOLID', color: hexToRgb(color) }
+  }
+  
+  // Variable reference
+  const variables = await figma.variables.getLocalVariablesAsync('COLOR')
+  const variable = variables.find(v => v.name === color.variable)
+  
+  if (!variable) {
+    console.warn(`Variable "${color.variable}" not found, using black`)
+    return { type: 'SOLID', color: { r: 0, g: 0, b: 0 } }
+  }
+  
+  const paint: SolidPaint = {
+    type: 'SOLID',
+    color: { r: 0, g: 0, b: 0 } // Will be overridden by variable
+  }
+  
+  return figma.variables.setBoundVariableForPaint(paint, 'color', variable)
 }
 
 function hexToRgba(hex: string): RGBA {

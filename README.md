@@ -239,6 +239,16 @@ figma-use create icon heroicons:bell-solid --component  # as Figma component
 
 Browse icons: https://icon-sets.iconify.design/
 
+### Variables in Colors
+
+Use `var:Name` or `$Name` to reference Figma variables:
+
+```bash
+figma-use create rect --x 0 --y 0 --width 100 --height 100 --fill 'var:Colors/Primary'
+figma-use create frame --width 200 --height 100 --fill '$Brand/Background'
+figma-use create icon mdi:home --color 'var:Icon/Default'
+```
+
 ### Modify
 
 ```bash

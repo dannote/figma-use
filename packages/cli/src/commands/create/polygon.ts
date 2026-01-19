@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+import { colorArgToPayload } from '../../color-arg.ts'
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -10,8 +11,8 @@ export default defineCommand({
     sides: { type: 'string', description: 'Number of sides', default: '6' },
     name: { type: 'string', description: 'Name' },
     parent: { type: 'string', description: 'Parent node ID' },
-    fill: { type: 'string', description: 'Fill color (hex)' },
-    stroke: { type: 'string', description: 'Stroke color (hex)' },
+    fill: { type: 'string', description: 'Fill color (hex or var:Name)' },
+    stroke: { type: 'string', description: 'Stroke color (hex or var:Name)' },
     'stroke-weight': { type: 'string', description: 'Stroke weight' },
     json: { type: 'boolean', description: 'Output as JSON' }
   },
@@ -24,8 +25,8 @@ export default defineCommand({
         sides: Number(args.sides),
         name: args.name,
         parentId: args.parent,
-        fill: args.fill,
-        stroke: args.stroke,
+        fill: colorArgToPayload(args.fill),
+        stroke: colorArgToPayload(args.stroke),
         strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined
       })
       printResult(result, args.json, 'create')

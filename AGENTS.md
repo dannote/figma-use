@@ -54,9 +54,29 @@ case 'my-command': {
 ## Conventions
 
 - Commands: kebab-case (`create-rectangle`, `set-fill-color`)
-- Colors: hex format `#RGB`, `#RRGGBB`, `#RRGGBBAA`
+- Colors: hex format `#RGB`, `#RRGGBB`, `#RRGGBBAA`, or `var:VariableName` / `$VariableName`
 - Output: human-readable by default, `--json` for machine parsing
 - Inline styles: create commands accept `--fill`, `--stroke`, `--radius`, etc.
+
+## Code Migrations
+
+Use GritQL for AST-aware code transformations:
+
+```bash
+# Add import to files
+grit apply '`import { defineCommand } from "citty"` => `import { defineCommand } from "citty"\nimport { colorArgToPayload } from "../../color-arg.ts"`' packages/cli/src/commands/create/*.ts
+
+# Replace pattern in specific context
+grit apply '`fill: args.fill` => `fill: colorArgToPayload(args.fill)`'
+
+# More complex with conditions
+grit apply '`$x: args.$y` where { $x <: or { `fill`, `stroke` } } => `$x: colorArgToPayload(args.$y)`'
+```
+
+GritQL is better than sed for:
+- Import additions (deduplicates automatically)
+- Refactors that need AST context
+- Multi-file migrations with consistent formatting
 
 ## Plugin Build
 

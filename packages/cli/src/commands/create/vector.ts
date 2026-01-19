@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+import { colorArgToPayload } from '../../color-arg.ts'
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -9,8 +10,8 @@ export default defineCommand({
     path: { type: 'string', description: 'SVG path data', required: true },
     name: { type: 'string', description: 'Name' },
     parent: { type: 'string', description: 'Parent node ID' },
-    fill: { type: 'string', description: 'Fill color (hex)' },
-    stroke: { type: 'string', description: 'Stroke color (hex)' },
+    fill: { type: 'string', description: 'Fill color (hex or var:Name)' },
+    stroke: { type: 'string', description: 'Stroke color (hex or var:Name)' },
     'stroke-weight': { type: 'string', description: 'Stroke weight' },
     json: { type: 'boolean', description: 'Output as JSON' }
   },
@@ -22,8 +23,8 @@ export default defineCommand({
         path: args.path,
         name: args.name,
         parentId: args.parent,
-        fill: args.fill,
-        stroke: args.stroke,
+        fill: colorArgToPayload(args.fill),
+        stroke: colorArgToPayload(args.stroke),
         strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined
       })
       printResult(result, args.json, 'create')
