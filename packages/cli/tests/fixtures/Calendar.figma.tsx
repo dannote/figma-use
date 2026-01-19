@@ -1,9 +1,9 @@
 /**
- * Calendar component in Nuxt UI style with blue accent colors
+ * Calendar component in Nuxt UI style with blue accent colors and Iconify icons
  */
 
 import * as React from 'react'
-import { Frame, Text } from '../../src/render/index.ts'
+import { Frame, Text, Icon } from '../../src/render/index.ts'
 
 const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 const MONTH_DAYS = [
@@ -17,12 +17,11 @@ const MONTH_DAYS = [
 
 const colors = {
   bg: '#FFFFFF',
-  bgHover: '#EFF6FF', // Blue-50, subtle blue tint for today
+  bgHover: '#EFF6FF',
   text: '#111827',
   textMuted: '#9CA3AF',
   border: '#E5E7EB',
   primary: '#3B82F6',
-  primaryHover: '#2563EB',
   primaryText: '#FFFFFF'
 }
 
@@ -97,6 +96,27 @@ const WeekRow = ({
   </Frame>
 )
 
+const NavButton = ({ direction }: { direction: 'left' | 'right' }) => (
+  <Frame
+    name={`nav-${direction}`}
+    style={{
+      width: 32,
+      height: 32,
+      borderRadius: 6,
+      backgroundColor: colors.bgHover,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}
+  >
+    <Icon
+      icon={direction === 'left' ? 'lucide:chevron-left' : 'lucide:chevron-right'}
+      size={18}
+      color={colors.textMuted}
+    />
+  </Frame>
+)
+
 export default function Calendar() {
   const selectedDay = 18
   const today = 17
@@ -116,6 +136,7 @@ export default function Calendar() {
         borderWidth: 1
       }}
     >
+      {/* Header with navigation */}
       <Frame
         name="header"
         style={{
@@ -126,43 +147,21 @@ export default function Calendar() {
           height: 40
         }}
       >
+        <NavButton direction="left" />
         <Frame
           style={{
-            width: 32,
+            width: 200,
             height: 32,
-            borderRadius: 6,
-            backgroundColor: colors.bgHover,
-            flexDirection: 'column',
+            flexDirection: 'row',
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: 8
           }}
         >
-          <Text style={{ fontSize: 18, color: colors.textMuted }}>‹</Text>
-        </Frame>
-        <Frame
-          style={{
-            width: 244,
-            height: 32,
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
+          <Icon icon="lucide:calendar" size={18} color={colors.primary} />
           <Text style={{ fontSize: 16, fontWeight: 600, color: colors.text }}>January 2026</Text>
         </Frame>
-        <Frame
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 6,
-            backgroundColor: colors.bgHover,
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
-        </Frame>
+        <NavButton direction="right" />
       </Frame>
 
       {/* Days header */}
@@ -176,6 +175,37 @@ export default function Calendar() {
       {MONTH_DAYS.map((week, i) => (
         <WeekRow key={i} days={week} selectedDay={selectedDay} today={today} />
       ))}
+
+      {/* Footer with today button */}
+      <Frame
+        name="footer"
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 308,
+          height: 36,
+          marginTop: 8
+        }}
+      >
+        <Frame
+          name="today-button"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            paddingLeft: 12,
+            paddingRight: 12,
+            height: 32,
+            borderRadius: 6,
+            backgroundColor: colors.bgHover
+          }}
+        >
+          <Icon icon="lucide:circle-dot" size={14} color={colors.primary} />
+          <Text style={{ fontSize: 13, fontWeight: 500, color: colors.primary }}>Today</Text>
+        </Frame>
+      </Frame>
     </Frame>
   )
 }
