@@ -33,7 +33,7 @@ describe('create', () => {
         `create rect --x 120 --y 10 --width 100 --height 50 --fill "#FF0000" --radius 8 --parent "${testFrameId}" --json`
       )) as any
       trackNode(rect.id)
-      expect(rect.fills[0].color).toBe('#FF0000')
+      expect(rect.fills[0]!.color).toBe('#FF0000')
     })
 
     test('creates rectangle with variable fill', async () => {
@@ -47,7 +47,7 @@ describe('create', () => {
         `create rect --x 560 --y 10 --width 50 --height 50 --fill "var:Primary" --parent "${testFrameId}" --json`
       )) as any
       trackNode(rect.id)
-      expect(rect.fills[0].color).toBe('#3B82F6')
+      expect(rect.fills[0]!.color).toBe('#3B82F6')
 
       // Cleanup
       await run(`variable delete "${variable.id}" --json`)
@@ -59,7 +59,7 @@ describe('create', () => {
         `create rect --x 230 --y 10 --width 100 --height 50 --fill "#FFFFFF" --stroke "#000000" --strokeWeight 2 --parent "${testFrameId}" --json`
       )) as any
       trackNode(rect.id)
-      expect(rect.strokes[0].color).toBe('#000000')
+      expect(rect.strokes[0]!.color).toBe('#000000')
       expect(rect.strokeWeight).toBe(2)
     })
 
@@ -76,7 +76,7 @@ describe('create', () => {
         `create rect --x 450 --y 10 --width 50 --height 50 --fill "#F00" --parent "${testFrameId}" --json`
       )) as any
       trackNode(rect.id)
-      expect(rect.fills[0].color).toBe('#FF0000')
+      expect(rect.fills[0]!.color).toBe('#FF0000')
     })
   })
 
@@ -87,7 +87,7 @@ describe('create', () => {
       )) as any
       trackNode(ellipse.id)
       expect(ellipse.type).toBe('ELLIPSE')
-      expect(ellipse.fills[0].color).toBe('#00FF00')
+      expect(ellipse.fills[0]!.color).toBe('#00FF00')
     })
   })
 

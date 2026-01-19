@@ -180,7 +180,7 @@ describe('diff', () => {
 
       // Verify it was applied
       const node = (await run(`node get ${testRect.id} --json`)) as { fills: { color: string }[] }
-      expect(node.fills[0].color).toBe('#BBBBBB')
+      expect(node.fills[0]!.color).toBe('#BBBBBB')
     })
 
     test('applies multiple changes from patch', async () => {
@@ -223,8 +223,8 @@ describe('diff', () => {
       // Verify both were applied
       const node1 = (await run(`node get ${rect1.id} --json`)) as { fills: { color: string }[] }
       const node2 = (await run(`node get ${rect2.id} --json`)) as { fills: { color: string }[] }
-      expect(node1.fills[0].color).toBe('#AAAAAA')
-      expect(node2.fills[0].color).toBe('#BBBBBB')
+      expect(node1.fills[0]!.color).toBe('#AAAAAA')
+      expect(node2.fills[0]!.color).toBe('#BBBBBB')
     })
 
     test('applies patch from file argument', async () => {
@@ -251,7 +251,7 @@ describe('diff', () => {
       expect(output).toContain('applied')
 
       const node = (await run(`node get ${testRect.id} --json`)) as { fills: { color: string }[] }
-      expect(node.fills[0].color).toBe('#DDDDDD')
+      expect(node.fills[0]!.color).toBe('#DDDDDD')
     })
   })
 

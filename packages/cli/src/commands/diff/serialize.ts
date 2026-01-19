@@ -42,14 +42,16 @@ export function serializeNode(node: Record<string, unknown>): string {
 
   // Fill color (first solid fill)
   const fills = node.fills as Array<{ type: string; color?: string }> | undefined
-  if (fills?.length && fills[0]?.type === 'SOLID' && fills[0].color) {
-    lines.push(`fill: ${fills[0].color}`)
+  const firstFill = fills?.[0]
+  if (firstFill?.type === 'SOLID' && firstFill.color) {
+    lines.push(`fill: ${firstFill.color}`)
   }
 
   // Stroke color (first solid stroke)
   const strokes = node.strokes as Array<{ type: string; color?: string }> | undefined
-  if (strokes?.length && strokes[0]?.type === 'SOLID' && strokes[0].color) {
-    lines.push(`stroke: ${strokes[0].color}`)
+  const firstStroke = strokes?.[0]
+  if (firstStroke?.type === 'SOLID' && firstStroke.color) {
+    lines.push(`stroke: ${firstStroke.color}`)
   }
 
   if (node.strokeWeight !== undefined && node.strokeWeight !== 0) {

@@ -381,7 +381,7 @@ describe('variable binding encoding', () => {
       fill: { r: 0.972, g: 0.98, b: 0.988, a: 1 }
     })
 
-    nodeChange.fillPaints![0].colorVariableBinding = {
+    nodeChange.fillPaints![0]!.colorVariableBinding = {
       variableID: { sessionID: 38448, localID: 122296 }
     }
 

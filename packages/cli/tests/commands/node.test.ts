@@ -117,10 +117,10 @@ describe('node', () => {
 
     const result = (await run(`node to-component ${frame.id} --json`)) as any[]
     expect(result.length).toBe(1)
-    expect(result[0].name).toBe('ToCompTest')
-    trackNode(result[0].id)
+    expect(result[0]!.name).toBe('ToCompTest')
+    trackNode(result[0]!.id)
 
-    const comp = (await run(`node get ${result[0].id} --json`)) as any
+    const comp = (await run(`node get ${result[0]!.id} --json`)) as any
     expect(comp.type).toBe('COMPONENT')
   })
 

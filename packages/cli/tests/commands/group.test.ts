@@ -27,7 +27,7 @@ describe('group', () => {
     const result = (await run(`group ungroup ${group.id} --json`)) as any[]
     expect(Array.isArray(result)).toBe(true)
     expect(result.length).toBe(2)
-    trackNode(result[0].id)
+    trackNode(result[0]!.id)
     trackNode(result[1].id)
   })
 

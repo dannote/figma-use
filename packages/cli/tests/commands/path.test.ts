@@ -7,7 +7,7 @@ async function createVector(path: string, parent: string): Promise<string> {
   )) as any
   trackNode(group.id)
   const children = (await run(`node children ${group.id} --json`)) as any[]
-  return children[0].id
+  return children[0]!.id
 }
 
 describe('path', () => {
@@ -35,8 +35,8 @@ describe('path', () => {
     }
     expect(result.paths).toBeArray()
     expect(result.paths.length).toBeGreaterThan(0)
-    expect(result.paths[0].data).toContain('M')
-    expect(result.paths[0].data).toContain('L')
+    expect(result.paths[0]!.data).toContain('M')
+    expect(result.paths[0]!.data).toContain('L')
   })
 
   test('set updates path data', async () => {
@@ -44,7 +44,7 @@ describe('path', () => {
     await run(`path set ${vectorId} "${newPath}" --json`)
 
     const result = (await run(`path get ${vectorId} --json`)) as { paths: Array<{ data: string }> }
-    expect(result.paths[0].data).toContain('50')
+    expect(result.paths[0]!.data).toContain('50')
   })
 
   test('move translates path points', async () => {
@@ -54,8 +54,8 @@ describe('path', () => {
     const result = (await run(`path move ${vectorId} --dx 10 --dy 20 --json`)) as {
       paths: Array<{ data: string }>
     }
-    expect(result.paths[0].data).toContain('10')
-    expect(result.paths[0].data).toContain('20')
+    expect(result.paths[0]!.data).toContain('10')
+    expect(result.paths[0]!.data).toContain('20')
   })
 
   test('scale changes path size', async () => {
@@ -64,7 +64,7 @@ describe('path', () => {
     const result = (await run(`path scale ${vid} --factor 2 --json`)) as {
       paths: Array<{ data: string }>
     }
-    expect(result.paths[0].data).toContain('200')
+    expect(result.paths[0]!.data).toContain('200')
   })
 
   test('flip x mirrors horizontally', async () => {
@@ -73,7 +73,7 @@ describe('path', () => {
     const result = (await run(`path flip ${vid} --axis x --json`)) as {
       paths: Array<{ data: string }>
     }
-    expect(result.paths[0].data).toContain('-100')
+    expect(result.paths[0]!.data).toContain('-100')
   })
 
   test('flip y mirrors vertically', async () => {
@@ -82,7 +82,7 @@ describe('path', () => {
     const result = (await run(`path flip ${vid} --axis y --json`)) as {
       paths: Array<{ data: string }>
     }
-    expect(result.paths[0].data).toContain('-100')
+    expect(result.paths[0]!.data).toContain('-100')
   })
 })
 

@@ -177,12 +177,12 @@ export default defineCommand({
           if (changes.size) {
             await sendCommand('resize-node', {
               id: nodeId,
-              width: changes.size[0],
-              height: changes.size[1]
+              width: changes.size[0]!,
+              height: changes.size[1]!
             })
           }
           if (changes.pos) {
-            await sendCommand('move-node', { id: nodeId, x: changes.pos[0], y: changes.pos[1] })
+            await sendCommand('move-node', { id: nodeId, x: changes.pos[0]!, y: changes.pos[1]! })
           }
           if (changes.text !== undefined) {
             await sendCommand('set-text-content', { id: nodeId, text: changes.text })

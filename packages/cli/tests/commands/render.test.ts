@@ -334,13 +334,13 @@ describe('render with icons', () => {
 
       // Frame node created
       expect(result.nodeChanges).toHaveLength(1)
-      expect(result.nodeChanges[0].name).toBe('IconFrame')
+      expect(result.nodeChanges[0]!.name).toBe('IconFrame')
 
       // Icon added to pending
       const pending = getPendingIcons()
       expect(pending).toHaveLength(1)
-      expect(pending[0].name).toBe('mdi/home')
-      expect(pending[0].svg).toContain('#3B82F6')
+      expect(pending[0]!.name).toBe('mdi/home')
+      expect(pending[0]!.svg).toContain('#3B82F6')
     },
     RENDER_TIMEOUT
   )
@@ -380,7 +380,7 @@ describe('render with variables', () => {
     })
 
     expect(result.nodeChanges).toHaveLength(1)
-    const node = result.nodeChanges[0]
+    const node = result.nodeChanges[0]!
     expect(node.fillPaints?.[0]?.colorVariableBinding).toBeDefined()
     expect(node.fillPaints?.[0]?.colorVariableBinding?.variableID).toEqual({
       sessionID: 38448,
@@ -414,7 +414,7 @@ describe('render with variables', () => {
     })
 
     expect(result.nodeChanges).toHaveLength(1)
-    const node = result.nodeChanges[0]
+    const node = result.nodeChanges[0]!
     expect(node.fillPaints?.[0]?.colorVariableBinding?.variableID).toEqual({
       sessionID: 38448,
       localID: 122296

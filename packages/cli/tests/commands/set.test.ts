@@ -25,7 +25,7 @@ describe('set', () => {
   describe('fill', () => {
     test('changes fill color', async () => {
       const result = (await run(`set fill ${rectId} "#FF0000" --json`)) as any
-      expect(result.fills[0].color).toBe('#FF0000')
+      expect(result.fills[0]!.color).toBe('#FF0000')
     })
 
     test('binds fill to variable with var: syntax', async () => {
@@ -36,7 +36,7 @@ describe('set', () => {
       )) as any
 
       const result = (await run(`set fill ${rectId} "var:TestPrimary" --json`)) as any
-      expect(result.fills[0].color).toBe('#3B82F6')
+      expect(result.fills[0]!.color).toBe('#3B82F6')
 
       // Verify variable is bound
       const info = (await run(
@@ -56,7 +56,7 @@ describe('set', () => {
       )) as any
 
       const result = (await run(`set fill ${rectId} '$Accent' --json`)) as any
-      expect(result.fills[0].color).toBe('#E11D48')
+      expect(result.fills[0]!.color).toBe('#E11D48')
 
       // Cleanup
       await run(`variable delete "${variable.id}" --json`)
@@ -67,7 +67,7 @@ describe('set', () => {
   describe('stroke', () => {
     test('changes stroke color and weight', async () => {
       const result = (await run(`set stroke ${rectId} "#0000FF" --weight 2 --json`)) as any
-      expect(result.strokes[0].color).toBe('#0000FF')
+      expect(result.strokes[0]!.color).toBe('#0000FF')
       expect(result.strokeWeight).toBe(2)
     })
   })

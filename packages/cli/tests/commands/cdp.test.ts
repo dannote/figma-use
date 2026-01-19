@@ -41,9 +41,9 @@ describe('CDP commands', () => {
       }[]
       expect(Array.isArray(result)).toBe(true)
       if (result.length > 0) {
-        expect(result[0].id).toBeDefined()
-        expect(result[0].created_at).toBeDefined()
-        expect(result[0].user.handle).toBeDefined()
+        expect(result[0]!.id).toBeDefined()
+        expect(result[0]!.created_at).toBeDefined()
+        expect(result[0]!.user.handle).toBeDefined()
       }
     })
   })
@@ -106,8 +106,8 @@ describe('font', () => {
     const result = (await run('font list --json')) as { family: string; style: string }[]
     expect(Array.isArray(result)).toBe(true)
     expect(result.length).toBeGreaterThan(0)
-    expect(result[0].family).toBeDefined()
-    expect(result[0].style).toBeDefined()
+    expect(result[0]!.family).toBeDefined()
+    expect(result[0]!.style).toBeDefined()
   })
 
   test('list filters by family', async () => {

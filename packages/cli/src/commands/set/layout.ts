@@ -25,9 +25,10 @@ export default defineCommand({
       if (args.padding) {
         const parts = args.padding.split(',').map(Number)
         if (parts.length === 1) {
-          paddingObj = { top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] }
+          const p = parts[0]!
+          paddingObj = { top: p, right: p, bottom: p, left: p }
         } else if (parts.length === 4) {
-          paddingObj = { top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] }
+          paddingObj = { top: parts[0]!, right: parts[1]!, bottom: parts[2]!, left: parts[3]! }
         }
       }
 

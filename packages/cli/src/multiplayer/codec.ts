@@ -477,13 +477,15 @@ export function encodeNodeChangeWithVariables(nodeChange: NodeChange): Uint8Arra
   let hex = Buffer.from(baseBytes).toString('hex')
 
   // Inject fill variable binding (field 38 = 0x26)
-  if (hasFillBinding && nodeChange.fillPaints?.[0]?.colorVariableBinding) {
-    hex = injectVariableBinding(hex, '2601', nodeChange.fillPaints[0].colorVariableBinding)
+  const fillBinding = nodeChange.fillPaints?.[0]?.colorVariableBinding
+  if (hasFillBinding && fillBinding) {
+    hex = injectVariableBinding(hex, '2601', fillBinding)
   }
 
   // Inject stroke variable binding (field 39 = 0x27)
-  if (hasStrokeBinding && nodeChange.strokePaints?.[0]?.colorVariableBinding) {
-    hex = injectVariableBinding(hex, '2701', nodeChange.strokePaints[0].colorVariableBinding)
+  const strokeBinding = nodeChange.strokePaints?.[0]?.colorVariableBinding
+  if (hasStrokeBinding && strokeBinding) {
+    hex = injectVariableBinding(hex, '2701', strokeBinding)
   }
 
   return new Uint8Array(hex.match(/.{2}/g)!.map((b) => parseInt(b, 16)))
