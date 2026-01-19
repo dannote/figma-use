@@ -8,12 +8,12 @@ export default defineCommand({
     y: { type: 'string', description: 'Y coordinate', required: true },
     size: { type: 'string', description: 'Size (width/height)', required: true },
     points: { type: 'string', description: 'Number of points', default: '5' },
-    innerRatio: { type: 'string', description: 'Inner radius ratio (0-1)', default: '0.5' },
+    'inner-ratio': { type: 'string', description: 'Inner radius ratio (0-1)', default: '0.5' },
     name: { type: 'string', description: 'Name' },
     parent: { type: 'string', description: 'Parent node ID' },
     fill: { type: 'string', description: 'Fill color (hex)' },
     stroke: { type: 'string', description: 'Stroke color (hex)' },
-    strokeWeight: { type: 'string', description: 'Stroke weight' },
+    'stroke-weight': { type: 'string', description: 'Stroke weight' },
     json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {
@@ -23,12 +23,12 @@ export default defineCommand({
         y: Number(args.y),
         size: Number(args.size),
         points: Number(args.points),
-        innerRadius: Number(args.innerRatio),
+        innerRadius: Number(args["inner-ratio"]),
         name: args.name,
         parentId: args.parent,
         fill: args.fill,
         stroke: args.stroke,
-        strokeWeight: args.strokeWeight ? Number(args.strokeWeight) : undefined
+        strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined
       })
       printResult(result, args.json, 'create')
     } catch (e) {

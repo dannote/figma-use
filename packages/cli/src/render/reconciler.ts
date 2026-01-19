@@ -98,6 +98,8 @@ interface Container {
   children: Instance[]
 }
 
+import { normalizeStyle } from './shorthands.ts'
+
 function styleToNodeChange(
   type: string,
   props: Record<string, unknown>,
@@ -107,7 +109,7 @@ function styleToNodeChange(
   position: string,
   textContent?: string
 ): NodeChange {
-  const style = (props.style || {}) as Record<string, unknown>
+  const style = normalizeStyle((props.style || {}) as Record<string, unknown>)
   const name = (props.name as string) || type
 
   const nodeChange: NodeChange = {

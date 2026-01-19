@@ -12,7 +12,7 @@ export default defineCommand({
       type: 'string',
       description: 'Primary axis alignment: MIN, CENTER, MAX, SPACE_BETWEEN'
     },
-    counterAlign: {
+    'counter-align': {
       type: 'string',
       description: 'Counter axis alignment: MIN, CENTER, MAX, BASELINE'
     },
@@ -37,7 +37,7 @@ export default defineCommand({
         itemSpacing: args.gap ? Number(args.gap) : undefined,
         padding: paddingObj,
         primaryAlign: args.align,
-        counterAlign: args.counterAlign,
+        counterAlign: args["counter-align"],
         wrap: args.wrap
       })
       printResult(result, args.json)

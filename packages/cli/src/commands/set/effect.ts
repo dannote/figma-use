@@ -11,8 +11,8 @@ export default defineCommand({
       required: true
     },
     radius: { type: 'string', description: 'Blur radius' },
-    offsetX: { type: 'string', description: 'Shadow offset X' },
-    offsetY: { type: 'string', description: 'Shadow offset Y' },
+    'offset-x': { type: 'string', description: 'Shadow offset X' },
+    'offset-y': { type: 'string', description: 'Shadow offset Y' },
     color: { type: 'string', description: 'Shadow color (hex with alpha)' },
     spread: { type: 'string', description: 'Shadow spread' },
     json: { type: 'boolean', description: 'Output as JSON' }
@@ -23,8 +23,8 @@ export default defineCommand({
         id: args.id,
         type: args.type,
         radius: args.radius ? Number(args.radius) : undefined,
-        offsetX: args.offsetX ? Number(args.offsetX) : undefined,
-        offsetY: args.offsetY ? Number(args.offsetY) : undefined,
+        offsetX: args["offset-x"] ? Number(args["offset-x"]) : undefined,
+        offsetY: args["offset-y"] ? Number(args["offset-y"]) : undefined,
         color: args.color,
         spread: args.spread ? Number(args.spread) : undefined
       })

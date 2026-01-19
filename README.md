@@ -3,8 +3,8 @@
 **CLI for Figma.** LLMs already know React and work great with CLIs — this combines both.
 
 ```bash
-echo '<Frame style={{padding: 24, backgroundColor: "#3B82F6", borderRadius: 12}}>
-  <Text style={{fontSize: 18, color: "#FFF"}}>Hello Figma</Text>
+echo '<Frame style={{p: 24, bg: "#3B82F6", rounded: 12}}>
+  <Text style={{size: 18, color: "#FFF"}}>Hello Figma</Text>
 </Frame>' | figma-use render --stdin
 ```
 
@@ -49,9 +49,9 @@ For AI agents doing dozens of Figma operations, this adds up fast. If you still 
 Every LLM has been trained on millions of React components. They can write this without examples:
 
 ```tsx
-<Frame style={{ flexDirection: 'column', gap: 16, padding: 24 }}>
-  <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Title</Text>
-  <Text style={{ fontSize: 14, color: '#666' }}>Description</Text>
+<Frame style={{ flex: 'col', gap: 16, p: 24 }}>
+  <Text style={{ size: 24, weight: 'bold' }}>Title</Text>
+  <Text style={{ size: 14, color: '#666' }}>Description</Text>
 </Frame>
 ```
 
@@ -86,7 +86,7 @@ figma-use proxy
 
 ```bash
 # From stdin
-echo '<Frame style={{width: 200, height: 100, backgroundColor: "#FF0000"}} />' | figma-use render --stdin
+echo '<Frame style={{w: 200, h: 100, bg: "#FF0000"}} />' | figma-use render --stdin
 
 # From file
 figma-use render ./Card.figma.tsx
@@ -99,37 +99,40 @@ figma-use render ./Card.figma.tsx --props '{"title": "Hello"}'
 
 `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Polygon`, `Vector`, `Group`
 
-### Style Properties
+### Style Properties (with Tailwind-like shorthands)
 
 ```tsx
 // Layout
-flexDirection: 'row' | 'column'
-justifyContent: 'flex-start' | 'center' | 'flex-end' | 'space-evenly'
-alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch'
+flex: 'row' | 'col'                    // flexDirection
+justify: 'start' | 'center' | 'end' | 'between' | 'evenly'  // justifyContent
+items: 'start' | 'center' | 'end' | 'stretch'  // alignItems
 gap: number
-padding: number
-paddingTop / paddingRight / paddingBottom / paddingLeft: number
+p: number                              // padding
+pt / pr / pb / pl: number              // paddingTop/Right/Bottom/Left
+px / py: number                        // horizontal / vertical padding
 
 // Size & Position
-width: number
-height: number
+w: number                              // width
+h: number                              // height
 x: number
 y: number
 
 // Appearance
-backgroundColor: string  // hex color
+bg: string                             // backgroundColor (hex)
 borderColor: string
 borderWidth: number
-borderRadius: number
+rounded: number                        // borderRadius
 opacity: number
 
 // Text
-fontSize: number
-fontFamily: string
-fontWeight: 'normal' | 'bold' | '100'-'900'
+size: number                           // fontSize
+font: string                           // fontFamily
+weight: 'normal' | 'bold' | number     // fontWeight
 color: string
 textAlign: 'left' | 'center' | 'right'
 ```
+
+Full property names (`width`, `backgroundColor`, etc.) also work.
 
 ### Reusable Components
 
@@ -139,13 +142,13 @@ textAlign: 'left' | 'center' | 'right'
 import { defineComponent, Frame, Text } from '@dannote/figma-use/render'
 
 const Card = defineComponent('Card',
-  <Frame style={{ padding: 24, backgroundColor: '#FFF', borderRadius: 12 }}>
-    <Text style={{ fontSize: 18, color: '#000' }}>Card</Text>
+  <Frame style={{ p: 24, bg: '#FFF', rounded: 12 }}>
+    <Text style={{ size: 18, color: '#000' }}>Card</Text>
   </Frame>
 )
 
 export default () => (
-  <Frame style={{ gap: 16, flexDirection: 'row' }}>
+  <Frame style={{ gap: 16, flex: 'row' }}>
     <Card />  {/* Creates Component */}
     <Card />  {/* Creates Instance */}
     <Card />  {/* Creates Instance */}
@@ -165,9 +168,9 @@ const Button = defineComponentSet('Button', {
   size: ['Small', 'Large'] as const,
 }, ({ variant, size }) => (
   <Frame style={{ 
-    padding: size === 'Large' ? 16 : 8,
-    backgroundColor: variant === 'Primary' ? '#3B82F6' : '#E5E7EB',
-    borderRadius: 8,
+    p: size === 'Large' ? 16 : 8,
+    bg: variant === 'Primary' ? '#3B82F6' : '#E5E7EB',
+    rounded: 8,
   }}>
     <Text style={{ color: variant === 'Primary' ? '#FFF' : '#111' }}>
       {variant} {size}
@@ -176,7 +179,7 @@ const Button = defineComponentSet('Button', {
 ))
 
 export default () => (
-  <Frame style={{ gap: 16, flexDirection: 'column' }}>
+  <Frame style={{ gap: 16, flex: 'col' }}>
     <Button variant="Primary" size="Large" />
     <Button variant="Secondary" size="Small" />
   </Frame>
@@ -198,7 +201,7 @@ const colors = defineVars({
 })
 
 export default () => (
-  <Frame style={{ backgroundColor: colors.bg }}>
+  <Frame style={{ bg: colors.bg }}>
     <Text style={{ color: colors.text }}>Bound to variables</Text>
   </Frame>
 )
@@ -218,7 +221,7 @@ The `render` command is the fastest way to create complex layouts. For simpler o
 figma-use create frame --width 400 --height 300 --fill "#FFF" --radius 12 --layout VERTICAL --gap 16
 figma-use create rect --width 100 --height 50 --fill "#FF0000" --radius 8
 figma-use create ellipse --width 80 --height 80 --fill "#00FF00"
-figma-use create text --text "Hello" --fontSize 24 --fill "#000"
+figma-use create text --text "Hello" --font-size 24 --fill "#000"
 figma-use create line --length 100 --stroke "#000"
 figma-use create component --width 200 --height 100
 figma-use create instance --component <id>

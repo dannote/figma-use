@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Tailwind-like style shorthands** for JSX render:
+  - Size: `w`, `h` → `width`, `height`
+  - Colors: `bg` → `backgroundColor`, `rounded` → `borderRadius`
+  - Padding: `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`
+  - Layout: `flex` (`"row"` | `"col"`), `justify`, `items`
+  - Text: `size`, `font`, `weight` → `fontSize`, `fontFamily`, `fontWeight`
+  
+  ```jsx
+  // Before (178 chars)
+  <Frame style={{paddingLeft: 16, paddingRight: 16, backgroundColor: "#3B82F6", borderRadius: 6, flexDirection: "row"}}>
+  
+  // After (73 chars)
+  <Frame style={{px: 16, bg: "#3B82F6", rounded: 6, flex: "row"}}>
+  ```
+
+### Changed
+
+- CLI arguments now use kebab-case: `--stroke-weight`, `--font-size`, `--min-width`, etc.
+
 ## [0.6.3] - 2026-01-19
 
 ### Added

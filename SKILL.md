@@ -121,9 +121,9 @@ figma-use node delete <id>
 Use `render --stdin` with **pure JSX only**. No variables, no functions, no imports — just JSX tags:
 
 ```bash
-echo '<Frame style={{padding: 24, gap: 16, flexDirection: "column", backgroundColor: "#FFF", borderRadius: 12}}>
-  <Text style={{fontSize: 24, fontWeight: "bold", color: "#000"}}>Card Title</Text>
-  <Text style={{fontSize: 14, color: "#666"}}>Description text here</Text>
+echo '<Frame style={{p: 24, gap: 16, flex: "col", bg: "#FFF", rounded: 12}}>
+  <Text style={{size: 24, weight: "bold", color: "#000"}}>Card Title</Text>
+  <Text style={{size: 14, color: "#666"}}>Description text here</Text>
 </Frame>' | figma-use render --stdin
 ```
 
@@ -131,36 +131,52 @@ echo '<Frame style={{padding: 24, gap: 16, flexDirection: "column", backgroundCo
 
 **Elements:** `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Polygon`, `Vector`, `Group`
 
-**Style props:** `width`, `height`, `x`, `y`, `padding`, `paddingTop/Right/Bottom/Left`, `gap`, `flexDirection` (row|column), `justifyContent`, `alignItems`, `backgroundColor`, `borderColor`, `borderWidth`, `borderRadius`, `opacity`, `fontSize`, `fontFamily`, `fontWeight`, `color`, `textAlign`
+**Style props (with shorthands):**
+
+| Shorthand | Full | Values |
+|-----------|------|--------|
+| `w`, `h` | `width`, `height` | number |
+| `bg` | `backgroundColor` | hex color |
+| `rounded` | `borderRadius` | number |
+| `p`, `pt`, `pr`, `pb`, `pl` | `padding*` | number |
+| `px`, `py` | paddingLeft+Right, paddingTop+Bottom | number |
+| `flex` | `flexDirection` | `"row"`, `"col"` |
+| `justify` | `justifyContent` | `"start"`, `"end"`, `"center"`, `"between"`, `"evenly"` |
+| `items` | `alignItems` | `"start"`, `"end"`, `"center"`, `"stretch"` |
+| `size` | `fontSize` | number |
+| `font` | `fontFamily` | string |
+| `weight` | `fontWeight` | `"bold"`, number |
+
+Also: `gap`, `opacity`, `color`, `borderColor`, `borderWidth`, `textAlign`, `x`, `y`
 
 ### Auto-Layout (Hug Contents)
 
-Frames with `flexDirection` automatically calculate size from children:
+Frames with `flex` automatically calculate size from children:
 
 ```bash
 # Height calculated as 50 + 10 (gap) + 30 = 90
-echo '<Frame style={{width: 200, flexDirection: "column", gap: 10}}>
-  <Frame style={{width: 200, height: 50, backgroundColor: "#00FF00"}} />
-  <Frame style={{width: 200, height: 30, backgroundColor: "#0000FF"}} />
+echo '<Frame style={{w: 200, flex: "col", gap: 10}}>
+  <Frame style={{w: 200, h: 50, bg: "#00FF00"}} />
+  <Frame style={{w: 200, h: 30, bg: "#0000FF"}} />
 </Frame>' | figma-use render --stdin
 ```
 
-**Limitation:** Row layout without explicit width collapses to 1×1 — always set `width` on row containers
+**Limitation:** Row layout without explicit width collapses to 1×1 — always set `w` on row containers
 
 ### Buttons Example (3 sizes)
 
 Since stdin doesn't support variables, write out each variant explicitly:
 
 ```bash
-echo '<Frame name="Buttons" style={{gap: 16, flexDirection: "row", padding: 24}}>
-  <Frame name="Small" style={{paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6, backgroundColor: "#3B82F6", borderRadius: 6, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
-    <Text style={{fontSize: 12, color: "#FFF"}}>Button</Text>
+echo '<Frame name="Buttons" style={{gap: 16, flex: "row", p: 24}}>
+  <Frame name="Small" style={{px: 12, py: 6, bg: "#3B82F6", rounded: 6, flex: "row", justify: "center", items: "center"}}>
+    <Text style={{size: 12, color: "#FFF"}}>Button</Text>
   </Frame>
-  <Frame name="Medium" style={{paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8, backgroundColor: "#3B82F6", borderRadius: 6, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
-    <Text style={{fontSize: 14, color: "#FFF"}}>Button</Text>
+  <Frame name="Medium" style={{px: 16, py: 8, bg: "#3B82F6", rounded: 6, flex: "row", justify: "center", items: "center"}}>
+    <Text style={{size: 14, color: "#FFF"}}>Button</Text>
   </Frame>
-  <Frame name="Large" style={{paddingLeft: 24, paddingRight: 24, paddingTop: 12, paddingBottom: 12, backgroundColor: "#3B82F6", borderRadius: 6, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
-    <Text style={{fontSize: 16, color: "#FFF"}}>Button</Text>
+  <Frame name="Large" style={{px: 24, py: 12, bg: "#3B82F6", rounded: 6, flex: "row", justify: "center", items: "center"}}>
+    <Text style={{size: 16, color: "#FFF"}}>Button</Text>
   </Frame>
 </Frame>' | figma-use render --stdin
 ```
@@ -201,7 +217,7 @@ figma-use create page "Page Name"
 figma-use create frame --width 400 --height 300 --fill "#FFF" --radius 12 --layout VERTICAL --gap 16
 figma-use create rect --width 100 --height 50 --fill "#FF0000" --radius 8
 figma-use create ellipse --width 80 --height 80 --fill "#00FF00"
-figma-use create text --text "Hello" --fontSize 24 --fill "#000"
+figma-use create text --text "Hello" --font-size 24 --fill "#000"
 figma-use create line --length 100 --stroke "#000"
 ```
 

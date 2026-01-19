@@ -12,7 +12,7 @@ export default defineCommand({
     parent: { type: 'string', description: 'Parent node ID' },
     fill: { type: 'string', description: 'Fill color (hex)' },
     stroke: { type: 'string', description: 'Stroke color (hex)' },
-    strokeWeight: { type: 'string', description: 'Stroke weight' },
+    'stroke-weight': { type: 'string', description: 'Stroke weight' },
     json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {
@@ -26,7 +26,7 @@ export default defineCommand({
         parentId: args.parent,
         fill: args.fill,
         stroke: args.stroke,
-        strokeWeight: args.strokeWeight ? Number(args.strokeWeight) : undefined
+        strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined
       })
       printResult(result, args.json, 'create')
     } catch (e) {
