@@ -27,8 +27,8 @@ const c = {
 }
 
 const DayHeader = ({ day }: { day: string }) => (
-  <Frame name={`header-${day}`} style={{ w: 40, h: 28, flex: 'col', justify: 'center', items: 'center' }}>
-    <Text style={{ size: 12, weight: 600, color: c.muted }}>{day}</Text>
+  <Frame name={`header-${day}`} style={{ w: 40, h: 32, flex: 'col', justify: 'end', items: 'center', pb: 4 }}>
+    <Text style={{ size: 12, weight: 500, color: c.muted }}>{day}</Text>
   </Frame>
 )
 
@@ -54,36 +54,32 @@ const WeekRow = ({ days, selectedDay, today }: { days: (number | null)[]; select
 )
 
 const NavButton = ({ direction }: { direction: 'left' | 'right' }) => (
-  <Frame name={`nav-${direction}`} style={{ w: 32, h: 32, rounded: 6, bg: c.bgHover, flex: 'row', justify: 'center', items: 'center' }}>
-    <Icon icon={direction === 'left' ? 'lucide:chevron-left' : 'lucide:chevron-right'} size={16} color={c.muted} />
+  <Frame name={`nav-${direction}`} style={{ w: 28, h: 28, rounded: 6, bg: c.bgHover, flex: 'row', justify: 'center', items: 'center' }}>
+    <Icon icon={direction === 'left' ? 'tabler:chevron-left' : 'tabler:chevron-right'} size={18} color={c.text} />
   </Frame>
 )
 
 export default function Calendar() {
   return (
-    <Frame name="Calendar" style={{ w: 340, bg: c.bg, rounded: 12, p: 16, flex: 'col', gap: 8, borderColor: c.border, borderWidth: 1 }}>
+    <Frame name="Calendar" style={{ w: 340, bg: c.bg, rounded: 12, p: 16, flex: 'col', gap: 4, borderColor: c.border, borderWidth: 1 }}>
       {/* Header */}
-      <Frame name="header" style={{ flex: 'row', items: 'center', justify: 'between', w: 308, h: 40 }}>
+      <Frame name="header" style={{ flex: 'row', items: 'center', justify: 'between', w: 308, h: 36 }}>
         <NavButton direction="left" />
-        <Frame style={{ h: 32, flex: 'row', justify: 'center', items: 'center', gap: 6 }}>
-          <Text style={{ size: 16, weight: 600, color: c.text }}>January 2026</Text>
-          <Icon icon="lucide:calendar" size={16} color={c.primary} />
-        </Frame>
+        <Text style={{ size: 15, weight: 600, color: c.text }}>January 2026</Text>
         <NavButton direction="right" />
       </Frame>
 
-      {/* Days header + Grid as one group */}
-      <Frame name="grid" style={{ flex: 'col', gap: 2 }}>
-        <Frame style={{ flex: 'row', gap: 4, w: 308, h: 28 }}>
+      {/* Days header + Grid */}
+      <Frame name="grid" style={{ flex: 'col', gap: 2, w: 308 }}>
+        <Frame style={{ flex: 'row', gap: 4, h: 32 }}>
           {DAYS.map((day) => <DayHeader key={day} day={day} />)}
         </Frame>
         {MONTH_DAYS.map((week, i) => <WeekRow key={i} days={week} selectedDay={18} today={17} />)}
       </Frame>
 
       {/* Footer */}
-      <Frame name="footer" style={{ flex: 'row', justify: 'center', items: 'center', w: 308 }}>
-        <Frame name="today-button" style={{ flex: 'row', items: 'center', justify: 'center', gap: 6, px: 14, h: 32, rounded: 6, bg: c.bgHover }}>
-          <Icon icon="lucide:calendar-check" size={14} color={c.primary} />
+      <Frame name="footer" style={{ flex: 'row', justify: 'center', items: 'center', w: 308, h: 32 }}>
+        <Frame name="today-button" style={{ flex: 'row', items: 'center', justify: 'center', px: 12, h: 32, rounded: 6, bg: c.bgHover }}>
           <Text style={{ size: 13, weight: 500, color: c.primary }}>Today</Text>
         </Frame>
       </Frame>
