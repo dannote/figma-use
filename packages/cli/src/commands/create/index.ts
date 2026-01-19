@@ -12,6 +12,7 @@ import instance from './instance.ts'
 import section from './section.ts'
 import page from './page.ts'
 import slice from './slice.ts'
+import icon from './icon.ts'
 
 export default defineCommand({
   meta: { description: 'Create nodes' },
@@ -28,6 +29,7 @@ export default defineCommand({
     instance,
     section,
     page,
-    slice
+    slice,
+    icon
   }
 })
