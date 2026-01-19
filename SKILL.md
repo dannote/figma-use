@@ -292,10 +292,12 @@ figma-use style list
 figma-use style create-paint "Brand/Primary" --color "#E11D48"
 ```
 
-**Variable references in CLI:** Use `var:Name` or `$Name` in color options:
+**Variable references in CLI:** Use `var:Name` or `$Name` in any color option (`--fill`, `--stroke`, `--color`):
 ```bash
 figma-use create rect --x 0 --y 0 --width 100 --height 100 --fill 'var:Primary'
 figma-use create icon mdi:home --color '$Brand/Accent'
+figma-use set fill <id> 'var:Colors/Primary'
+figma-use set stroke <id> '$Brand/Border'
 ```
 
 ### Fonts

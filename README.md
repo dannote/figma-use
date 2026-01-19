@@ -241,12 +241,17 @@ Browse icons: https://icon-sets.iconify.design/
 
 ### Variables in Colors
 
-Use `var:Name` or `$Name` to reference Figma variables:
+Use `var:Name` or `$Name` to reference Figma variables in any color option:
 
 ```bash
+# Create commands
 figma-use create rect --x 0 --y 0 --width 100 --height 100 --fill 'var:Colors/Primary'
-figma-use create frame --width 200 --height 100 --fill '$Brand/Background'
+figma-use create frame --width 200 --height 100 --stroke '$Brand/Border'
 figma-use create icon mdi:home --color 'var:Icon/Default'
+
+# Set commands
+figma-use set fill <id> 'var:Colors/Primary'
+figma-use set stroke <id> '$Brand/Border'
 ```
 
 ### Modify
