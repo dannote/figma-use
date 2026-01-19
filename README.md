@@ -3,9 +3,15 @@
 CLI for Figma. Control it from the terminal — with commands or JSX.
 
 ```bash
+# Create and style
+figma-use create frame --width 400 --height 300 --fill "#FFF" --layout VERTICAL --gap 16
+figma-use create icon mdi:home --size 32 --color "#3B82F6"
+figma-use set fill 1:23 "$Colors/Primary"
+
+# Or render JSX
 echo '<Frame style={{p: 24, bg: "#3B82F6", rounded: 12}}>
   <Text style={{size: 18, color: "#FFF"}}>Hello Figma</Text>
-</Frame>' | figma-use render --stdin
+</Frame>' | figma-use render --stdin --x 100 --y 100
 ```
 
 ## Why
@@ -62,7 +68,7 @@ Or declaratively — describe the structure in JSX and render it:
 echo '<Frame style={{p: 24, gap: 16, flex: "col", bg: "#FFF", rounded: 12}}>
   <Text style={{size: 24, weight: "bold", color: "#000"}}>Card Title</Text>
   <Text style={{size: 14, color: "#666"}}>Description</Text>
-</Frame>' | figma-use render --stdin
+</Frame>' | figma-use render --stdin --x 100 --y 200
 ```
 
 The stdin mode accepts pure JSX only — no variables, no logic. For components, variants, and conditions, use `.figma.tsx` files.
