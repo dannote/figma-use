@@ -198,7 +198,17 @@ figma-use diff create --from 123:456 --to 789:012
 +opacity: 1
 ```
 
-Apply the patch to the original frame. On apply, current state is validated against expected — if they don't match, it fails. There's also visual diff: overlay two PNGs and highlight differences.
+Apply the patch to the original frame. On apply, current state is validated against expected — if they don't match, it fails.
+
+Visual diff highlights changed pixels in red:
+
+```bash
+figma-use diff visual --from 49:275096 --to 49:280802 --output diff.png
+```
+
+| Before | After | Diff |
+|--------|-------|------|
+| ![before](assets/diff-before.png) | ![after](assets/diff-after.png) | ![diff](assets/diff-result.png) |
 
 ### Inspection
 
