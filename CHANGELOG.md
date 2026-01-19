@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- README rewritten — focused on concepts, moved command list to REFERENCE.md
+- Added REFERENCE.md with full list of 100+ commands
+
 ### Added
 
 - **`page current`** — show current page name and ID
