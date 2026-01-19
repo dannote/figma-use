@@ -3,12 +3,7 @@ import { sendCommand, printResult, handleError } from '../../client.ts'
 import { loadIconSvg } from '../../render/icon.ts'
 import { fail } from '../../format.ts'
 
-function parseColorArg(color: string | undefined): { hex?: string; variable?: string } | undefined {
-  if (!color) return undefined
-  const varMatch = color.match(/^(?:var:|[$])(.+)$/)
-  if (varMatch) return { variable: varMatch[1] }
-  return { hex: color }
-}
+const VAR_PREFIX_RE = /^(?:var:|[$])(.+)$/
 
 /**
  * Replace currentColor in SVG fill/stroke attributes using HTMLRewriter
@@ -51,10 +46,12 @@ export default defineCommand({
         process.exit(1)
       }
 
-      const colorArg = parseColorArg(args.color)
+      // Check if color is a variable reference
+      const varMatch = args.color?.match(VAR_PREFIX_RE)
+      const hexColor = varMatch ? '#000000' : (args.color || '#000000')
       
-      // Replace currentColor in fill/stroke attributes using HTMLRewriter
-      const svg = await replaceSvgCurrentColor(iconData.svg, colorArg?.hex || '#000000')
+      // Replace currentColor in fill/stroke attributes
+      const svg = await replaceSvgCurrentColor(iconData.svg, hexColor)
 
       // Import SVG
       const result = await sendCommand('import-svg', {
@@ -69,10 +66,10 @@ export default defineCommand({
       await sendCommand('rename-node', { id: result.id, name: iconName })
 
       // Bind variable to icon fills if specified
-      if (colorArg?.variable) {
+      if (varMatch) {
         await sendCommand('bind-fill-variable-by-name', {
           id: result.id,
-          variableName: colorArg.variable,
+          variableName: varMatch[1],
           recursive: true
         })
       }
