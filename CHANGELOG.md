@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`query` command** — XPath selectors for finding nodes (powered by fontoxpath)
+  ```bash
+  figma-use query "//FRAME"                              # All frames
+  figma-use query "//FRAME[@width < 300]"                # Frames narrower than 300px  
+  figma-use query "//COMPONENT[starts-with(@name, 'Button')]"  # Name starts with
+  figma-use query "//FRAME[contains(@name, 'Card')]"     # Name contains
+  figma-use query "//SECTION/FRAME"                      # Direct children
+  figma-use query "//SECTION//TEXT"                      # All descendants
+  figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
+  ```
+  Full XPath 3.1 support: axes, predicates, functions, arithmetic
+
 - **Multi-file support** — proxy now supports multiple simultaneous plugin connections
   - Each plugin instance registers with fileKey and fileName
   - `file list` — show all connected files

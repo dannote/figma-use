@@ -75,6 +75,25 @@ figma-use node to-component <id>           # Convert frame to component
 figma-use node to-component "1:2 1:3 1:4"  # Multiple frames
 ```
 
+## Query (XPath)
+
+```bash
+figma-use query "//FRAME"                              # All frames
+figma-use query "//FRAME[@width < 300]"                # Frames narrower than 300px
+figma-use query "//COMPONENT[starts-with(@name, 'Button')]"  # Name starts with
+figma-use query "//FRAME[contains(@name, 'Card')]"     # Name contains
+figma-use query "//SECTION/FRAME"                      # Direct children only
+figma-use query "//SECTION//TEXT"                      # All descendants
+figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
+figma-use query "//FRAME[@width > 100 and @width < 500]"  # Range
+figma-use query "//TEXT[@characters = 'Submit']"       # Exact text content
+figma-use query "//FRAME" --limit 10                   # Limit results
+figma-use query "//FRAME" --select "id,name,width"     # Custom fields
+figma-use query "//FRAME" --root "1:23"                # Search within node
+```
+
+Attributes: `name`, `width`, `height`, `x`, `y`, `cornerRadius`, `opacity`, `visible`, `characters`, `fontSize`, `layoutMode`, `itemSpacing`, `paddingTop/Right/Bottom/Left`, `strokeWeight`, `rotation`
+
 ## Find & Select
 
 ```bash

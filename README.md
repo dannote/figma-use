@@ -235,6 +235,22 @@ figma-use path scale <id> --factor 1.5
 figma-use path flip <id> --axis x
 ```
 
+### Query
+
+Find nodes using XPath selectors:
+
+```bash
+figma-use query "//FRAME"                              # All frames
+figma-use query "//FRAME[@width < 300]"                # Narrower than 300px
+figma-use query "//COMPONENT[starts-with(@name, 'Button')]"  # Name starts with
+figma-use query "//FRAME[contains(@name, 'Card')]"     # Name contains
+figma-use query "//SECTION/FRAME"                      # Direct children
+figma-use query "//SECTION//TEXT"                      # All descendants
+figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
+```
+
+Full XPath 3.1 support — predicates, functions, arithmetic, axes.
+
 ## Render via Multiplayer Protocol
 
 The `render` command uses Figma's internal multiplayer protocol, not just Plugin API. It's faster, but the protocol is internal and may change. Good for generation and prototyping.

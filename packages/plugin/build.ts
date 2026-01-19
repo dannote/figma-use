@@ -5,7 +5,9 @@ const [, uiBuild] = await Promise.all([
     entryPoints: ['src/main.ts'],
     bundle: true,
     outfile: 'dist/main.js',
-    target: 'es2015'
+    target: 'es2015',
+    treeShaking: true,
+    minify: true,
   }),
   esbuild.build({
     entryPoints: ['src/ui.ts'],

@@ -1,4 +1,5 @@
 import svgpath from 'svgpath'
+import { queryNodes } from './query.ts'
 
 console.log('[Figma Bridge] Plugin main loaded at', new Date().toISOString())
 
@@ -1824,6 +1825,33 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }))
       node.vectorPaths = newPaths
       return { updated: true, paths: newPaths }
+    }
+
+    // ==================== QUERY ====================
+    case 'query': {
+      const { selector, rootId, select, limit } = args as {
+        selector: string
+        rootId?: string
+        select?: string[]
+        limit?: number
+      }
+      const root = rootId
+        ? await figma.getNodeByIdAsync(rootId)
+        : figma.currentPage
+      if (!root) return { error: 'Root node not found' }
+
+      const nodes = queryNodes(selector, root, { limit: limit ?? 1000 })
+      const fields = select || ['id', 'name', 'type']
+
+      return nodes.map(node => {
+        const result: Record<string, unknown> = {}
+        for (const field of fields) {
+          if (field in node) {
+            result[field] = (node as unknown as Record<string, unknown>)[field]
+          }
+        }
+        return result
+      })
     }
 
     // ==================== EVAL ====================

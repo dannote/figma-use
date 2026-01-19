@@ -180,6 +180,25 @@ figma-use diff visual --from <id1> --to <id2> --output diff.png
 
 ⚠️ **After initial render, use diffs or direct commands.** Don't re-render full JSX trees.
 
+## Query (XPath)
+
+Find nodes using XPath selectors:
+
+```bash
+figma-use query "//FRAME"                              # All frames
+figma-use query "//FRAME[@width < 300]"                # Frames narrower than 300px
+figma-use query "//COMPONENT[starts-with(@name, 'Button')]"  # Name starts with
+figma-use query "//FRAME[contains(@name, 'Card')]"     # Name contains
+figma-use query "//SECTION/FRAME"                      # Direct children
+figma-use query "//SECTION//TEXT"                      # All descendants
+figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
+figma-use query "//FRAME[@width > 100 and @width < 500]"  # Range
+```
+
+Attributes: `name`, `width`, `height`, `x`, `y`, `cornerRadius`, `opacity`, `visible`, `characters`, `fontSize`, `layoutMode`, `itemSpacing`
+
+XPath functions: `contains()`, `starts-with()`, `string-length()`, `not()`, `and`, `or`
+
 ## Common Commands
 
 ```bash
@@ -188,9 +207,8 @@ figma-use create frame --width 400 --height 300 --fill "#FFF" --layout VERTICAL 
 figma-use create text --text "Hello" --font-size 24 --fill "#000"
 figma-use create rect --width 100 --height 50 --fill "#F00" --radius 8
 
-# Query
-figma-use node get <id>
-figma-use node tree
+# Find
+figma-use query "//FRAME[@name = 'Header']"
 figma-use find --name "Button"
 figma-use find --type FRAME
 figma-use selection get
