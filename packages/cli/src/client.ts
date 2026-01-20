@@ -1,10 +1,41 @@
 import { cdpEval } from './cdp.ts'
-import { RPC_BUNDLE } from './rpc-bundle.ts'
+import * as esbuild from 'esbuild'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 
 export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
 
 let rpcInjected = false
+
+function getPluginDir(): string {
+  // Works both in dev (src/) and bundled (dist/)
+  const currentFile = fileURLToPath(import.meta.url)
+  const cliDir = dirname(currentFile)
+  
+  // From packages/cli/src/ or dist/cli/
+  if (cliDir.includes('packages/cli')) {
+    return join(cliDir, '../../plugin/src')
+  }
+  // Bundled - go up to root
+  return join(cliDir, '../packages/plugin/src')
+}
+
+async function buildRpcBundle(): Promise<string> {
+  const pluginDir = getPluginDir()
+  const entryPoint = join(pluginDir, 'rpc.ts')
+  
+  const result = await esbuild.build({
+    entryPoints: [entryPoint],
+    bundle: true,
+    write: false,
+    format: 'iife',
+    target: 'es2020',
+    minify: true
+  })
+  
+  return result.outputFiles![0].text
+}
 
 async function ensureRpcInjected(): Promise<void> {
   if (rpcInjected) return
@@ -15,9 +46,9 @@ async function ensureRpcInjected(): Promise<void> {
     return
   }
 
-  await cdpEval(RPC_BUNDLE)
+  const rpcCode = await buildRpcBundle()
+  await cdpEval(rpcCode)
   
-  // Verify injection
   const ready = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
   if (!ready) {
     throw new Error('Failed to inject RPC into Figma')
