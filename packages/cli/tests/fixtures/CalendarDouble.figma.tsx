@@ -1,6 +1,6 @@
 /**
  * Double Calendar component - January & February 2026
- * Uses auto-sizing (no explicit width/height where possible)
+ * Uses CSS Grid for the days layout
  */
 
 import { Frame, Text } from '../../src/render/index.ts'
@@ -18,21 +18,21 @@ const colors = {
 const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 const JANUARY = [
-  [null, null, null, null, null, 1, 2],
-  [3, 4, 5, 6, 7, 8, 9],
-  [10, 11, 12, 13, 14, 15, 16],
-  [17, 18, 19, 20, 21, 22, 23],
-  [24, 25, 26, 27, 28, 29, 30],
-  [31, null, null, null, null, null, null]
+  null, null, null, null, null, 1, 2,
+  3, 4, 5, 6, 7, 8, 9,
+  10, 11, 12, 13, 14, 15, 16,
+  17, 18, 19, 20, 21, 22, 23,
+  24, 25, 26, 27, 28, 29, 30,
+  31, null, null, null, null, null, null
 ]
 
 const FEBRUARY = [
-  [null, null, null, null, null, null, 1],
-  [2, 3, 4, 5, 6, 7, 8],
-  [9, 10, 11, 12, 13, 14, 15],
-  [16, 17, 18, 19, 20, 21, 22],
-  [23, 24, 25, 26, 27, 28, null],
-  [null, null, null, null, null, null, null]
+  null, null, null, null, null, null, 1,
+  2, 3, 4, 5, 6, 7, 8,
+  9, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21, 22,
+  23, 24, 25, 26, 27, 28, null,
+  null, null, null, null, null, null, null
 ]
 
 const DayHeader = ({ day }: { day: string }) => (
@@ -85,12 +85,12 @@ const DayCell = ({
 
 const MonthGrid = ({
   title,
-  weeks,
+  days,
   selectedDay,
   today
 }: {
   title: string
-  weeks: (number | null)[][]
+  days: (number | null)[]
   selectedDay?: number
   today?: number
 }) => (
@@ -102,21 +102,33 @@ const MonthGrid = ({
       <Text style={{ fontSize: 15, fontWeight: 600, color: colors.text }}>{title}</Text>
     </Frame>
 
-    {/* Days header */}
-    <Frame style={{ flexDirection: 'row', gap: 2 }}>
+    {/* Days header - 7 column grid */}
+    <Frame
+      style={{
+        display: 'grid',
+        cols: '36px 36px 36px 36px 36px 36px 36px',
+        colGap: 2
+      }}
+    >
       {DAYS.map((d) => (
         <DayHeader key={d} day={d} />
       ))}
     </Frame>
 
-    {/* Weeks */}
-    {weeks.map((week, i) => (
-      <Frame key={i} style={{ flexDirection: 'row', gap: 2 }}>
-        {week.map((day, j) => (
-          <DayCell key={j} day={day} isSelected={day === selectedDay} isToday={day === today} />
-        ))}
-      </Frame>
-    ))}
+    {/* Days grid - 7 columns × 6 rows */}
+    <Frame
+      name="Days Grid"
+      style={{
+        display: 'grid',
+        cols: '36px 36px 36px 36px 36px 36px 36px',
+        rows: '36px 36px 36px 36px 36px 36px',
+        gap: 2
+      }}
+    >
+      {days.map((day, i) => (
+        <DayCell key={i} day={day} isSelected={day === selectedDay} isToday={day === today} />
+      ))}
+    </Frame>
   </Frame>
 )
 
@@ -134,8 +146,8 @@ export default function CalendarDouble() {
         borderWidth: 1
       }}
     >
-      <MonthGrid title="January 2026" weeks={JANUARY} selectedDay={18} today={17} />
-      <MonthGrid title="February 2026" weeks={FEBRUARY} selectedDay={14} />
+      <MonthGrid title="January 2026" days={JANUARY} selectedDay={18} today={17} />
+      <MonthGrid title="February 2026" days={FEBRUARY} selectedDay={14} />
     </Frame>
   )
 }

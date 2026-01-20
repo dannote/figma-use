@@ -421,3 +421,158 @@ describe('render with variables', () => {
     })
   })
 })
+
+describe('render with grid layout', () => {
+  let gridSessionID = 0
+  let gridParentGUID = { sessionID: 0, localID: 0 }
+
+  beforeAll(async () => {
+    if (!renderReady) return
+    try {
+      if (!fileKey) fileKey = await getFileKey()
+      gridParentGUID = await getParentGUID()
+      gridSessionID = gridParentGUID.sessionID || Date.now() % 1000000
+    } catch (error) {
+      renderReady = false
+      console.warn('Skipping render grid tests - DevTools or plugin not available', error)
+    }
+  }, 20000)
+
+  test('grid layout sets stackMode to GRID', async () => {
+    const React = (await import('react')).default
+    const { renderToNodeChanges } = await import('../../src/render/index.ts')
+
+    const element = React.createElement('frame', {
+      name: 'GridFrame',
+      style: { display: 'grid', width: 300, height: 200 }
+    })
+
+    const result = renderToNodeChanges(element, {
+      sessionID: 1,
+      parentGUID: { sessionID: 1, localID: 1 }
+    })
+
+    expect(result.nodeChanges).toHaveLength(1)
+    expect(result.nodeChanges[0]!.stackMode).toBe('GRID')
+  })
+
+  test('grid layout with cols/rows triggers pending grid layout', async () => {
+    const React = (await import('react')).default
+    const { renderToNodeChanges, getPendingGridLayouts, clearPendingGridLayouts } =
+      await import('../../src/render/index.ts')
+
+    clearPendingGridLayouts()
+
+    const element = React.createElement('frame', {
+      name: 'GridWithTemplate',
+      style: {
+        display: 'grid',
+        cols: '100px 1fr 100px',
+        rows: 'auto auto',
+        width: 400,
+        height: 200
+      }
+    })
+
+    const result = renderToNodeChanges(element, {
+      sessionID: 1,
+      parentGUID: { sessionID: 1, localID: 1 }
+    })
+
+    const pending = getPendingGridLayouts()
+    expect(pending).toHaveLength(1)
+    expect(pending[0]!.gridTemplateColumns).toBe('100px 1fr 100px')
+    expect(pending[0]!.gridTemplateRows).toBe('auto auto')
+  })
+
+  test('grid gap sets gridColumnGap and gridRowGap', async () => {
+    const React = (await import('react')).default
+    const { renderToNodeChanges } = await import('../../src/render/index.ts')
+
+    const element = React.createElement('frame', {
+      name: 'GridWithGap',
+      style: { display: 'grid', gap: 16, width: 300, height: 200 }
+    })
+
+    const result = renderToNodeChanges(element, {
+      sessionID: 1,
+      parentGUID: { sessionID: 1, localID: 1 }
+    })
+
+    expect(result.nodeChanges[0]!.gridColumnGap).toBe(16)
+    expect(result.nodeChanges[0]!.gridRowGap).toBe(16)
+  })
+
+  test('grid with separate colGap and rowGap', async () => {
+    const React = (await import('react')).default
+    const { renderToNodeChanges } = await import('../../src/render/index.ts')
+
+    const element = React.createElement('frame', {
+      name: 'GridWithSeparateGaps',
+      style: { display: 'grid', colGap: 24, rowGap: 12, width: 300, height: 200 }
+    })
+
+    const result = renderToNodeChanges(element, {
+      sessionID: 1,
+      parentGUID: { sessionID: 1, localID: 1 }
+    })
+
+    expect(result.nodeChanges[0]!.gridColumnGap).toBe(24)
+    expect(result.nodeChanges[0]!.gridRowGap).toBe(12)
+  })
+
+  test(
+    'grid integration: renders grid with children',
+    async () => {
+      if (!renderReady) return
+      const React = (await import('react')).default
+      const { renderToNodeChanges, clearPendingGridLayouts } = await import('../../src/render/index.ts')
+      const { sendCommand } = await import('../../src/client.ts')
+
+      clearPendingGridLayouts()
+
+      const element = React.createElement(
+        'frame',
+        {
+          name: 'IntegrationGrid',
+          style: {
+            display: 'grid',
+            cols: '100px 1fr',
+            rows: 'auto',
+            gap: 10,
+            width: 300,
+            height: 100
+          }
+        },
+        React.createElement('rectangle', { name: 'Cell1', style: { width: 50, height: 50, bg: '#FF0000' } }),
+        React.createElement('rectangle', { name: 'Cell2', style: { width: 50, height: 50, bg: '#00FF00' } })
+      )
+
+      const uniqueLocalID = Math.floor(Math.random() * 900000) + 100000
+      const result = renderToNodeChanges(element, {
+        sessionID: gridSessionID,
+        parentGUID: gridParentGUID,
+        startLocalID: uniqueLocalID
+      })
+
+      await sendToProxy(result.nodeChanges)
+
+      const rootId = `${result.nodeChanges[0]!.guid.sessionID}:${result.nodeChanges[0]!.guid.localID}`
+      
+      // Trigger layout with pending grid layouts
+      const { getPendingGridLayouts } = await import('../../src/render/index.ts')
+      await sendCommand('trigger-layout', {
+        nodeId: rootId,
+        pendingGridLayouts: getPendingGridLayouts()
+      })
+
+      // Verify via plugin
+      const node = (await run(`eval "const n = await figma.getNodeByIdAsync('${rootId}'); return { layoutMode: n.layoutMode, gridColumnCount: n.gridColumnCount, gridColumnGap: n.gridColumnGap }"`)) as any
+
+      expect(node.layoutMode).toBe('GRID')
+      expect(node.gridColumnCount).toBe(2)
+      expect(node.gridColumnGap).toBe(10)
+    },
+    RENDER_TIMEOUT
+  )
+})

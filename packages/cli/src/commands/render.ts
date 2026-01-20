@@ -16,6 +16,8 @@ import {
   clearPendingComponentSetInstances,
   getPendingIcons,
   clearPendingIcons,
+  getPendingGridLayouts,
+  clearPendingGridLayouts,
   preloadIcons,
   collectIcons,
   transformJsxSnippet
@@ -281,6 +283,10 @@ export default defineCommand({
       const pendingIconsList = getPendingIcons()
       clearPendingIcons()
 
+      // Get pending grid layouts (configured via Plugin API)
+      const pendingGridLayoutsList = getPendingGridLayouts()
+      clearPendingGridLayouts()
+
       // Send to Figma via proxy
       await sendNodeChanges(result.nodeChanges, pendingInstances)
 
@@ -319,7 +325,8 @@ export default defineCommand({
       try {
         await sendCommand('trigger-layout', {
           nodeId: rootId,
-          pendingComponentSetInstances: pendingInstances
+          pendingComponentSetInstances: pendingInstances,
+          pendingGridLayouts: pendingGridLayoutsList
         })
       } catch {
         // Plugin may not be connected, layout will be off but nodes created

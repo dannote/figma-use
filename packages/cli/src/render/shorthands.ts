@@ -35,6 +35,7 @@ export interface StyleProps {
   fontFamily?: string
   fontWeight?: string | number
   // Layout
+  display?: 'flex' | 'grid'
   flex?: 'row' | 'col' | 'column'
   flexDirection?: 'row' | 'column'
   justify?: 'start' | 'end' | 'center' | 'between' | 'evenly'
@@ -42,6 +43,14 @@ export interface StyleProps {
   items?: 'start' | 'end' | 'center' | 'stretch'
   alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch'
   gap?: number
+  // Grid layout
+  cols?: string
+  rows?: string
+  gridTemplateColumns?: string
+  gridTemplateRows?: string
+  colGap?: number
+  rowGap?: number
+  columnGap?: number
   // Other
   opacity?: number
   color?: string
@@ -61,7 +70,10 @@ export const shorthands: Record<string, string> = {
   pl: 'paddingLeft',
   size: 'fontSize',
   font: 'fontFamily',
-  weight: 'fontWeight'
+  weight: 'fontWeight',
+  cols: 'gridTemplateColumns',
+  rows: 'gridTemplateRows',
+  colGap: 'columnGap'
 }
 
 /** Value transformations for specific properties */

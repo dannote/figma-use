@@ -89,6 +89,11 @@ figma-use set fill <id> '$Brand/Accent'
 | `rounded` | borderRadius | number |
 | `p`, `px`, `py` | padding | number |
 | `flex` | flexDirection | `"row"`, `"col"` |
+| `display` | layoutMode | `"flex"`, `"grid"` |
+| `cols` | gridTemplateColumns | `"100px 1fr auto"` |
+| `rows` | gridTemplateRows | `"auto auto"` |
+| `colGap` | columnGap | number |
+| `rowGap` | rowGap | number |
 | `justify` | justifyContent | `"start"`, `"center"`, `"end"`, `"between"` |
 | `items` | alignItems | `"start"`, `"center"`, `"end"`, `"stretch"` |
 | `size` | fontSize | number |
@@ -218,6 +223,7 @@ figma-use set fill <id> "#FF0000"
 figma-use set radius <id> 12
 figma-use set text <id> "New text"
 figma-use set layout <id> --mode VERTICAL --gap 12 --padding 16
+figma-use set layout <id> --mode GRID --cols "1fr 1fr 1fr" --rows "auto" --gap 16
 figma-use node move <id> --x 100 --y 200
 figma-use node resize <id> --width 300 --height 200
 figma-use node delete <id>

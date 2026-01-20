@@ -156,3 +156,55 @@ describe('set', () => {
     })
   })
 })
+
+describe('set layout', () => {
+  let layoutTestId: string
+
+  beforeAll(async () => {
+    const frame = (await run(
+      'create frame --x 500 --y 0 --width 400 --height 300 --fill "#FFFFFF" --json'
+    )) as any
+    layoutTestId = frame.id
+    trackNode(layoutTestId)
+  })
+
+  test('sets layout mode to GRID', async () => {
+    const result = (await run(`set layout ${layoutTestId} --mode GRID --json`)) as any
+    expect(result.layoutMode).toBe('GRID')
+  })
+
+  test('sets grid column gap', async () => {
+    const result = (await run(`set layout ${layoutTestId} --col-gap 20 --json`)) as any
+    expect(result.gridColumnGap).toBe(20)
+  })
+
+  test('sets grid row gap', async () => {
+    const result = (await run(`set layout ${layoutTestId} --row-gap 16 --json`)) as any
+    expect(result.gridRowGap).toBe(16)
+  })
+
+  test('sets grid template columns', async () => {
+    const result = (await run(`set layout ${layoutTestId} --cols "100px 1fr 100px" --json`)) as any
+    expect(result.gridColumnSizes).toHaveLength(3)
+    expect(result.gridColumnSizes[0].type).toBe('FIXED')
+    expect(result.gridColumnSizes[0].value).toBe(100)
+    expect(result.gridColumnSizes[1].type).toBe('FLEX')
+    expect(result.gridColumnSizes[2].type).toBe('FIXED')
+  })
+
+  test('sets grid template rows', async () => {
+    const result = (await run(`set layout ${layoutTestId} --rows "auto auto" --json`)) as any
+    expect(result.gridRowSizes).toHaveLength(2)
+  })
+
+  test('sets all grid properties at once', async () => {
+    const result = (await run(
+      `set layout ${layoutTestId} --mode GRID --cols "1fr 1fr" --rows "auto" --col-gap 24 --row-gap 12 --json`
+    )) as any
+    expect(result.layoutMode).toBe('GRID')
+    expect(result.gridColumnSizes).toHaveLength(2)
+    expect(result.gridRowSizes).toHaveLength(1)
+    expect(result.gridColumnGap).toBe(24)
+    expect(result.gridRowGap).toBe(12)
+  })
+})

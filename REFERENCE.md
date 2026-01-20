@@ -45,6 +45,7 @@ figma-use set font-range <id> --start 0 --end 5 --style Bold --color "#FF0000"
 figma-use set effect <id> --type DROP_SHADOW --radius 10 --color "#00000040" --offset-x 0 --offset-y 4
 figma-use set effect <id> --type LAYER_BLUR --radius 8
 figma-use set layout <id> --mode VERTICAL|HORIZONTAL|NONE --gap 12 --padding 16
+figma-use set layout <id> --mode GRID --cols "100px 1fr 100px" --rows "auto auto" --col-gap 16 --row-gap 12
 figma-use set layout <id> --wrap --gap 8
 figma-use set constraints <id> --horizontal LEFT|RIGHT|CENTER|SCALE --vertical TOP|BOTTOM|CENTER|SCALE
 figma-use set blend <id> NORMAL|MULTIPLY|SCREEN|OVERLAY|...

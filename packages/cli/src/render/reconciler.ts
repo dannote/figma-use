@@ -94,6 +94,22 @@ export function clearPendingIcons() {
   pendingIcons.length = 0
 }
 
+// Pending Grid layouts to configure via Plugin API
+export interface PendingGridLayout {
+  nodeGUID: { sessionID: number; localID: number }
+  gridTemplateColumns?: string
+  gridTemplateRows?: string
+}
+const pendingGridLayouts: PendingGridLayout[] = []
+
+export function getPendingGridLayouts(): PendingGridLayout[] {
+  return [...pendingGridLayouts]
+}
+
+export function clearPendingGridLayouts() {
+  pendingGridLayouts.length = 0
+}
+
 export interface RenderOptions {
   sessionID: number
   parentGUID: { sessionID: number; localID: number }
@@ -272,6 +288,30 @@ function styleToNodeChange(
   }
   if (style.gap !== undefined) {
     nodeChange.stackSpacing = Number(style.gap)
+  }
+
+  // Grid layout
+  if (style.display === 'grid' || style.gridTemplateColumns || style.gridTemplateRows) {
+    nodeChange.stackMode = 'GRID'
+    // Grid gaps
+    if (style.columnGap !== undefined) {
+      nodeChange.gridColumnGap = Number(style.columnGap)
+    } else if (style.gap !== undefined) {
+      nodeChange.gridColumnGap = Number(style.gap)
+    }
+    if (style.rowGap !== undefined) {
+      nodeChange.gridRowGap = Number(style.rowGap)
+    } else if (style.gap !== undefined) {
+      nodeChange.gridRowGap = Number(style.gap)
+    }
+    // gridTemplateColumns/gridTemplateRows require Plugin API
+    if (style.gridTemplateColumns || style.gridTemplateRows) {
+      pendingGridLayouts.push({
+        nodeGUID: { sessionID, localID },
+        gridTemplateColumns: style.gridTemplateColumns as string | undefined,
+        gridTemplateRows: style.gridTemplateRows as string | undefined
+      })
+    }
   }
 
   // Padding

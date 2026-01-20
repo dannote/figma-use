@@ -6,11 +6,12 @@ CLI for Figma. Control it from the terminal — with commands or JSX.
 # Create and style
 figma-use create frame --width 400 --height 300 --fill "#FFF" --layout VERTICAL --gap 16
 figma-use create icon mdi:home --size 32 --color "#3B82F6"
-figma-use set fill 1:23 "$Colors/Primary"
+figma-use set layout 1:23 --mode GRID --cols "1fr 1fr 1fr" --gap 16
 
 # Or render JSX
-echo '<Frame style={{p: 24, bg: "#3B82F6", rounded: 12}}>
-  <Text style={{size: 18, color: "#FFF"}}>Hello Figma</Text>
+echo '<Frame style={{display: "grid", cols: "1fr 1fr", gap: 16}}>
+  <Frame style={{bg: "#3B82F6", h: 100}} />
+  <Frame style={{bg: "#10B981", h: 100}} />
 </Frame>' | figma-use render --stdin --x 100 --y 100
 ```
 
@@ -155,6 +156,36 @@ export default () => (
 ```
 
 This creates a real ComponentSet in Figma with all 4 variants, not just 4 separate buttons.
+
+### Grid Layout
+
+CSS Grid for 2D layouts — calendars, dashboards, galleries:
+
+```tsx
+<Frame
+  style={{
+    display: 'grid',
+    cols: '1fr 1fr 1fr',  // 3 equal columns
+    rows: 'auto auto',    // 2 rows
+    gap: 16
+  }}
+>
+  <Frame style={{ bg: '#FF6B6B' }} />
+  <Frame style={{ bg: '#4ECDC4' }} />
+  <Frame style={{ bg: '#45B7D1' }} />
+  <Frame style={{ bg: '#96CEB4' }} />
+  <Frame style={{ bg: '#FFEAA7' }} />
+  <Frame style={{ bg: '#DDA0DD' }} />
+</Frame>
+```
+
+Supports `px`, `fr`, and `auto`/`hug`. Separate gaps with `colGap` and `rowGap`.
+
+In CLI:
+
+```bash
+figma-use set layout <id> --mode GRID --cols "100px 1fr 100px" --rows "auto" --gap 16
+```
 
 ### Variables as Tokens
 

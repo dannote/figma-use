@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.0] - 2026-01-20
+## [Unreleased]
 
 ### Added
+
+- **Grid layout support** — CSS Grid for 2D layouts in both CLI and JSX
+  ```bash
+  figma-use set layout <id> --mode GRID --cols "100px 1fr 100px" --rows "auto" --gap 16
+  ```
+  In JSX:
+  ```tsx
+  <Frame style={{ display: 'grid', cols: '1fr 1fr 1fr', rows: 'auto auto', gap: 16 }}>
+    <Frame style={{ bg: '#FF6B6B' }} />
+    <Frame style={{ bg: '#4ECDC4' }} />
+    ...
+  </Frame>
+  ```
+  Supports `px`, `fr`, and `auto`/`hug` in template syntax. Separate gaps with `colGap` and `rowGap`.
 
 - **`query` command** — XPath selectors for finding nodes (powered by fontoxpath)
   ```bash

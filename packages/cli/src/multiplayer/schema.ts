@@ -293,6 +293,18 @@ enum StackMode {
   NONE = 0;
   HORIZONTAL = 1;
   VERTICAL = 2;
+  GRID = 3;
+}
+
+enum GridTrackSizeType {
+  FIXED = 0;
+  FLEX = 1;
+  HUG = 2;
+}
+
+message GridTrackSize {
+  GridTrackSizeType type = 1;
+  float value = 2;
 }
 
 enum StackAlign {
@@ -1468,6 +1480,12 @@ message NodeChange {
   string accessibleLabel = 304;
   bool propsAreBubbled = 305;
   VariableData variableData = 306;
+  uint gridRowCount = 435;
+  uint gridColumnCount = 436;
+  float gridRowGap = 437;
+  float gridColumnGap = 438;
+  GridTrackSize[] gridColumnSizes = 474;
+  GridTrackSize[] gridRowSizes = 475;
 }
 
 message VideoPlayback {
@@ -1943,8 +1961,8 @@ message Message {
   uint reconnectSequenceNumber = 25;
   string pasteBranchSourceFileKey = 26;
   EditorType pasteEditorType = 27;
-  // Field 38 (timestamp) exists but kiwi-schema limits field IDs to 28
-  // Discovered via WS sniffing 2026-01, skipped during manual pre-processing
+  uint reserved28 = 28;
+  uint64 timestamp = 38;
 }
 
 message DiffChunk {

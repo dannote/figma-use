@@ -9,10 +9,13 @@ export {
   clearPendingComponentSetInstances,
   getPendingIcons,
   clearPendingIcons,
+  getPendingGridLayouts,
+  clearPendingGridLayouts,
   type RenderOptions,
   type RenderResult,
   type PendingComponentSetInstance,
-  type PendingIcon
+  type PendingIcon,
+  type PendingGridLayout
 } from './reconciler.ts'
 export {
   Frame,

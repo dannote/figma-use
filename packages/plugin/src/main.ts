@@ -1254,10 +1254,14 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         primaryAlign,
         counterAlign,
         sizingH,
-        sizingV
+        sizingV,
+        gridColumnSizes,
+        gridRowSizes,
+        gridColumnGap,
+        gridRowGap
       } = args as {
         id: string
-        mode?: 'HORIZONTAL' | 'VERTICAL' | 'NONE'
+        mode?: 'HORIZONTAL' | 'VERTICAL' | 'GRID' | 'NONE'
         wrap?: boolean
         itemSpacing?: number
         counterSpacing?: number
@@ -1266,6 +1270,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         counterAlign?: 'MIN' | 'CENTER' | 'MAX' | 'BASELINE'
         sizingH?: 'FIXED' | 'HUG' | 'FILL'
         sizingV?: 'FIXED' | 'HUG' | 'FILL'
+        gridColumnSizes?: Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value?: number }>
+        gridRowSizes?: Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value?: number }>
+        gridColumnGap?: number
+        gridRowGap?: number
       }
       const node = (await figma.getNodeByIdAsync(id)) as FrameNode | null
       if (!node || !('layoutMode' in node)) throw new Error('Frame not found')
@@ -1283,6 +1291,16 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       if (counterAlign) node.counterAxisAlignItems = counterAlign
       if (sizingH) node.layoutSizingHorizontal = sizingH
       if (sizingV) node.layoutSizingVertical = sizingV
+      if (gridColumnSizes) {
+        node.gridColumnCount = gridColumnSizes.length
+        node.gridColumnSizes = gridColumnSizes
+      }
+      if (gridRowSizes) {
+        node.gridRowCount = gridRowSizes.length
+        node.gridRowSizes = gridRowSizes
+      }
+      if (gridColumnGap !== undefined) node.gridColumnGap = gridColumnGap
+      if (gridRowGap !== undefined) node.gridRowGap = gridRowGap
       return serializeNode(node)
     }
 
@@ -1878,9 +1896,15 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         x: number
         y: number
       }
-      const { nodeId, pendingComponentSetInstances } = args as {
+      interface PendingGridLayout {
+        nodeGUID: { sessionID: number; localID: number }
+        gridTemplateColumns?: string
+        gridTemplateRows?: string
+      }
+      const { nodeId, pendingComponentSetInstances, pendingGridLayouts } = args as {
         nodeId: string
         pendingComponentSetInstances?: PendingInstance[]
+        pendingGridLayouts?: PendingGridLayout[]
       }
       // Multiplayer nodes may not be immediately visible
       const root = await retry(
@@ -1925,6 +1949,55 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           const parent = await figma.getNodeByIdAsync(parentId)
           if (parent && 'appendChild' in parent) {
             ;(parent as FrameNode).appendChild(instance)
+          }
+        }
+      }
+
+      // Apply pending Grid layouts
+      if (pendingGridLayouts && pendingGridLayouts.length > 0) {
+        for (const grid of pendingGridLayouts) {
+          const nodeId = `${grid.nodeGUID.sessionID}:${grid.nodeGUID.localID}`
+          const node = await figma.getNodeByIdAsync(nodeId)
+          if (!node || node.type !== 'FRAME') continue
+
+          const frame = node as FrameNode
+          if (frame.layoutMode !== 'GRID') {
+            frame.layoutMode = 'GRID'
+          }
+
+          // Parse grid template syntax: "100px 1fr auto" → [{type, value}, ...]
+          const parseGridTemplate = (template: string): Array<{type: 'FIXED' | 'FLEX' | 'HUG', value: number}> => {
+            return template.split(/\s+/).filter(Boolean).map(part => {
+              if (part.endsWith('px')) {
+                return { type: 'FIXED' as const, value: parseFloat(part) }
+              } else if (part.endsWith('fr')) {
+                return { type: 'FLEX' as const, value: parseFloat(part) || 1 }
+              } else if (part === 'auto' || part === 'hug') {
+                return { type: 'HUG' as const, value: 1 }
+              } else {
+                return { type: 'FIXED' as const, value: parseFloat(part) || 100 }
+              }
+            })
+          }
+
+          // Parse templates first to get counts
+          const colSizes = grid.gridTemplateColumns ? parseGridTemplate(grid.gridTemplateColumns) : null
+          const rowSizes = grid.gridTemplateRows ? parseGridTemplate(grid.gridTemplateRows) : null
+
+          // Set counts first (Figma requires this before setting sizes)
+          if (colSizes && colSizes.length > 0) {
+            frame.gridColumnCount = colSizes.length
+          }
+          if (rowSizes && rowSizes.length > 0) {
+            frame.gridRowCount = rowSizes.length
+          }
+
+          // Now set sizes
+          if (colSizes && colSizes.length > 0) {
+            frame.gridColumnSizes = colSizes
+          }
+          if (rowSizes && rowSizes.length > 0) {
+            frame.gridRowSizes = rowSizes
           }
         }
       }
@@ -2398,6 +2471,16 @@ function serializeNode(node: BaseNode): object {
         top: node.paddingTop,
         bottom: node.paddingBottom
       }
+    }
+    // Grid layout properties
+    if (node.layoutMode === 'GRID') {
+      const gridNode = node as FrameNode
+      if (gridNode.gridColumnGap !== undefined) base.gridColumnGap = gridNode.gridColumnGap
+      if (gridNode.gridRowGap !== undefined) base.gridRowGap = gridNode.gridRowGap
+      if (gridNode.gridColumnCount !== undefined) base.gridColumnCount = gridNode.gridColumnCount
+      if (gridNode.gridRowCount !== undefined) base.gridRowCount = gridNode.gridRowCount
+      if (gridNode.gridColumnSizes?.length > 0) base.gridColumnSizes = gridNode.gridColumnSizes
+      if (gridNode.gridRowSizes?.length > 0) base.gridRowSizes = gridNode.gridRowSizes
     }
   }
 
