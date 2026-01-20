@@ -4,17 +4,21 @@
 
 ```
 packages/
-  proxy/    # Elysia WebSocket server (port 38451)
-  cli/      # Citty-based CLI, 73 commands
-  plugin/   # Figma plugin (esbuild, ES2015 target)
+  cli/      # Citty-based CLI, 100+ commands
+  plugin/   # RPC handlers (built on-demand by CLI via esbuild)
 ```
+
+CLI communicates directly with Figma via Chrome DevTools Protocol (CDP). No proxy server, no manual plugin installation.
 
 ## Build & Test
 
 ```bash
 bun install
-bun run build           # Build all packages
-bun test                # Run 73 integration tests (requires Figma open with plugin)
+bun run build           # Build CLI bundle
+bun test                # Run 203 integration tests
+
+# Figma must be running with:
+open -a Figma --args --remote-debugging-port=9222
 ```
 
 ## Adding Commands
@@ -40,7 +44,7 @@ export default defineCommand({
 
 2. Export from `packages/cli/src/commands/index.ts`
 
-3. Add handler in `packages/plugin/src/main.ts`:
+3. Add handler in `packages/plugin/src/rpc.ts`:
 ```typescript
 case 'my-command': {
   const { id } = args as { id: string }
@@ -49,7 +53,14 @@ case 'my-command': {
 }
 ```
 
-4. Add test in `packages/cli/tests/commands.test.ts`
+4. Add test in `packages/cli/tests/commands/`
+
+## How CDP Works
+
+1. CLI connects to `localhost:9222` (Figma's debug port)
+2. First call builds `packages/plugin/src/rpc.ts` with esbuild and injects it
+3. Commands execute via `Runtime.evaluate` with full Plugin API access
+4. WebSocket closes after each command to allow process exit
 
 ## Conventions
 
@@ -58,35 +69,11 @@ case 'my-command': {
 - Output: human-readable by default, `--json` for machine parsing
 - Inline styles: create commands accept `--fill`, `--stroke`, `--radius`, etc.
 
-## Code Migrations
-
-Use GritQL for AST-aware code transformations:
-
-```bash
-# Add import to files
-grit apply '`import { defineCommand } from "citty"` => `import { defineCommand } from "citty"\nimport { colorArgToPayload } from "../../color-arg.ts"`' packages/cli/src/commands/create/*.ts
-
-# Replace pattern in specific context
-grit apply '`fill: args.fill` => `fill: colorArgToPayload(args.fill)`'
-
-# More complex with conditions
-grit apply '`$x: args.$y` where { $x <: or { `fill`, `stroke` } } => `$x: colorArgToPayload(args.$y)`'
-```
-
-GritQL is better than sed for:
-- Import additions (deduplicates automatically)
-- Refactors that need AST context
-- Multi-file migrations with consistent formatting
-
-## Plugin Build
-
-Plugin uses esbuild (not Bun) because Figma requires ES2015. Build outputs to `packages/plugin/dist/`.
-
 ## No Inline Eval
 
 **Never use `sendCommand('eval', { code: '...' })` in CLI commands.**
 
-Instead, create a proper command in `packages/plugin/src/main.ts`:
+Instead, create a proper command in `packages/plugin/src/rpc.ts`:
 
 ```typescript
 // ❌ Bad: inline eval
@@ -100,12 +87,6 @@ await sendCommand('eval', {
 // ✅ Good: dedicated command
 await sendCommand('convert-to-component', { id })
 ```
-
-Benefits:
-- Type safety for arguments
-- Proper error handling
-- Testable
-- No string interpolation bugs
 
 ## Release
 
@@ -121,19 +102,15 @@ Benefits:
 
 3. **Commit and release separately**:
    ```bash
-   # First: commit with changelog
    git add -A
-   git diff --cached --name-only  # Review what's being committed!
+   git diff --cached --name-only  # Review!
    git commit -m "feat: description"
    
-   # Then: bump version and release
-   # Edit package.json version
-   git add -A && git commit -m "v0.1.x"
-   git tag v0.1.x
+   # Bump version in package.json
+   git add -A && git commit -m "v0.8.0"
+   git tag v0.8.0
    git push && git push --tags
    npm publish --access public
    ```
 
-4. **Never auto-commit unreviewed changes** — especially new commands/features
-
-5. **npm publish requires passkey** — user must run `npm publish` manually (2FA via passkey, not OTP)
+4. **npm publish requires passkey** — user must run manually

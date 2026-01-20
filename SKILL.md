@@ -25,13 +25,20 @@ echo '<Frame style={{p: 24, bg: "#3B82F6", rounded: 12}}>
 figma-use status  # Check connection
 ```
 
-If not connected:
+If not connected — start Figma with remote debugging:
+
 ```bash
-figma-use plugin install                 # Install plugin (quit Figma first)
-figma-use proxy &                        # Start proxy
-figma --remote-debugging-port=9222       # Start Figma with debug port
-# In Figma: Plugins → Development → Figma Use
+# macOS
+open -a Figma --args --remote-debugging-port=9222
+
+# Windows
+"C:\Users\%USERNAME%\AppData\Local\Figma\Figma.exe" --remote-debugging-port=9222
+
+# Linux
+figma --remote-debugging-port=9222
 ```
+
+No proxy server, no plugins required.
 
 ## Two Modes
 

@@ -21,7 +21,7 @@ Figma's official MCP plugin can read files but can't modify them. This one can.
 
 LLMs know CLI. LLMs know React. This combines both.
 
-CLI commands are compact — easy to read, easy to generate, easy to chain. When a task involves dozens of operations, every saved token matters. MCP and JSON-RPC work too, but they add overhead.
+CLI commands are compact — easy to read, easy to generate, easy to chain. When a task involves dozens of operations, every saved token matters.
 
 JSX is how LLMs already think about UI. They've seen millions of React components. Describing a Figma layout as `<Frame><Text>` is natural for them — no special training, no verbose schemas.
 
@@ -48,12 +48,28 @@ JSX is how LLMs already think about UI. They've seen millions of React component
 
 ```bash
 npm install -g @dannote/figma-use
-
-figma-use plugin install  # Quit Figma first
-figma-use proxy           # Start proxy server
 ```
 
-Open Figma → Plugins → Development → **Figma Use**
+Start Figma with remote debugging enabled:
+
+```bash
+# macOS
+open -a Figma --args --remote-debugging-port=9222
+
+# Windows
+"C:\Users\%USERNAME%\AppData\Local\Figma\Figma.exe" --remote-debugging-port=9222
+
+# Linux
+figma --remote-debugging-port=9222
+```
+
+Check connection:
+
+```bash
+figma-use status
+```
+
+That's it. No proxy server, no plugin installation required.
 
 ## Two Modes
 
@@ -282,44 +298,36 @@ figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
 
 Full XPath 3.1 support — predicates, functions, arithmetic, axes.
 
-## Render via Multiplayer Protocol
-
-The `render` command uses Figma's internal multiplayer protocol, not just Plugin API. It's faster, but the protocol is internal and may change. Good for generation and prototyping.
-
 ## Full Command Reference
 
 See [REFERENCE.md](./REFERENCE.md) for the complete list of 100+ commands.
+
+## MCP Server
+
+For AI agents that support Model Context Protocol:
+
+```bash
+figma-use mcp serve
+```
+
+Exposes 90+ tools. See [MCP.md](./MCP.md) for setup.
 
 ## For AI Agents
 
 Includes [SKILL.md](./SKILL.md) — a reference for Claude Code, Cursor, and other agents.
 
-```bash
-mkdir -p ~/.claude/skills/figma-use
-curl -o ~/.claude/skills/figma-use/SKILL.md \
-  https://raw.githubusercontent.com/dannote/figma-use/master/SKILL.md
-```
-
-## MCP Server
-
-The proxy exposes an MCP endpoint at `http://localhost:38451/mcp` with 90+ tools. Run `figma-use mcp` for config.
-
-See [MCP.md](./MCP.md) for full documentation.
-
 ## How It Works
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Terminal  │────▶│  figma-use  │────▶│   Plugin    │
-│             │ CLI │    proxy    │ WS  │             │
-└─────────────┘     └──────┬──────┘     └─────────────┘
-                           │
-                    MCP ───┤ WebSocket (multiplayer)
-                           ▼
-                    ┌─────────────┐
-                    │   Figma     │
-                    └─────────────┘
+┌─────────────┐            ┌─────────────┐
+│   Terminal  │────CDP────▶│   Figma     │
+│  figma-use  │  port 9222 │             │
+└─────────────┘            └─────────────┘
 ```
+
+figma-use communicates directly with Figma via Chrome DevTools Protocol (CDP). No proxy server, no plugins to install — just start Figma with `--remote-debugging-port=9222` and you're ready.
+
+Commands are executed via `Runtime.evaluate` in Figma's JavaScript context, with full access to the Plugin API.
 
 ## License
 

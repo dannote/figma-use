@@ -50,6 +50,8 @@ export { preloadIcons, loadIconSvg, getIconData, collectIcons } from './icon.ts'
 
 export { transformJsxSnippet } from './jsx-transform.ts'
 
+export { renderJsx } from './render-jsx.ts'
+
 export {
   // ComponentSet (variants)
   defineComponentSet,

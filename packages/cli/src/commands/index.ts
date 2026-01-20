@@ -1,14 +1,12 @@
 // Top-level commands
 export { default as status } from './status.ts'
-export { default as proxy } from './proxy.ts'
-export { default as plugin } from './plugin/index.ts'
 export { default as profile } from './profile.ts'
 export { default as render } from './render.ts'
 export { default as eval } from './eval.ts'
 export { default as find } from './find.ts'
 export { default as query } from './query/index.ts'
 export { default as import } from './import.ts'
-export { default as mcp } from './mcp.ts'
+export { default as mcp } from './mcp/index.ts'
 export { default as me } from './me.ts'
 
 // Subcommand groups
@@ -30,10 +28,7 @@ export { default as group } from './group/index.ts'
 export { default as component } from './component/index.ts'
 export { default as connector } from './connector/index.ts'
 
-// CDP commands (no token required)
+// Other
 export { default as comment } from './comment/index.ts'
 export { default as version } from './version/index.ts'
-export { default as file } from './file/index.ts'
-
-// Other
 export { default as font } from './font/index.ts'

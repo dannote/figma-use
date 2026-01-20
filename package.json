@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "bun run build:cli",
-    "build:cli": "bun build packages/cli/src/index.ts --outdir dist/cli --target bun --external esbuild",
+    "build:cli": "bun build packages/cli/src/index.ts --outdir dist/cli --target bun --external esbuild --external typescript --external @modelcontextprotocol/sdk",
     "test": "cd packages/cli && bun test",
     "lint": "oxlint packages/",
     "format": "oxfmt --write packages/",

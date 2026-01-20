@@ -5,7 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2025-01-20
+
+### Changed
+
+- **BREAKING: Direct CDP communication** — no more proxy server or plugin required!
+  ```bash
+  # Old way (removed)
+  figma-use proxy &
+  # Open Figma → Plugins → Development → Figma Use
+
+  # New way
+  open -a Figma --args --remote-debugging-port=9222
+  figma-use status  # Ready!
+  ```
+  
+- **Simplified architecture** — CLI talks directly to Figma via Chrome DevTools Protocol
+  - Removed `packages/proxy/` (WebSocket server)
+  - Removed `packages/cli/src/multiplayer/` (Kiwi protocol)
+  - Removed Figma plugin installation requirement
+  - RPC code built on-demand with esbuild (no more 374KB embedded bundle)
+
+- **CLI bundle size reduced** — 1.85MB → 1.35MB (-27%)
+
+- **Faster startup** — no WebSocket handshake, no plugin initialization
 
 ### Added
 
@@ -35,30 +58,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
   Full XPath 3.1 support: axes, predicates, functions, arithmetic
 
-- **Multi-file support** — proxy now supports multiple simultaneous plugin connections
-  - Each plugin instance registers with fileKey and fileName
-  - `file list` — show all connected files
-  - `file select <name>` — switch active file (partial match supported)
-  - `status` shows all connected files with active marker
-  
-- **Connector commands** — work with connector lines
-  - `connector list` — list connectors on current page
-  - `connector get <id>` — get connector details (endpoints, stroke, line type)
-  - `connector set <id>` — update connector properties (stroke, weight, line type, caps)
-  - `connector create` — create connector (FigJam only, Figma API limitation)
+### Changed (MCP)
 
-- **`figma_render` MCP tool** — render JSX via MCP protocol
+- **MCP server is now standalone** — `figma-use mcp serve` instead of running with proxy
+  ```bash
+  figma-use mcp serve              # Start on port 38451
+  figma-use mcp serve --port 8080  # Custom port
+  ```
 
-- **MCP.md** — documentation for Model Context Protocol integration
+### Removed
 
-### Changed
-
-- Extracted `transformJsxSnippet` to separate module for reuse
-
-### Fixed
-
-- `@dannote/figma-use/render` — missing `color.ts` in published package
-- Proxy connection cleanup on plugin disconnect
+- `figma-use proxy` command (no longer needed)
+- `figma-use plugin install/uninstall` commands (no plugin required)
+- Multi-file support via proxy (use multiple Figma windows instead)
+- `file list/select` commands (use multiple Figma windows instead)
 
 ## [0.7.1] - 2026-01-19
 

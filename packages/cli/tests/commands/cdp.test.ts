@@ -24,14 +24,6 @@ describe('CDP commands', () => {
     })
   })
 
-  describe('file info', () => {
-    test('returns file key and name', async () => {
-      const result = (await run('file info --json')) as { key: string; name: string }
-      expect(result.key).toMatch(/^[a-zA-Z0-9]+$/)
-      expect(result.name).toBeDefined()
-    })
-  })
-
   describe('version list', () => {
     test('returns versions array', async () => {
       const result = (await run('version list --limit 5 --json')) as {
