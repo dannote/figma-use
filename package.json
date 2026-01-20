@@ -26,6 +26,7 @@
     "bin",
     "dist",
     "packages/cli/src/render",
+    "packages/cli/src/color.ts",
     "packages/plugin/dist",
     "README.md",
     "CHANGELOG.md",

@@ -35,9 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`figma_render` MCP tool** — render JSX via MCP protocol
 
+- **MCP.md** — documentation for Model Context Protocol integration
+
 ### Changed
 
 - Extracted `transformJsxSnippet` to separate module for reuse
+
+### Fixed
+
+- `@dannote/figma-use/render` — missing `color.ts` in published package
+- Proxy connection cleanup on plugin disconnect
 
 ## [0.7.1] - 2026-01-19
 
