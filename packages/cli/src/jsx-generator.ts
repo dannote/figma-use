@@ -292,7 +292,7 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
   )
 }
 
-function collectUsedComponents(node: FigmaNode, used: Set<string> = new Set()): Set<string> {
+export function collectUsedComponents(node: FigmaNode, used: Set<string> = new Set()): Set<string> {
   const iconName = node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
   if (iconName) {
     used.add('Icon')

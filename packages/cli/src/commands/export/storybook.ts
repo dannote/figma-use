@@ -6,7 +6,13 @@ import * as ts from 'typescript'
 import { sendCommand, handleError } from '../../client.ts'
 import { ok, fail } from '../../format.ts'
 import { matchIconsInTree } from '../../icon-matcher.ts'
-import { enrichWithSvgData, formatCode, nodeToJsx, toComponentName } from '../../jsx-generator.ts'
+import {
+  collectUsedComponents,
+  enrichWithSvgData,
+  formatCode,
+  nodeToJsx,
+  toComponentName
+} from '../../jsx-generator.ts'
 
 import type { FigmaNode, FormatOptions } from '../../types.ts'
 
@@ -36,7 +42,8 @@ function variantNameToIdentifier(name: string): string {
 function generateStorybook(
   componentName: string,
   title: string,
-  variants: Array<{ name: string; jsx: ts.JsxChild }>
+  variants: Array<{ name: string; jsx: ts.JsxChild }>,
+  usedComponents: Set<string>
 ): ts.SourceFile {
   const statements: ts.Statement[] = []
 
@@ -60,23 +67,25 @@ function generateStorybook(
     )
   )
 
-  // import { Frame, Text, ... } from 'figma-use/render'
-  const renderImports = ['Frame', 'Text', 'Icon', 'Rectangle', 'Ellipse', 'SVG', 'Image']
-  statements.push(
-    ts.factory.createImportDeclaration(
-      undefined,
-      ts.factory.createImportClause(
-        false,
+  // import { Frame, Text, ... } from 'figma-use/render' — only used components
+  const renderImports = Array.from(usedComponents).sort()
+  if (renderImports.length > 0) {
+    statements.push(
+      ts.factory.createImportDeclaration(
         undefined,
-        ts.factory.createNamedImports(
-          renderImports.map((name) =>
-            ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+        ts.factory.createImportClause(
+          false,
+          undefined,
+          ts.factory.createNamedImports(
+            renderImports.map((name) =>
+              ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+            )
           )
-        )
-      ),
-      ts.factory.createStringLiteral('figma-use/render')
+        ),
+        ts.factory.createStringLiteral('figma-use/render')
+      )
     )
-  )
+  }
 
   // const meta: Meta = { title }
   statements.push(
@@ -257,6 +266,7 @@ export default defineCommand({
         const { baseName, components: comps } = group
         try {
           const variants: Array<{ name: string; jsx: ts.JsxChild }> = []
+          const usedComponents = new Set<string>()
 
           for (const comp of comps) {
             const node = await sendCommand<FigmaNode>('get-node-tree', { id: comp.id })
@@ -281,6 +291,9 @@ export default defineCommand({
             const jsx = nodeToJsx(node)
             if (!jsx) continue
 
+            // Collect used components from this node
+            collectUsedComponents(node, usedComponents)
+
             // Variant name: part after / or after = or "Default"
             let variantName: string
             if (comp.name.includes('/')) {
@@ -301,7 +314,7 @@ export default defineCommand({
           if (variants.length === 0) continue
 
           const componentName = toComponentName(baseName)
-          const sourceFile = generateStorybook(componentName, baseName, variants)
+          const sourceFile = generateStorybook(componentName, baseName, variants, usedComponents)
           let code = printer.printFile(sourceFile)
           code = await formatCode(code, formatOptions)
 
