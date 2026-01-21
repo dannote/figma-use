@@ -195,6 +195,9 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
 
   if (node.type === 'TEXT' && node.characters) {
     const attrs: ts.JsxAttribute[] = []
+    if (node.fontFamily) {
+      attrs.push(createJsxAttribute('font', strLit(node.fontFamily)))
+    }
     if (node.fontSize && node.fontSize !== 14) {
       attrs.push(createJsxAttribute('size', numLit(node.fontSize)))
     }

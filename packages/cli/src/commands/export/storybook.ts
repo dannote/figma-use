@@ -67,6 +67,15 @@ function generateStorybook(
 ): ts.SourceFile {
   const statements: ts.Statement[] = []
 
+  // import React from 'react'
+  statements.push(
+    ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(false, ts.factory.createIdentifier('React'), undefined),
+      ts.factory.createStringLiteral('react')
+    )
+  )
+
   // import type { Meta, StoryObj } from '@storybook/react'
   statements.push(
     ts.factory.createImportDeclaration(

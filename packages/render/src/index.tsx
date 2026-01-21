@@ -35,8 +35,12 @@ interface TextProps extends Omit<BaseProps, 'children'> {
   textAlign?: 'left' | 'center' | 'right'
 }
 
+const SYSTEM_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+
 function propsToStyle(props: BaseProps): CSSProperties {
-  const style: CSSProperties = {}
+  const style: CSSProperties = {
+    boxSizing: 'border-box'
+  }
 
   if (props.w !== undefined) style.width = props.w
   if (props.h !== undefined) style.height = props.h
@@ -52,6 +56,7 @@ function propsToStyle(props: BaseProps): CSSProperties {
   if (props.flex) {
     style.display = 'flex'
     style.flexDirection = props.flex === 'col' ? 'column' : 'row'
+    style.alignItems = 'center'
   }
 
   if (props.gap !== undefined) style.gap = props.gap
@@ -111,7 +116,7 @@ export function Text(props: TextProps) {
     fontSize: size,
     fontWeight: weight === 'bold' ? 700 : weight,
     color,
-    fontFamily: font,
+    fontFamily: font || SYSTEM_FONT,
     textAlign
   }
 

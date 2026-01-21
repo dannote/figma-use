@@ -334,13 +334,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('width' in n) base.width = Math.round(n.width)
         if ('height' in n) base.height = Math.round(n.height)
 
-        // Only essential properties for tree view
+        // Only essential properties for tree view (skip invisible fills/strokes)
         if ('fills' in n && Array.isArray(n.fills)) {
-          const solid = n.fills.find((f: Paint) => f.type === 'SOLID') as SolidPaint | undefined
+          const solid = n.fills.find((f: Paint) => f.type === 'SOLID' && f.visible !== false) as SolidPaint | undefined
           if (solid) base.fills = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
         }
         if ('strokes' in n && Array.isArray(n.strokes) && n.strokes.length > 0) {
-          const solid = n.strokes.find((s: Paint) => s.type === 'SOLID') as SolidPaint | undefined
+          const solid = n.strokes.find((s: Paint) => s.type === 'SOLID' && s.visible !== false) as SolidPaint | undefined
           if (solid) base.strokes = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
         }
         if ('strokeWeight' in n && typeof n.strokeWeight === 'number' && n.strokeWeight > 0) {
@@ -371,6 +371,20 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           if (typeof t.fontName === 'object') {
             base.fontFamily = t.fontName.family
             base.fontStyle = t.fontName.style
+            // Map font style to weight
+            const styleToWeight: Record<string, number> = {
+              Thin: 100, Hairline: 100,
+              ExtraLight: 200, UltraLight: 200,
+              Light: 300,
+              Regular: 400, Normal: 400,
+              Medium: 500,
+              SemiBold: 600, DemiBold: 600,
+              Bold: 700,
+              ExtraBold: 800, UltraBold: 800,
+              Black: 900, Heavy: 900
+            }
+            const weight = styleToWeight[t.fontName.style] || 400
+            if (weight !== 400) base.fontWeight = weight
           }
         }
 
