@@ -120,6 +120,14 @@ In JSX:
 
 Browse 150k+ icons: [icon-sets.iconify.design](https://icon-sets.iconify.design/)
 
+### Images
+
+Load images from URL:
+
+```tsx
+<Image src="https://example.com/photo.jpg" w={200} h={150} />
+```
+
 ### Components
 
 In a `.figma.tsx` file you can define components. First call creates the master, the rest create instances:
