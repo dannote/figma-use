@@ -363,6 +363,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
               left: n.paddingLeft
             }
           }
+          // Alignment
+          if ('primaryAxisAlignItems' in n && n.primaryAxisAlignItems !== 'MIN') {
+            base.primaryAxisAlignItems = n.primaryAxisAlignItems
+          }
+          if ('counterAxisAlignItems' in n && n.counterAxisAlignItems !== 'MIN') {
+            base.counterAxisAlignItems = n.counterAxisAlignItems
+          }
         }
         if (n.type === 'TEXT') {
           const t = n as TextNode
@@ -394,6 +401,37 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         return base
       }
       return serializeTreeNode(node)
+    }
+
+    case 'get-fonts': {
+      const fonts = new Map<string, Set<string>>()
+      
+      const collectFonts = (node: SceneNode) => {
+        if (node.type === 'TEXT') {
+          const textNode = node as TextNode
+          if (typeof textNode.fontName === 'object') {
+            const family = textNode.fontName.family
+            if (!fonts.has(family)) {
+              fonts.set(family, new Set())
+            }
+            fonts.get(family)!.add(textNode.fontName.style)
+          }
+        }
+        if ('children' in node) {
+          for (const child of (node as FrameNode).children) {
+            collectFonts(child)
+          }
+        }
+      }
+      
+      for (const node of figma.currentPage.children) {
+        collectFonts(node)
+      }
+      
+      return Array.from(fonts.entries()).map(([family, styles]) => ({
+        family,
+        styles: Array.from(styles).sort()
+      }))
     }
 
     case 'get-all-components': {

@@ -22,7 +22,7 @@ interface BaseProps {
   pb?: number
   pl?: number
   justify?: 'start' | 'center' | 'end' | 'between'
-  items?: 'start' | 'center' | 'end' | 'stretch'
+  items?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
   style?: CSSProperties
 }
 
@@ -56,7 +56,6 @@ function propsToStyle(props: BaseProps): CSSProperties {
   if (props.flex) {
     style.display = 'flex'
     style.flexDirection = props.flex === 'col' ? 'column' : 'row'
-    style.alignItems = 'center'
   }
 
   if (props.gap !== undefined) style.gap = props.gap
@@ -92,7 +91,8 @@ function propsToStyle(props: BaseProps): CSSProperties {
       start: 'flex-start',
       center: 'center',
       end: 'flex-end',
-      stretch: 'stretch'
+      stretch: 'stretch',
+      baseline: 'baseline'
     }
     style.alignItems = itemsMap[props.items]
   }
@@ -116,7 +116,7 @@ export function Text(props: TextProps) {
     fontSize: size,
     fontWeight: weight === 'bold' ? 700 : weight,
     color,
-    fontFamily: font || SYSTEM_FONT,
+    fontFamily: font ? `"${font}", ${SYSTEM_FONT}` : SYSTEM_FONT,
     textAlign
   }
 

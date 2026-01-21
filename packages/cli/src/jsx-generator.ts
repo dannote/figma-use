@@ -253,6 +253,25 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
   if (node.itemSpacing) {
     attrs.push(createJsxAttribute('gap', numLit(node.itemSpacing)))
   }
+  // Alignment
+  if (node.primaryAxisAlignItems) {
+    const justifyMap: Record<string, string> = {
+      CENTER: 'center',
+      MAX: 'end',
+      SPACE_BETWEEN: 'between'
+    }
+    const justify = justifyMap[node.primaryAxisAlignItems]
+    if (justify) attrs.push(createJsxAttribute('justify', strLit(justify)))
+  }
+  if (node.counterAxisAlignItems) {
+    const itemsMap: Record<string, string> = {
+      CENTER: 'center',
+      MAX: 'end',
+      BASELINE: 'baseline'
+    }
+    const items = itemsMap[node.counterAxisAlignItems]
+    if (items) attrs.push(createJsxAttribute('items', strLit(items)))
+  }
   if (node.padding) {
     const { top, right, bottom, left } = node.padding
     if (top === right && right === bottom && bottom === left && top > 0) {
