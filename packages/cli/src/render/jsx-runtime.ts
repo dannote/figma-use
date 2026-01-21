@@ -22,6 +22,43 @@ export function Fragment({ children }: { children?: unknown }): TreeNode {
   return node('fragment', { children } as BaseProps)
 }
 
+// SVG element props
+interface SvgProps {
+  width?: string | number
+  height?: string | number
+  viewBox?: string
+  fill?: string
+  children?: unknown
+}
+
+interface PathProps {
+  d: string
+  fill?: string
+  stroke?: string
+  strokeWidth?: string | number
+  fillRule?: string
+  clipRule?: string
+}
+
+interface RectProps {
+  x?: string | number
+  y?: string | number
+  width?: string | number
+  height?: string | number
+  rx?: string | number
+  ry?: string | number
+  fill?: string
+  stroke?: string
+}
+
+interface CircleProps {
+  cx?: string | number
+  cy?: string | number
+  r?: string | number
+  fill?: string
+  stroke?: string
+}
+
 // JSX namespace for TypeScript
 export namespace JSX {
   export type Element = TreeNode
@@ -37,7 +74,14 @@ export namespace JSX {
     vector: BaseProps
     group: BaseProps
     image: BaseProps & { src: string }
-    svg: BaseProps & { src: string }
+    // Figma SVG component with src string
+    SVG: BaseProps & { src: string }
+    // Native SVG elements (inline)
+    svg: SvgProps
+    path: PathProps
+    rect: RectProps
+    circle: CircleProps
+    g: { children?: unknown; fill?: string; stroke?: string }
   }
 
   export interface ElementChildrenAttribute {

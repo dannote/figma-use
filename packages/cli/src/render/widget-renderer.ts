@@ -67,6 +67,37 @@ function resolveElement(element: unknown, depth = 0): TreeNode | null {
   return null
 }
 
+function svgChildToString(child: TreeNode): string {
+  const { type, props } = child
+  const attrs = Object.entries(props)
+    .map(([k, v]) => {
+      // Convert camelCase to kebab-case
+      const kebab = k.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`)
+      return `${kebab}="${v}"`
+    })
+    .join(' ')
+  return `<${type}${attrs ? ' ' + attrs : ''}/>`
+}
+
+function serializeInlineSvg(tree: TreeNode): string {
+  const { props, children } = tree
+  const { width, height, viewBox, fill, w, h } = props as Record<string, unknown>
+  const attrs = [
+    'xmlns="http://www.w3.org/2000/svg"',
+    (width || w) ? `width="${width || w}"` : '',
+    (height || h) ? `height="${height || h}"` : '',
+    viewBox ? `viewBox="${viewBox}"` : '',
+    fill ? `fill="${fill}"` : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const inner = children
+    .filter((c): c is TreeNode => typeof c !== 'string')
+    .map(svgChildToString)
+    .join('')
+  return `<svg ${attrs}>${inner}</svg>`
+}
+
 async function processIcons(tree: TreeNode): Promise<TreeNode> {
   if (tree.type === '__icon__') {
     const { name, size = 24, color } = tree.props as { name: string; size?: number; color?: string }
@@ -75,7 +106,6 @@ async function processIcons(tree: TreeNode): Promise<TreeNode> {
       throw new Error(`Icon not found: ${name}`)
     }
 
-    // Convert to SVG node with fill color
     let svg = iconData.svg
     if (color) {
       svg = svg.replace(/currentColor/g, color)
@@ -84,6 +114,16 @@ async function processIcons(tree: TreeNode): Promise<TreeNode> {
     return {
       type: 'svg',
       props: { src: svg, w: size, h: size, name },
+      children: []
+    }
+  }
+
+  // Handle inline <svg> with children (path, rect, etc.)
+  if (tree.type === 'svg' && tree.children.length > 0 && !tree.props.src) {
+    const svgString = serializeInlineSvg(tree)
+    return {
+      type: 'svg',
+      props: { ...tree.props, __svgString: svgString },
       children: []
     }
   }

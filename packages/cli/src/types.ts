@@ -24,6 +24,8 @@ export interface FigmaNode {
   fontWeight?: number
   childCount?: number
   svgData?: string
+  matchedIcon?: string
+  matchedIconSimilarity?: number
 }
 
 export interface FigmaPaint {

@@ -391,14 +391,22 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const components: object[] = []
       const nameLower = name?.toLowerCase()
 
-      const searchNode = (node: SceneNode): boolean => {
+      const searchNode = (node: SceneNode, parentSetId?: string): boolean => {
         if (components.length >= limit) return false
-        if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
+        if (node.type === 'COMPONENT_SET') {
           if (!nameLower || node.name.toLowerCase().includes(nameLower)) {
-            components.push(serializeNode(node))
+            // Add component set itself
+            components.push({ ...serializeNode(node), componentSetId: node.id })
           }
-        }
-        if ('children' in node) {
+          // Search children with reference to parent set
+          for (const child of node.children) {
+            if (!searchNode(child, node.id)) return false
+          }
+        } else if (node.type === 'COMPONENT') {
+          if (!nameLower || node.name.toLowerCase().includes(nameLower)) {
+            components.push({ ...serializeNode(node), componentSetId: parentSetId })
+          }
+        } else if ('children' in node) {
           for (const child of (node as FrameNode).children) {
             if (!searchNode(child)) return false
           }
@@ -419,6 +427,24 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
       }
       return components
+    }
+
+    case 'combine-as-variants': {
+      const { ids, name } = args as { ids: string[]; name?: string }
+      const nodes: ComponentNode[] = []
+      for (const id of ids) {
+        const node = await figma.getNodeByIdAsync(id)
+        if (!node || node.type !== 'COMPONENT') {
+          throw new Error(`Node ${id} is not a component`)
+        }
+        nodes.push(node)
+      }
+      if (nodes.length < 2) {
+        throw new Error('Need at least 2 components to combine')
+      }
+      const componentSet = figma.combineAsVariants(nodes, figma.currentPage)
+      if (name) componentSet.name = name
+      return serializeNode(componentSet)
     }
 
     case 'get-pages':
@@ -2016,6 +2042,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         return result
       }
 
+      // Nodes that need SVG import after tree creation
+      const svgNodes: Array<{ path: number[]; svgString: string }> = []
+
       function buildTree(node: unknown, path: number[] = []): unknown {
         if (typeof node === 'string' || typeof node === 'number') return node
         if (!node || typeof node !== 'object') return null
@@ -2024,6 +2053,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           type: string
           props: Record<string, unknown>
           children: unknown[]
+        }
+
+        // Handle inline <svg> - mark for post-processing with createNodeFromSvg
+        if (type === 'svg' && props.__svgString) {
+          svgNodes.push({ path: [...path], svgString: props.__svgString as string })
+          // Create placeholder frame
+          return h(AutoLayout, { width: props.width || 24, height: props.height || 24 })
         }
 
         const Component = TYPE_MAP[type]
@@ -2069,6 +2105,27 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           frame.primaryAxisSizingMode = 'FIXED'
           frame.counterAxisSizingMode = 'AUTO'
           if (rowGap !== undefined) frame.counterAxisSpacing = rowGap
+        }
+      }
+
+      // Replace SVG placeholders with actual SVG nodes
+      for (const { path, svgString } of svgNodes) {
+        let target: SceneNode = node
+        let parent: FrameNode | null = null
+        let childIndex = 0
+        for (let i = 0; i < path.length; i++) {
+          if ('children' in target) {
+            parent = target as FrameNode
+            childIndex = path[i]
+            target = parent.children[childIndex]
+          }
+        }
+        if (parent && target) {
+          const svgNode = figma.createNodeFromSvg(svgString)
+          svgNode.x = target.x
+          svgNode.y = target.y
+          parent.insertChild(childIndex, svgNode)
+          target.remove()
         }
       }
 

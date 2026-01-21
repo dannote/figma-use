@@ -9,6 +9,8 @@ interface CDPTarget {
 let cachedWs: WebSocket | null = null
 let cachedTarget: CDPTarget | null = null
 let messageId = 0
+let idleTimer: ReturnType<typeof setTimeout> | null = null
+const IDLE_TIMEOUT = 100 // Close connection after 100ms of inactivity
 
 async function getCDPTarget(): Promise<CDPTarget> {
   if (cachedTarget) return cachedTarget
@@ -53,50 +55,59 @@ async function getWebSocket(): Promise<WebSocket> {
   })
 }
 
+function scheduleClose(): void {
+  if (idleTimer) clearTimeout(idleTimer)
+  idleTimer = setTimeout(() => {
+    closeCDP()
+  }, IDLE_TIMEOUT)
+}
+
 export async function cdpEval<T>(code: string, timeout = 30000): Promise<T> {
+  if (idleTimer) {
+    clearTimeout(idleTimer)
+    idleTimer = null
+  }
+  
   const ws = await getWebSocket()
   const id = ++messageId
 
-  try {
-    return await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      ws.off('message', handler)
+      scheduleClose()
+      reject(new Error('CDP timeout'))
+    }, timeout)
+
+    const handler = (data: Buffer) => {
+      const msg = JSON.parse(data.toString())
+      if (msg.id === id) {
+        clearTimeout(timer)
         ws.off('message', handler)
-        reject(new Error('CDP timeout'))
-      }, timeout)
+        scheduleClose()
 
-      const handler = (data: Buffer) => {
-        const msg = JSON.parse(data.toString())
-        if (msg.id === id) {
-          clearTimeout(timer)
-          ws.off('message', handler)
-
-          if (msg.result?.exceptionDetails) {
-            const err = msg.result.exceptionDetails
-            reject(new Error(err.exception?.description || err.text || 'CDP error'))
-          } else {
-            resolve(msg.result?.result?.value as T)
-          }
+        if (msg.result?.exceptionDetails) {
+          const err = msg.result.exceptionDetails
+          reject(new Error(err.exception?.description || err.text || 'CDP error'))
+        } else {
+          resolve(msg.result?.result?.value as T)
         }
       }
+    }
 
-      ws.on('message', handler)
+    ws.on('message', handler)
 
-      ws.send(
-        JSON.stringify({
-          id,
-          method: 'Runtime.evaluate',
-          params: {
-            expression: code,
-            awaitPromise: true,
-            returnByValue: true
-          }
-        })
-      )
-    })
-  } finally {
-    // Close after each request to allow process exit
-    closeCDP()
-  }
+    ws.send(
+      JSON.stringify({
+        id,
+        method: 'Runtime.evaluate',
+        params: {
+          expression: code,
+          awaitPromise: true,
+          returnByValue: true
+        }
+      })
+    )
+  })
 }
 
 export function getFileKeyFromUrl(url: string): string {
