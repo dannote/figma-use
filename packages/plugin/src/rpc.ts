@@ -1740,6 +1740,26 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return { svg: decoder.decode(bytes) }
     }
 
+    case 'batch-export-svg': {
+      const { ids } = args as { ids: string[] }
+      const decoder = new TextDecoder('utf-8')
+      const results: Record<string, string> = {}
+      await Promise.all(
+        ids.map(async (id) => {
+          try {
+            const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
+            if (node) {
+              const bytes = await node.exportAsync({ format: 'SVG' })
+              results[id] = decoder.decode(bytes)
+            }
+          } catch {
+            // Skip failed exports
+          }
+        })
+      )
+      return results
+    }
+
     case 'screenshot': {
       const { scale } = args as { scale?: number }
       const bounds = figma.viewport.bounds

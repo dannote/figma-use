@@ -53,22 +53,54 @@ function findIconColor(node: FigmaNode): string | null {
   return null
 }
 
-export async function enrichWithSvgData(node: FigmaNode): Promise<void> {
+function collectSvgNodeIds(node: FigmaNode, ids: string[]): void {
   if (node.name && ICONIFY_PATTERN.test(node.name)) {
     return
   }
   if (SVG_TYPES.has(node.type)) {
-    try {
-      const result = await sendCommand<{ svg: string }>('export-node-svg', { id: node.id })
-      if (result?.svg) {
-        node.svgData = result.svg
-      }
-    } catch {
-      // Ignore
-    }
+    ids.push(node.id)
   }
   if (node.children) {
-    await Promise.all(node.children.map(enrichWithSvgData))
+    for (const child of node.children) {
+      collectSvgNodeIds(child, ids)
+    }
+  }
+}
+
+function applySvgData(node: FigmaNode, svgMap: Record<string, string>): void {
+  if (node.id && svgMap[node.id]) {
+    node.svgData = svgMap[node.id]
+  }
+  if (node.children) {
+    for (const child of node.children) {
+      applySvgData(child, svgMap)
+    }
+  }
+}
+
+export async function enrichWithSvgData(node: FigmaNode): Promise<void> {
+  const ids: string[] = []
+  collectSvgNodeIds(node, ids)
+
+  if (ids.length === 0) return
+
+  try {
+    const svgMap = await sendCommand<Record<string, string>>('batch-export-svg', { ids })
+    if (svgMap) {
+      applySvgData(node, svgMap)
+    }
+  } catch {
+    // Fallback to individual requests
+    for (const id of ids) {
+      try {
+        const result = await sendCommand<{ svg: string }>('export-node-svg', { id })
+        if (result?.svg) {
+          applySvgData(node, { [id]: result.svg })
+        }
+      } catch {
+        // Ignore
+      }
+    }
   }
 }
 
