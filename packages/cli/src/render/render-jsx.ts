@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { transformSync } from 'esbuild'
 import { sendCommand } from '../client.ts'
 import { renderWithWidgetApi } from './widget-renderer.ts'
 import { loadVariablesIntoRegistry, isRegistryLoaded, preloadIcons, collectIcons } from './index.ts'
@@ -9,12 +10,12 @@ function buildComponent(jsx: string): React.FC {
     const Frame = 'frame', Text = 'text', Rectangle = 'rectangle', Ellipse = 'ellipse', Line = 'line', Image = 'image', SVG = 'svg'
     return function Component() { return ${jsx.trim()} }
   `
-  const transpiler = new Bun.Transpiler({
+  const result = transformSync(code, {
     loader: 'tsx',
-    tsconfig: JSON.stringify({ compilerOptions: { jsx: 'react', jsxFactory: 'h' } })
+    jsx: 'transform',
+    jsxFactory: 'h'
   })
-  const transpiled = transpiler.transformSync(code)
-  return new Function('React', transpiled)(React) as React.FC
+  return new Function('React', result.code)(React) as React.FC
 }
 
 export async function renderJsx(

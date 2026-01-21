@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+import { readFileSync } from 'fs'
 import { sendCommand, handleError } from '../../client.ts'
 import { ok, fail } from '../../format.ts'
 import { parseFigmaPatch } from './parse.ts'
@@ -28,7 +29,7 @@ export default defineCommand({
       if (args.stdin) {
         patchText = await readStdin()
       } else if (args.file) {
-        patchText = await Bun.file(args.file).text()
+        patchText = readFileSync(args.file, 'utf-8')
       } else {
         console.error(fail('Provide a patch file or use --stdin'))
         process.exit(1)

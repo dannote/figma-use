@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+import { writeFileSync } from 'fs'
 import { sendCommand, handleError } from '../../client.ts'
 import { fail } from '../../format.ts'
 import { PNG } from 'pngjs'
@@ -56,7 +57,7 @@ export default defineCommand({
       const totalPixels = width * height
       const diffPercent = ((diffPixels / totalPixels) * 100).toFixed(2)
 
-      await Bun.write(args.output, PNG.sync.write(diff))
+      writeFileSync(args.output, PNG.sync.write(diff))
 
       console.log(`${diffPixels} pixels differ (${diffPercent}%)`)
       console.log(`Saved to ${args.output}`)

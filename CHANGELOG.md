@@ -26,7 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed Figma plugin installation requirement
   - RPC code built on-demand with esbuild (no more 374KB embedded bundle)
 
-- **CLI bundle size reduced** — 1.85MB → 1.0MB (-46%)
+- **CLI bundle size reduced** — 1.85MB → 1.1MB (-41%)
+
+- **Runtime-agnostic** — CLI now works with both Node.js and Bun
 
 - **Faster startup** — no WebSocket handshake, no plugin initialization
 
