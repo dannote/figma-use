@@ -112,6 +112,10 @@ figma-use export jsx <id> --pretty  # Formatted
 
 # Format options
 figma-use export jsx <id> --pretty --semi --tabs
+
+# Match vector shapes to Iconify icons (requires: npm i whaticon)
+figma-use export jsx <id> --match-icons
+figma-use export jsx <id> --match-icons --icon-threshold 0.85 --prefer-icons lucide,tabler
 ```
 
 Round-trip workflow:
@@ -126,6 +130,18 @@ Compare two nodes as JSX:
 ```bash
 figma-use diff jsx <from-id> <to-id>
 ```
+
+## Export Storybook
+
+Export all components on current page as Storybook stories:
+
+```bash
+figma-use export storybook                      # Output to ./stories/
+figma-use export storybook --out ./src/stories  # Custom output dir
+figma-use export storybook --match-icons        # Match vectors to Iconify icons
+```
+
+Generates `.stories.tsx` files with variants from ComponentSets.
 
 ## Variables as Tokens
 

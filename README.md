@@ -149,10 +149,27 @@ export default function SaveButton() {
 }
 ```
 
+Match vector shapes to Iconify icons automatically:
+
+```bash
+npm install whaticon  # Optional dependency
+figma-use export jsx 123:456 --match-icons --prefer-icons lucide
+```
+
 Compare two nodes as JSX diff:
 ```bash
 figma-use diff jsx 123:456 789:012
 ```
+
+### Export to Storybook
+
+Export all components on a page as Storybook stories:
+
+```bash
+figma-use export storybook --out ./stories
+```
+
+Generates `.stories.tsx` for each component, with variants from ComponentSets.
 
 ### Components
 
