@@ -285,7 +285,7 @@ echo '...' | figma-use render --stdin --x 500 --y 0    # Not at same position!
 
 ### Copy between pages
 ```bash
-figma-use node clone <id> --json | jq -r '.id'
+figma-use node clone <id> [id2...] --json | jq -r '.[].id'
 figma-use node set-parent <new-id> --parent <target-page-id>
 figma-use node move <new-id> --x 50 --y 50
 ```

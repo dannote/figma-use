@@ -65,7 +65,7 @@ describe('node', () => {
       `create rect --x 200 --y 10 --width 50 --height 50 --parent "${testFrameId}" --json`
     )) as any
     const result = (await run(`node delete ${rect.id} --json`)) as any
-    expect(result.deleted).toBe(true)
+    expect(result.deleted).toBe(1)
   })
 
   test('tree returns formatted tree', async () => {

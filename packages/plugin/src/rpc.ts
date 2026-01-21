@@ -789,11 +789,19 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'clone-node': {
-      const { id } = args as { id: string }
-      const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
-      if (!node || !('clone' in node)) throw new Error('Node not found')
-      const clone = node.clone()
-      return serializeNode(clone)
+      const { ids, id } = args as { ids?: string[]; id?: string }
+      const nodeIds = ids ?? (id ? [id] : [])
+      if (nodeIds.length === 0) throw new Error('No node IDs provided')
+      
+      const clones = []
+      for (const nodeId of nodeIds) {
+        const node = (await figma.getNodeByIdAsync(nodeId)) as SceneNode | null
+        if (node && 'clone' in node) {
+          const clone = node.clone()
+          clones.push(serializeNode(clone))
+        }
+      }
+      return clones.length === 1 ? clones[0] : clones
     }
 
     case 'convert-to-component': {
