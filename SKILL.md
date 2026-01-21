@@ -93,6 +93,31 @@ Load images from URL:
 <Image src="https://example.com/photo.jpg" w={200} h={150} />
 ```
 
+## Export JSX
+
+Convert Figma nodes back to JSX code:
+
+```bash
+figma-use export jsx <id>           # Minified
+figma-use export jsx <id> --pretty  # Formatted
+
+# Format options
+figma-use export jsx <id> --pretty --semi --tabs
+```
+
+Round-trip workflow:
+```bash
+# Export → edit → re-render
+figma-use export jsx <id> --pretty > component.tsx
+# ... edit the file ...
+figma-use render component.tsx --x 500 --y 0
+```
+
+Compare two nodes as JSX:
+```bash
+figma-use diff jsx <from-id> <to-id>
+```
+
 ## Variables as Tokens
 
 Reference Figma variables in any color option with `var:Name` or `$Name`:

@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-21
+
+### Added
+
+- **`export jsx` command** — export Figma nodes as JSX components
+  ```bash
+  figma-use export jsx <node-id>           # Minified output
+  figma-use export jsx <node-id> --pretty  # Formatted with oxfmt
+  ```
+  
+  Features:
+  - Generates TypeScript AST (not string concatenation)
+  - Recognizes Iconify icons by name pattern → `<Icon name="lucide:save" />`
+  - Exports vectors as inline SVG → `<SVG src="..." />`
+  - Format options: `--semi`, `--single-quote`, `--tabs`, `--tab-width`, `--trailing-comma`
+
+- **`diff jsx` command** — compare nodes as formatted JSX
+  ```bash
+  figma-use diff jsx <from-id> <to-id>
+  ```
+  Shows colorized unified diff of JSX representations.
+
+- **`<Icon>` element in JSX** — render Iconify icons
+  ```tsx
+  <Icon name="lucide:heart" size={24} color="#EF4444" />
+  ```
+  150k+ icons from Iconify, loaded on demand.
+
+- **`<Section>` element** — create Figma sections (distinct from frames)
+
+### Changed
+
+- **Switched from Prettier to oxfmt** for code formatting
+  - Faster Rust-based formatter
+  - Import sorting with customizable groups
+  - Optional dependency (graceful fallback if not installed)
+
+- **`FormatOptions` type** now re-exported from `oxfmt`
+
+### Internal
+
+- Consolidated `FigmaNode` interface into `types.ts`
+- Replaced raw ANSI escape codes with `picocolors`
+- Added comprehensive tests for `export jsx` and `diff jsx`
+
 ## [0.9.2] - 2026-01-21
 
 ### Added

@@ -128,6 +128,32 @@ Load images from URL:
 <Image src="https://example.com/photo.jpg" w={200} h={150} />
 ```
 
+### Export to JSX
+
+Convert any Figma node back to JSX:
+
+```bash
+figma-use export jsx 123:456 --pretty
+```
+
+Output:
+```tsx
+import { Frame, Icon, Text } from 'figma-use/render'
+export default function SaveButton() {
+  return (
+    <Frame name="SaveButton" w={120} h={44} bg="#1FAFBB" rounded={8} flex="row" gap={8}>
+      <Icon name="lucide:save" size={18} color="#FFFFFF" />
+      <Text size={16} color="#FFFFFF">Save</Text>
+    </Frame>
+  )
+}
+```
+
+Compare two nodes as JSX diff:
+```bash
+figma-use diff jsx 123:456 789:012
+```
+
 ### Components
 
 In a `.figma.tsx` file you can define components. First call creates the master, the rest create instances:
