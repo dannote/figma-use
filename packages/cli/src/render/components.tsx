@@ -1,6 +1,6 @@
 /**
  * Figma JSX Components
- * 
+ *
  * Returns TreeNode objects for Figma Widget API rendering.
  * Use @ts-expect-error in .figma.tsx files if TypeScript complains about JSX types.
  */
@@ -52,6 +52,10 @@ export function Group(props: BaseProps): TreeNode {
   return node('group', props)
 }
 
+export function Section(props: BaseProps): TreeNode {
+  return node('section', props)
+}
+
 // Aliases
 export const View = Frame
 export const Rect = Rectangle
@@ -60,7 +64,20 @@ export const Instance = Frame
 export const Page = Frame
 
 // Intrinsic elements
-export const INTRINSIC_ELEMENTS = ['frame', 'text', 'rectangle', 'ellipse', 'line', 'image', 'svg', 'star', 'polygon', 'vector', 'group']
+export const INTRINSIC_ELEMENTS = [
+  'frame',
+  'text',
+  'rectangle',
+  'ellipse',
+  'line',
+  'image',
+  'svg',
+  'star',
+  'polygon',
+  'vector',
+  'group',
+  'section'
+]
 
 // Variables
 export {

@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeAll } from 'bun:test'
+
 import type { JSONRPCRequest } from '@modelcontextprotocol/sdk/types.js'
 
 const PROXY_URL = 'http://localhost:38451'

@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -22,7 +23,7 @@ export default defineCommand({
         name: args.name,
         parentId: args.parent,
         stroke: args.stroke,
-        strokeWeight: args["stroke-weight"] ? Number(args["stroke-weight"]) : undefined
+        strokeWeight: args['stroke-weight'] ? Number(args['stroke-weight']) : undefined
       })
       printResult(result, args.json, 'create')
     } catch (e) {

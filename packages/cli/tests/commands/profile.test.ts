@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test'
-import { run } from '../helpers.ts'
 
+import { run } from '../helpers.ts'
 
 describe('profile', () => {
   test('shows error when DevTools not available', async () => {

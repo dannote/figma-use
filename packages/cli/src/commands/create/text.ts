@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -22,9 +23,9 @@ export default defineCommand({
         x: Number(args.x),
         y: Number(args.y),
         text: args.text,
-        fontSize: args["font-size"] ? Number(args["font-size"]) : undefined,
-        fontFamily: args["font-family"],
-        fontStyle: args["font-style"],
+        fontSize: args['font-size'] ? Number(args['font-size']) : undefined,
+        fontFamily: args['font-family'],
+        fontStyle: args['font-style'],
         fill: args.fill,
         opacity: args.opacity ? Number(args.opacity) : undefined,
         name: args.name,

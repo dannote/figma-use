@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { printResult } from '../../output.ts'
 
@@ -26,8 +27,15 @@ export default defineCommand({
       description: 'Line type: straight, elbowed, curved',
       default: 'elbowed'
     },
-    'start-cap': { type: 'string', description: 'Start cap: none, arrow, triangle, diamond, circle' },
-    'end-cap': { type: 'string', description: 'End cap: none, arrow, triangle, diamond, circle', default: 'arrow' },
+    'start-cap': {
+      type: 'string',
+      description: 'Start cap: none, arrow, triangle, diamond, circle'
+    },
+    'end-cap': {
+      type: 'string',
+      description: 'End cap: none, arrow, triangle, diamond, circle',
+      default: 'arrow'
+    },
     stroke: { type: 'string', description: 'Stroke color (hex)' },
     weight: { type: 'string', description: 'Stroke weight' },
     radius: { type: 'string', description: 'Corner radius for elbowed connectors' },

@@ -4,7 +4,7 @@ const NODE_TYPES = {
   ELEMENT_NODE: 1,
   ATTRIBUTE_NODE: 2,
   TEXT_NODE: 3,
-  DOCUMENT_NODE: 9,
+  DOCUMENT_NODE: 9
 }
 
 interface FigmaDocument {
@@ -15,10 +15,25 @@ interface FigmaDocument {
 }
 
 const QUERYABLE_ATTRS = [
-  'name', 'width', 'height', 'x', 'y', 'visible', 'opacity',
-  'cornerRadius', 'characters', 'fontSize', 'layoutMode', 
-  'itemSpacing', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight',
-  'strokeWeight', 'rotation', 'constrainProportions',
+  'name',
+  'width',
+  'height',
+  'x',
+  'y',
+  'visible',
+  'opacity',
+  'cornerRadius',
+  'characters',
+  'fontSize',
+  'layoutMode',
+  'itemSpacing',
+  'paddingTop',
+  'paddingBottom',
+  'paddingLeft',
+  'paddingRight',
+  'strokeWeight',
+  'rotation',
+  'constrainProportions'
 ]
 
 interface FigmaAttr {
@@ -44,7 +59,10 @@ interface FigmaNode {
   _children?: FigmaNode[]
 }
 
-function wrapNode(node: SceneNode | PageNode, parent?: FigmaNode | FigmaDocument | null): FigmaNode {
+function wrapNode(
+  node: SceneNode | PageNode,
+  parent?: FigmaNode | FigmaDocument | null
+): FigmaNode {
   const wrapped: FigmaNode = {
     nodeType: NODE_TYPES.ELEMENT_NODE,
     nodeName: node.type,
@@ -52,7 +70,7 @@ function wrapNode(node: SceneNode | PageNode, parent?: FigmaNode | FigmaDocument
     namespaceURI: null,
     prefix: null,
     _figmaNode: node,
-    _parent: parent as FigmaNode | null,
+    _parent: parent as FigmaNode | null
   }
   return wrapped
 }
@@ -61,7 +79,7 @@ function createDocument(rootNode: SceneNode | PageNode): FigmaDocument {
   const doc: FigmaDocument = {
     nodeType: NODE_TYPES.DOCUMENT_NODE,
     nodeName: '#document',
-    documentElement: null as unknown as FigmaNode,
+    documentElement: null as unknown as FigmaNode
   }
   const root = wrapNode(rootNode, doc as unknown as FigmaNode)
   doc.documentElement = root
@@ -71,10 +89,10 @@ function createDocument(rootNode: SceneNode | PageNode): FigmaDocument {
 
 function getAttrs(wrapped: FigmaNode): FigmaAttr[] {
   if (wrapped._attrs) return wrapped._attrs
-  
+
   const node = wrapped._figmaNode
   const attrs: FigmaAttr[] = []
-  
+
   for (const attrName of QUERYABLE_ATTRS) {
     if (attrName in node) {
       const value = (node as unknown as Record<string, unknown>)[attrName]
@@ -90,25 +108,25 @@ function getAttrs(wrapped: FigmaNode): FigmaAttr[] {
         namespaceURI: null,
         prefix: null,
         value: String(value),
-        ownerElement: wrapped,
+        ownerElement: wrapped
       })
     }
   }
-  
+
   wrapped._attrs = attrs
   return attrs
 }
 
 function getChildren(wrapped: FigmaNode): FigmaNode[] {
   if (wrapped._children) return wrapped._children
-  
+
   const node = wrapped._figmaNode
   if (!('children' in node) || !node.children) {
     wrapped._children = []
     return []
   }
-  
-  wrapped._children = node.children.map(child => wrapNode(child, wrapped))
+
+  wrapped._children = node.children.map((child) => wrapNode(child, wrapped))
   return wrapped._children
 }
 
@@ -161,7 +179,7 @@ const figmaDomFacade = {
     if (isDocument(node)) return null
     const parent = node._parent
     if (!parent) return null
-    
+
     const siblings = getChildren(parent)
     const idx = siblings.indexOf(node)
     return siblings[idx + 1] || null
@@ -176,11 +194,11 @@ const figmaDomFacade = {
     if (isDocument(node)) return null
     const parent = node._parent
     if (!parent) return null
-    
+
     const siblings = getChildren(parent)
     const idx = siblings.indexOf(node)
     return idx > 0 ? siblings[idx - 1] : null
-  },
+  }
 }
 
 interface QueryOptions {
@@ -201,14 +219,10 @@ export function queryNodes(
   try {
     for (const rootNode of roots) {
       const doc = createDocument(rootNode as PageNode)
-      
+
       console.log('[xpath] Evaluating on:', rootNode.name)
-      
-      const nodes = evaluateXPathToNodes(
-        selector,
-        doc,
-        figmaDomFacade
-      )
+
+      const nodes = evaluateXPathToNodes(selector, doc, figmaDomFacade)
 
       console.log('[xpath] Found:', nodes.length)
 
@@ -229,17 +243,10 @@ export function queryNodes(
   return results
 }
 
-export function matchNode(
-  selector: string,
-  node: SceneNode
-): boolean {
+export function matchNode(selector: string, node: SceneNode): boolean {
   try {
     const wrapped = wrapNode(node)
-    return evaluateXPathToBoolean(
-      `self::*[${selector}]`,
-      wrapped,
-      figmaDomFacade
-    )
+    return evaluateXPathToBoolean(`self::*[${selector}]`, wrapped, figmaDomFacade)
   } catch {
     return false
   }

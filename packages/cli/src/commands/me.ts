@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { getCurrentUser } from '../cdp-api.ts'
 import { handleError } from '../client.ts'
 import { accent } from '../format.ts'

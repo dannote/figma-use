@@ -1,16 +1,13 @@
 /**
  * Custom JSX Runtime for Figma components
- * 
+ *
  * This module provides jsx/jsxs functions that produce TreeNode objects
  * instead of React elements.
  */
 
 import { node, type BaseProps, type TreeNode, type TextProps } from './tree.ts'
 
-export function jsx(
-  type: string | ((props: BaseProps) => TreeNode),
-  props: BaseProps
-): TreeNode {
+export function jsx(type: string | ((props: BaseProps) => TreeNode), props: BaseProps): TreeNode {
   if (typeof type === 'function') {
     return type(props)
   }
@@ -28,7 +25,7 @@ export function Fragment({ children }: { children?: unknown }): TreeNode {
 // JSX namespace for TypeScript
 export namespace JSX {
   export type Element = TreeNode
-  
+
   export interface IntrinsicElements {
     frame: BaseProps
     text: TextProps
@@ -42,7 +39,7 @@ export namespace JSX {
     image: BaseProps & { src: string }
     svg: BaseProps & { src: string }
   }
-  
+
   export interface ElementChildrenAttribute {
     children: {}
   }

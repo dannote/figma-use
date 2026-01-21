@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -15,10 +16,10 @@ export default defineCommand({
     try {
       const result = await sendCommand('set-min-max', {
         id: args.id,
-        minWidth: args["min-width"] ? Number(args["min-width"]) : undefined,
-        maxWidth: args["max-width"] ? Number(args["max-width"]) : undefined,
-        minHeight: args["min-height"] ? Number(args["min-height"]) : undefined,
-        maxHeight: args["max-height"] ? Number(args["max-height"]) : undefined
+        minWidth: args['min-width'] ? Number(args['min-width']) : undefined,
+        maxWidth: args['max-width'] ? Number(args['max-width']) : undefined,
+        minHeight: args['min-height'] ? Number(args['min-height']) : undefined,
+        maxHeight: args['max-height'] ? Number(args['max-height']) : undefined
       })
       printResult(result, args.json, 'update')
     } catch (e) {

@@ -13,14 +13,17 @@ export interface FigmaNode {
   opacity?: number
   visible?: boolean
   locked?: boolean
-  layoutMode?: string
+  layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL'
   itemSpacing?: number
+  padding?: { top: number; right: number; bottom: number; left: number }
   children?: FigmaNode[]
   characters?: string
   fontSize?: number
   fontFamily?: string
   fontStyle?: string
+  fontWeight?: number
   childCount?: number
+  svgData?: string
 }
 
 export interface FigmaPaint {
@@ -65,3 +68,5 @@ export interface DeletedResult {
 export interface StatusResult {
   pluginConnected: boolean
 }
+
+export type { FormatOptions } from 'oxfmt'

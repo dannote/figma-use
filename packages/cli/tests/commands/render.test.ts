@@ -1,9 +1,10 @@
 /**
  * Render tests via CLI (CDP-based)
- * 
+ *
  * Uses Widget API (createNodeFromJSXAsync) for rendering.
  */
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
+
 import { run, trackNode, setupTestPage, teardownTestPage } from '../helpers.ts'
 
 describe('render', () => {
@@ -41,7 +42,9 @@ describe('render', () => {
     trackNode(result.id)
 
     // Verify children were created
-    const tree = (await run(`node tree ${result.id} --json`)) as { children?: Array<{ name: string }> }
+    const tree = (await run(`node tree ${result.id} --json`)) as {
+      children?: Array<{ name: string }>
+    }
     expect(tree.children).toBeDefined()
     expect(tree.children!.length).toBeGreaterThan(0)
   }, 30000)
@@ -77,11 +80,15 @@ describe('render', () => {
 
     // Find title in tree
     const tree = (await run(`node tree ${result.id} --depth 3 --json`)) as {
-      children?: Array<{ name: string; characters?: string; children?: Array<{ characters?: string }> }>
+      children?: Array<{
+        name: string
+        characters?: string
+        children?: Array<{ characters?: string }>
+      }>
     }
 
     // Title should be in children
-    const titleNode = tree.children?.find(c => c.name === 'Title')
+    const titleNode = tree.children?.find((c) => c.name === 'Title')
     expect(titleNode).toBeDefined()
     expect(titleNode!.characters).toBe('Hello World')
   }, 30000)
@@ -107,8 +114,10 @@ describe('render', () => {
 describe('render from file', () => {
   test('renders existing fixture file', async () => {
     const { run, trackNode } = await import('../helpers.ts')
-    
-    const result = (await run(`render tests/fixtures/Card.figma.tsx --props '{"title":"FileTest","items":["A"]}' --json`)) as { id: string; name: string }
+
+    const result = (await run(
+      `render tests/fixtures/Card.figma.tsx --props '{"title":"FileTest","items":["A"]}' --json`
+    )) as { id: string; name: string }
     expect(result.id).toBeDefined()
     expect(result.name).toBe('Card')
     trackNode(result.id)
@@ -118,33 +127,36 @@ describe('render from file', () => {
 describe('render with icons', () => {
   test('preloadIcons loads icon data', async () => {
     const { preloadIcons } = await import('../../src/render/icon.ts')
-    await preloadIcons([{ name: 'mdi:home', size: 24 }, { name: 'lucide:star', size: 24 }])
+    await preloadIcons([
+      { name: 'mdi:home', size: 24 },
+      { name: 'lucide:star', size: 24 }
+    ])
     // Should not throw
   }, 30000)
 
   test('collectIcons finds icon primitives in element tree', async () => {
     const { collectIcons } = await import('../../src/render/index.ts')
     const React = await import('react')
-    
+
     const element = React.createElement('frame', {}, [
       React.createElement('icon', { key: 1, icon: 'mdi:home' }),
       React.createElement('icon', { key: 2, icon: 'lucide:star' })
     ])
-    
+
     const icons = collectIcons(element)
-    expect(icons.map(i => i.name)).toContain('mdi:home')
-    expect(icons.map(i => i.name)).toContain('lucide:star')
+    expect(icons.map((i) => i.name)).toContain('mdi:home')
+    expect(icons.map((i) => i.name)).toContain('lucide:star')
   })
 })
 
 describe('render with variables', () => {
   test('defineVars creates variable references', async () => {
     const { defineVars } = await import('../../src/render/vars.ts')
-    
+
     const colors = defineVars({
       primary: { name: 'Colors/Blue', value: '#3B82F6' }
     })
-    
+
     expect(colors.primary).toBeDefined()
     expect(colors.primary.name).toBe('Colors/Blue')
   })

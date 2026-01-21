@@ -1,6 +1,8 @@
-import { defineCommand } from 'citty'
-import { ok, fail } from '../format.ts'
 import { spawn } from 'child_process'
+import { defineCommand } from 'citty'
+
+import { ok, fail } from '../format.ts'
+
 import type { ChromeDevToolsTarget } from '../types.ts'
 
 export default defineCommand({

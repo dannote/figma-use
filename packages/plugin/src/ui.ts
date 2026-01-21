@@ -41,20 +41,22 @@ window.onmessage = (event) => {
     sessionId?: string
     fileName?: string
   }
-  
+
   if (msg.type === 'file-info' && ws) {
     currentSessionId = msg.sessionId || null
     currentFileName = msg.fileName || null
     // Register this plugin instance with proxy
-    ws.send(JSON.stringify({ 
-      type: 'register', 
-      sessionId: currentSessionId, 
-      fileName: currentFileName 
-    }))
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        sessionId: currentSessionId,
+        fileName: currentFileName
+      })
+    )
     console.log('[Figma Bridge] Registered file:', currentFileName, currentSessionId)
     return
   }
-  
+
   if (msg.type !== 'result' || !ws) return
   ws.send(JSON.stringify({ id: msg.id, result: msg.result, error: msg.error }))
 }

@@ -11,6 +11,7 @@
  */
 
 import { parsePatch } from 'diff'
+
 import type { StructuredPatch } from 'diff'
 
 export interface FigmaPatch {

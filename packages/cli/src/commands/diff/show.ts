@@ -1,8 +1,10 @@
 import { defineCommand } from 'citty'
+import { createPatch } from 'diff'
+import pc from 'picocolors'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { fail } from '../../format.ts'
 import { serializeNode } from './serialize.ts'
-import { createPatch } from 'diff'
 
 export default defineCommand({
   meta: { description: 'Show diff between current node state and provided properties' },
@@ -72,13 +74,13 @@ export default defineCommand({
       // Output with colors
       for (const line of patch.split('\n')) {
         if (line.startsWith('---') || line.startsWith('+++')) {
-          console.log(`\x1b[1m${line}\x1b[0m`)
+          console.log(pc.bold(line))
         } else if (line.startsWith('-')) {
-          console.log(`\x1b[31m${line}\x1b[0m`)
+          console.log(pc.red(line))
         } else if (line.startsWith('+')) {
-          console.log(`\x1b[32m${line}\x1b[0m`)
+          console.log(pc.green(line))
         } else if (line.startsWith('@@')) {
-          console.log(`\x1b[36m${line}\x1b[0m`)
+          console.log(pc.cyan(line))
         } else {
           console.log(line)
         }

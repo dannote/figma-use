@@ -1,8 +1,9 @@
 import { defineCommand } from 'citty'
+import { writeFileSync } from 'fs'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { checkViewportSize } from '../../export-guard.ts'
 import { fail } from '../../format.ts'
-import { writeFileSync } from 'fs'
 
 export default defineCommand({
   meta: { description: 'Screenshot current viewport' },

@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -22,8 +23,8 @@ export default defineCommand({
         name: args.name,
         type: args.type,
         radius: args.radius ? Number(args.radius) : undefined,
-        offsetX: args["offset-x"] ? Number(args["offset-x"]) : undefined,
-        offsetY: args["offset-y"] ? Number(args["offset-y"]) : undefined,
+        offsetX: args['offset-x'] ? Number(args['offset-x']) : undefined,
+        offsetY: args['offset-y'] ? Number(args['offset-y']) : undefined,
         color: args.color
       })
       printResult(result, args.json)

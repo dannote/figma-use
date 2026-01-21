@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 type GridTrackSize = { type: 'FIXED' | 'FLEX' | 'HUG'; value?: number }
@@ -59,12 +60,12 @@ export default defineCommand({
         itemSpacing: args.gap ? Number(args.gap) : undefined,
         padding: paddingObj,
         primaryAlign: args.align,
-        counterAlign: args["counter-align"],
+        counterAlign: args['counter-align'],
         wrap: args.wrap,
         gridColumnSizes: args.cols ? parseGridTemplate(args.cols) : undefined,
         gridRowSizes: args.rows ? parseGridTemplate(args.rows) : undefined,
-        gridColumnGap: args["col-gap"] ? Number(args["col-gap"]) : undefined,
-        gridRowGap: args["row-gap"] ? Number(args["row-gap"]) : undefined
+        gridColumnGap: args['col-gap'] ? Number(args['col-gap']) : undefined,
+        gridRowGap: args['row-gap'] ? Number(args['row-gap']) : undefined
       })
       printResult(result, args.json)
     } catch (e) {

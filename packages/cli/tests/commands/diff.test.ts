@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
+
 import { run, trackNode, setupTestPage, teardownTestPage } from '../helpers.ts'
 
 describe('diff', () => {
@@ -270,6 +271,39 @@ describe('diff', () => {
       expect(output).toContain('-fill: #EEEEEE')
       expect(output).toContain('+fill: #FFFFFF')
       expect(output).toContain('+opacity: 0.8')
+    })
+  })
+
+  describe('diff jsx', () => {
+    test('shows JSX diff between two nodes', async () => {
+      // Create two similar frames with differences
+      const frame1 = (await run(
+        `create frame --x 800 --y 10 --width 100 --height 50 --fill "#3B82F6" --radius 8 --name "JsxDiff1" --parent "${testFrameId}" --json`
+      )) as { id: string }
+      trackNode(frame1.id)
+
+      const frame2 = (await run(
+        `create frame --x 920 --y 10 --width 120 --height 60 --fill "#EF4444" --radius 12 --name "JsxDiff2" --parent "${testFrameId}" --json`
+      )) as { id: string }
+      trackNode(frame2.id)
+
+      const output = (await run(`diff jsx ${frame1.id} ${frame2.id}`, false)) as string
+
+      // Should show JSX attribute differences
+      expect(output).toContain('-')
+      expect(output).toContain('+')
+      expect(output).toContain('w={')
+      expect(output).toContain('bg=')
+    })
+
+    test('reports no differences for identical nodes', async () => {
+      const frame = (await run(
+        `create frame --x 1050 --y 10 --width 80 --height 40 --fill "#10B981" --name "JsxSame" --parent "${testFrameId}" --json`
+      )) as { id: string }
+      trackNode(frame.id)
+
+      const output = (await run(`diff jsx ${frame.id} ${frame.id}`, false)) as string
+      expect(output).toContain('No differences')
     })
   })
 })

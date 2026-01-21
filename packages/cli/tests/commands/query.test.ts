@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
+
 import { run, trackNode, setupTestPage, teardownTestPage } from '../helpers.ts'
 
 describe('query', () => {
@@ -52,7 +53,7 @@ describe('query', () => {
     test('finds all FRAME nodes', async () => {
       const result = (await run(`query "//FRAME" --root "${testFrameId}" --json`)) as any[]
       expect(result.length).toBeGreaterThanOrEqual(3)
-      expect(result.every(n => n.type === 'FRAME')).toBe(true)
+      expect(result.every((n) => n.type === 'FRAME')).toBe(true)
     })
 
     test('finds TEXT nodes', async () => {
@@ -76,7 +77,7 @@ describe('query', () => {
         `query "//FRAME[@width < 100]" --root "${testFrameId}" --select "id,name,type,width" --json`
       )) as any[]
       expect(result.length).toBeGreaterThanOrEqual(1)
-      expect(result.every(n => n.width < 100)).toBe(true)
+      expect(result.every((n) => n.width < 100)).toBe(true)
     })
 
     test('finds by cornerRadius > 0', async () => {
@@ -91,7 +92,7 @@ describe('query', () => {
         `query "//FRAME[@cornerRadius > 0 and @width < 100]" --root "${testFrameId}" --select "id,name,type,width,cornerRadius" --json`
       )) as any[]
       expect(result.length).toBeGreaterThanOrEqual(1)
-      expect(result.every(n => n.cornerRadius > 0 && n.width < 100)).toBe(true)
+      expect(result.every((n) => n.cornerRadius > 0 && n.width < 100)).toBe(true)
     })
   })
 

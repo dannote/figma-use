@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, handleError } from '../../client.ts'
-import type { FigmaNode } from '../../types.ts'
 import {
   formatFill,
   formatStroke,
@@ -9,6 +9,8 @@ import {
   formatFont,
   fail
 } from '../../format.ts'
+
+import type { FigmaNode } from '../../types.ts'
 
 function formatTreeNode(
   node: FigmaNode,

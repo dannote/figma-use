@@ -2,9 +2,10 @@ import { loadIcon } from '@iconify/core/lib/api/icons'
 import { setAPIModule } from '@iconify/core/lib/api/modules'
 import { fetchAPIModule } from '@iconify/core/lib/api/modules/fetch'
 import { iconToSVG } from '@iconify/utils'
+
+import type { Props, ReactElement } from './tree.ts'
 import type { IconifyIcon } from '@iconify/types'
 import type { ReactNode } from 'react'
-import type { Props, ReactElement } from './tree.ts'
 
 // Initialize API module
 setAPIModule('', fetchAPIModule)
@@ -46,7 +47,7 @@ async function loadRawIcon(name: string): Promise<IconifyIcon | null> {
  */
 export async function loadIconSvg(name: string, size: number = 24): Promise<IconData | null> {
   const cacheKey = `${name}@${size}`
-  
+
   if (iconCache.has(cacheKey)) {
     return iconCache.get(cacheKey)!
   }
@@ -57,8 +58,10 @@ export async function loadIconSvg(name: string, size: number = 24): Promise<Icon
   }
 
   const result = iconToSVG(icon, { height: size, width: size })
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${Object.entries(result.attributes).map(([k, v]) => `${k}="${v}"`).join(' ')}>${result.body}</svg>`
-  
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${Object.entries(result.attributes)
+    .map(([k, v]) => `${k}="${v}"`)
+    .join(' ')}>${result.body}</svg>`
+
   const data: IconData = {
     svg,
     width: size,
@@ -71,7 +74,7 @@ export async function loadIconSvg(name: string, size: number = 24): Promise<Icon
       height: result.viewBox[3]
     }
   }
-  
+
   iconCache.set(cacheKey, data)
   return data
 }

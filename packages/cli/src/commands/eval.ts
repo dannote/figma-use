@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult } from '../client.ts'
 
 export default defineCommand({

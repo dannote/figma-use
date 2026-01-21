@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty'
-import pages from './pages.ts'
+
 import components from './components.ts'
+import pages from './pages.ts'
 import styles from './styles.ts'
 
 export default defineCommand({

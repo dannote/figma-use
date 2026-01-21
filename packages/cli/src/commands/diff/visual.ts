@@ -1,9 +1,10 @@
 import { defineCommand } from 'citty'
 import { writeFileSync } from 'fs'
+import pixelmatch from 'pixelmatch'
+import { PNG } from 'pngjs'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { fail } from '../../format.ts'
-import { PNG } from 'pngjs'
-import pixelmatch from 'pixelmatch'
 
 interface ExportResult {
   data: string
@@ -25,7 +26,11 @@ export default defineCommand({
       const threshold = args.threshold ? Number(args.threshold) : 0.1
 
       const [fromResult, toResult] = await Promise.all([
-        sendCommand('export-node', { id: args.from, format: 'PNG', scale }) as Promise<ExportResult>,
+        sendCommand('export-node', {
+          id: args.from,
+          format: 'PNG',
+          scale
+        }) as Promise<ExportResult>,
         sendCommand('export-node', { id: args.to, format: 'PNG', scale }) as Promise<ExportResult>
       ])
 
@@ -38,21 +43,20 @@ export default defineCommand({
       const toPng = PNG.sync.read(Buffer.from(toResult.data, 'base64'))
 
       if (fromPng.width !== toPng.width || fromPng.height !== toPng.height) {
-        console.error(fail(`Size mismatch: ${fromPng.width}×${fromPng.height} vs ${toPng.width}×${toPng.height}`))
+        console.error(
+          fail(
+            `Size mismatch: ${fromPng.width}×${fromPng.height} vs ${toPng.width}×${toPng.height}`
+          )
+        )
         process.exit(1)
       }
 
       const { width, height } = fromPng
       const diff = new PNG({ width, height })
 
-      const diffPixels = pixelmatch(
-        fromPng.data,
-        toPng.data,
-        diff.data,
-        width,
-        height,
-        { threshold }
-      )
+      const diffPixels = pixelmatch(fromPng.data, toPng.data, diff.data, width, height, {
+        threshold
+      })
 
       const totalPixels = width * height
       const diffPercent = ((diffPixels / totalPixels) * 100).toFixed(2)

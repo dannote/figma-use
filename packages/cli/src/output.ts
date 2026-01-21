@@ -1,14 +1,6 @@
+import { formatFill, formatStroke, formatBox, formatType, ok, fail, dim } from './format.ts'
+
 import type { FigmaNode, FigmaPage, DeletedResult, ExportResult, StatusResult } from './types.ts'
-import {
-  
-  formatFill,
-  formatStroke,
-  formatBox,
-  formatType,
-  ok,
-  fail,
-  dim
-} from './format.ts'
 
 function formatNode(node: Record<string, unknown>, indent = ''): string {
   const lines: string[] = []

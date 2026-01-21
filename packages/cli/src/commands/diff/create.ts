@@ -1,8 +1,9 @@
 import { defineCommand } from 'citty'
+import { createTwoFilesPatch } from 'diff'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { fail } from '../../format.ts'
 import { serializeNode } from './serialize.ts'
-import { createTwoFilesPatch } from 'diff'
 
 interface NodeInfo {
   id: string
@@ -48,8 +49,8 @@ export default defineCommand({
       const depth = args.depth ? Number(args.depth) : 10
 
       // Get both trees (sequential to avoid WebSocket issues)
-      const fromTree = await sendCommand('get-node-tree', { id: args.from, depth }) as NodeInfo
-      const toTree = await sendCommand('get-node-tree', { id: args.to, depth }) as NodeInfo
+      const fromTree = (await sendCommand('get-node-tree', { id: args.from, depth })) as NodeInfo
+      const toTree = (await sendCommand('get-node-tree', { id: args.to, depth })) as NodeInfo
 
       if (!fromTree || !toTree) {
         console.error(fail('Could not fetch node trees'))

@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -15,7 +16,7 @@ export default defineCommand({
       const result = await sendCommand('edit-component-property', {
         componentId: args.id,
         propertyName: args.name,
-        newName: args["new-name"],
+        newName: args['new-name'],
         newDefaultValue: args.default
       })
       printResult(result, args.json, 'update')

@@ -1,9 +1,20 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "trailingComma": "none",
-  "tabWidth": 2,
+  "$schema": "node_modules/oxfmt/configuration_schema.json",
   "semi": false,
   "singleQuote": true,
+  "tabWidth": 2,
   "printWidth": 100,
-  "ignorePatterns": []
+  "trailingComma": "none",
+  "arrowParens": "always",
+  "experimentalSortImports": {
+    "order": "asc",
+    "ignoreCase": true,
+    "newlinesBetween": true,
+    "groups": [
+      ["builtin", "external"],
+      "internal",
+      ["parent", "sibling", "index"],
+      "type"
+    ]
+  }
 }

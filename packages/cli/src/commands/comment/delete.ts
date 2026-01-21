@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { deleteComment } from '../../cdp-api.ts'
 import { handleError } from '../../client.ts'
 import { success } from '../../format.ts'

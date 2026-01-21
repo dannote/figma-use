@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty'
-import { sendCommand, printResult, handleError } from '../../client.ts'
 import { readFileSync } from 'fs'
+
+import { sendCommand, printResult, handleError } from '../../client.ts'
 
 export default defineCommand({
   meta: { description: 'Set image fill from file' },

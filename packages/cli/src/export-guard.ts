@@ -1,4 +1,5 @@
 import { sendCommand } from './client.ts'
+
 import type { FigmaNode, FigmaViewport } from './types.ts'
 
 const MAX_PIXELS = 4096 * 4096

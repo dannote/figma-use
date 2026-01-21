@@ -1,9 +1,10 @@
 import svgpath from 'svgpath'
+
 import { queryNodes } from './query.ts'
 
 console.log('[Figma Bridge] Plugin main loaded at', new Date().toISOString())
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function retry<T>(
   fn: () => Promise<T | null | undefined>,
@@ -15,8 +16,12 @@ async function retry<T>(
     const result = await fn()
     if (result) return result
     if (attempt < maxAttempts - 1) {
-      const delay = backoff === 'linear' ? delayMs * (attempt + 1) :
-                    backoff === 'exponential' ? delayMs * Math.pow(2, attempt) : delayMs
+      const delay =
+        backoff === 'linear'
+          ? delayMs * (attempt + 1)
+          : backoff === 'exponential'
+            ? delayMs * Math.pow(2, attempt)
+            : delayMs
       await sleep(delay)
     }
   }
@@ -350,6 +355,14 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('layoutMode' in n && n.layoutMode !== 'NONE') {
           base.layoutMode = n.layoutMode
           if ('itemSpacing' in n) base.itemSpacing = n.itemSpacing
+          if ('paddingTop' in n) {
+            base.padding = {
+              top: n.paddingTop,
+              right: n.paddingRight,
+              bottom: n.paddingBottom,
+              left: n.paddingLeft
+            }
+          }
         }
         if (n.type === 'TEXT') {
           const t = n as TextNode
@@ -769,7 +782,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'create-component': {
-      const { name, parentId, x, y, width, height, fill } = args as { 
+      const { name, parentId, x, y, width, height, fill } = args as {
         name: string
         parentId?: string
         x?: number
@@ -792,7 +805,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const { ids, id } = args as { ids?: string[]; id?: string }
       const nodeIds = ids ?? (id ? [id] : [])
       if (nodeIds.length === 0) throw new Error('No node IDs provided')
-      
+
       const clones = []
       for (const nodeId of nodeIds) {
         const node = (await figma.getNodeByIdAsync(nodeId)) as SceneNode | null
@@ -981,16 +994,16 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'bind-fill-variable-by-name': {
-      const { id, variableName, recursive } = args as { 
+      const { id, variableName, recursive } = args as {
         id: string
         variableName: string
-        recursive?: boolean 
+        recursive?: boolean
       }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node) throw new Error('Node not found')
 
       const variables = await figma.variables.getLocalVariablesAsync('COLOR')
-      const variable = variables.find(v => v.name === variableName)
+      const variable = variables.find((v) => v.name === variableName)
       if (!variable) throw new Error(`Variable "${variableName}" not found`)
 
       function bindFills(n: SceneNode) {
@@ -1640,6 +1653,15 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }
     }
 
+    case 'export-node-svg': {
+      const { id } = args as { id: string }
+      const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
+      if (!node) throw new Error('Node not found')
+      const bytes = await node.exportAsync({ format: 'SVG' })
+      const decoder = new TextDecoder('utf-8')
+      return { svg: decoder.decode(bytes) }
+    }
+
     case 'screenshot': {
       const { scale } = args as { scale?: number }
       const bounds = figma.viewport.bounds
@@ -1741,7 +1763,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const { ids, id } = args as { ids?: string[]; id?: string }
       const nodeIds = ids ?? (id ? [id] : [])
       if (nodeIds.length === 0) throw new Error('No node IDs provided')
-      
+
       let deleted = 0
       for (const nodeId of nodeIds) {
         const node = await figma.getNodeByIdAsync(nodeId)
@@ -1842,15 +1864,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         select?: string[]
         limit?: number
       }
-      const root = rootId
-        ? await figma.getNodeByIdAsync(rootId)
-        : figma.currentPage
+      const root = rootId ? await figma.getNodeByIdAsync(rootId) : figma.currentPage
       if (!root) return { error: 'Root node not found' }
 
       const nodes = queryNodes(selector, root, { limit: limit ?? 1000 })
       const fields = select || ['id', 'name', 'type']
 
-      return nodes.map(node => {
+      return nodes.map((node) => {
         const result: Record<string, unknown> = {}
         for (const field of fields) {
           if (field in node) {
@@ -1875,35 +1895,61 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       type WidgetComponent = Parameters<typeof h>[0]
 
       const TYPE_MAP: Record<string, WidgetComponent> = {
-        frame: AutoLayout, view: AutoLayout,
-        rectangle: Rectangle, rect: Rectangle,
-        ellipse: Ellipse, text: Text, line: Line, svg: SVG, image: Image
+        frame: AutoLayout,
+        view: AutoLayout,
+        rectangle: Rectangle,
+        rect: Rectangle,
+        ellipse: Ellipse,
+        text: Text,
+        line: Line,
+        svg: SVG,
+        image: Image
       } as Record<string, WidgetComponent>
 
       // Shorthand expansions (Tailwind-like)
       const SHORTHANDS: Record<string, string> = {
-        w: 'width', h: 'height',
-        bg: 'fill', rounded: 'cornerRadius',
-        p: 'padding', px: '__px', py: '__py',
-        pt: '__pt', pr: '__pr', pb: '__pb', pl: '__pl',
-        size: 'fontSize', font: 'fontFamily', weight: 'fontWeight',
-        flex: 'direction', gap: 'spacing', wrap: '__wrap', rowGap: '__rowGap'
+        w: 'width',
+        h: 'height',
+        bg: 'fill',
+        rounded: 'cornerRadius',
+        p: 'padding',
+        px: '__px',
+        py: '__py',
+        pt: '__pt',
+        pr: '__pr',
+        pb: '__pb',
+        pl: '__pl',
+        size: 'fontSize',
+        font: 'fontFamily',
+        weight: 'fontWeight',
+        flex: 'direction',
+        gap: 'spacing',
+        wrap: '__wrap',
+        rowGap: '__rowGap'
       }
 
       const DIRECTION_MAP: Record<string, string> = {
-        row: 'horizontal', column: 'vertical', col: 'vertical'
+        row: 'horizontal',
+        column: 'vertical',
+        col: 'vertical'
       }
 
       const ALIGN_MAP: Record<string, string> = {
-        start: 'start', end: 'end', center: 'center', between: 'space-between'
+        start: 'start',
+        end: 'end',
+        center: 'center',
+        between: 'space-between'
       }
 
       // Nodes that need wrap applied after creation
       const wrapNodes: Array<{ path: number[]; rowGap?: number }> = []
 
-      function processProps(props: Record<string, unknown>, isText: boolean): Record<string, unknown> {
+      function processProps(
+        props: Record<string, unknown>,
+        isText: boolean
+      ): Record<string, unknown> {
         const result: Record<string, unknown> = {}
-        
+
         // Expand shorthands
         for (const [key, value] of Object.entries(props)) {
           const mapped = SHORTHANDS[key] || key
@@ -1933,11 +1979,22 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         const pr = result.__pr as number | undefined
         const pb = result.__pb as number | undefined
         const pl = result.__pl as number | undefined
-        
-        delete result.__px; delete result.__py
-        delete result.__pt; delete result.__pr; delete result.__pb; delete result.__pl
 
-        if (px !== undefined || py !== undefined || pt !== undefined || pr !== undefined || pb !== undefined || pl !== undefined) {
+        delete result.__px
+        delete result.__py
+        delete result.__pt
+        delete result.__pr
+        delete result.__pb
+        delete result.__pl
+
+        if (
+          px !== undefined ||
+          py !== undefined ||
+          pt !== undefined ||
+          pr !== undefined ||
+          pb !== undefined ||
+          pl !== undefined
+        ) {
           result.padding = {
             top: pt ?? py ?? p ?? 0,
             right: pr ?? px ?? p ?? 0,
@@ -2062,10 +2119,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         pendingGridLayouts?: PendingGridLayout[]
       }
       // Multiplayer nodes may not be immediately visible
-      const root = await retry(
-        () => figma.getNodeByIdAsync(nodeId),
-        10, 100, 'linear'
-      )
+      const root = await retry(() => figma.getNodeByIdAsync(nodeId), 10, 100, 'linear')
       if (!root) return null
 
       // Create ComponentSet instances via Plugin API (multiplayer can't link them correctly)
@@ -2121,22 +2175,29 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           }
 
           // Parse grid template syntax: "100px 1fr auto" → [{type, value}, ...]
-          const parseGridTemplate = (template: string): Array<{type: 'FIXED' | 'FLEX' | 'HUG', value: number}> => {
-            return template.split(/\s+/).filter(Boolean).map(part => {
-              if (part.endsWith('px')) {
-                return { type: 'FIXED' as const, value: parseFloat(part) }
-              } else if (part.endsWith('fr')) {
-                return { type: 'FLEX' as const, value: parseFloat(part) || 1 }
-              } else if (part === 'auto' || part === 'hug') {
-                return { type: 'HUG' as const, value: 1 }
-              } else {
-                return { type: 'FIXED' as const, value: parseFloat(part) || 100 }
-              }
-            })
+          const parseGridTemplate = (
+            template: string
+          ): Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value: number }> => {
+            return template
+              .split(/\s+/)
+              .filter(Boolean)
+              .map((part) => {
+                if (part.endsWith('px')) {
+                  return { type: 'FIXED' as const, value: parseFloat(part) }
+                } else if (part.endsWith('fr')) {
+                  return { type: 'FLEX' as const, value: parseFloat(part) || 1 }
+                } else if (part === 'auto' || part === 'hug') {
+                  return { type: 'HUG' as const, value: 1 }
+                } else {
+                  return { type: 'FIXED' as const, value: parseFloat(part) || 100 }
+                }
+              })
           }
 
           // Parse templates first to get counts
-          const colSizes = grid.gridTemplateColumns ? parseGridTemplate(grid.gridTemplateColumns) : null
+          const colSizes = grid.gridTemplateColumns
+            ? parseGridTemplate(grid.gridTemplateColumns)
+            : null
           const rowSizes = grid.gridTemplateRows ? parseGridTemplate(grid.gridTemplateRows) : null
 
           // Set counts first (Figma requires this before setting sizes)
@@ -2355,10 +2416,23 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     // ==================== CONNECTORS ====================
     case 'create-connector': {
       if (figma.editorType !== 'figjam') {
-        throw new Error('Connectors can only be created in FigJam files. Open a FigJam file and try again.')
+        throw new Error(
+          'Connectors can only be created in FigJam files. Open a FigJam file and try again.'
+        )
       }
 
-      const { fromId, toId, fromMagnet, toMagnet, lineType, startCap, endCap, stroke, strokeWeight, cornerRadius } = args as {
+      const {
+        fromId,
+        toId,
+        fromMagnet,
+        toMagnet,
+        lineType,
+        startCap,
+        endCap,
+        stroke,
+        strokeWeight,
+        cornerRadius
+      } = args as {
         fromId: string
         toId: string
         fromMagnet?: string
@@ -2373,22 +2447,24 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       const fromNode = await figma.getNodeByIdAsync(fromId)
       const toNode = await figma.getNodeByIdAsync(toId)
-      if (!fromNode || !('absoluteBoundingBox' in fromNode)) throw new Error('From node not found or invalid')
-      if (!toNode || !('absoluteBoundingBox' in toNode)) throw new Error('To node not found or invalid')
+      if (!fromNode || !('absoluteBoundingBox' in fromNode))
+        throw new Error('From node not found or invalid')
+      if (!toNode || !('absoluteBoundingBox' in toNode))
+        throw new Error('To node not found or invalid')
 
       // Map friendly cap names to FigJam enum values
       const mapCapCreate = (cap: string): ConnectorStrokeCap => {
         const mapping: Record<string, ConnectorStrokeCap> = {
-          'NONE': 'NONE',
-          'ARROW': 'ARROW_EQUILATERAL',
-          'ARROW_EQUILATERAL': 'ARROW_EQUILATERAL',
-          'ARROW_LINES': 'ARROW_LINES',
-          'TRIANGLE': 'TRIANGLE_FILLED',
-          'TRIANGLE_FILLED': 'TRIANGLE_FILLED',
-          'DIAMOND': 'DIAMOND_FILLED',
-          'DIAMOND_FILLED': 'DIAMOND_FILLED',
-          'CIRCLE': 'CIRCLE_FILLED',
-          'CIRCLE_FILLED': 'CIRCLE_FILLED'
+          NONE: 'NONE',
+          ARROW: 'ARROW_EQUILATERAL',
+          ARROW_EQUILATERAL: 'ARROW_EQUILATERAL',
+          ARROW_LINES: 'ARROW_LINES',
+          TRIANGLE: 'TRIANGLE_FILLED',
+          TRIANGLE_FILLED: 'TRIANGLE_FILLED',
+          DIAMOND: 'DIAMOND_FILLED',
+          DIAMOND_FILLED: 'DIAMOND_FILLED',
+          CIRCLE: 'CIRCLE_FILLED',
+          CIRCLE_FILLED: 'CIRCLE_FILLED'
         }
         return mapping[cap] || 'NONE'
       }
@@ -2429,9 +2505,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const toNode = await figma.getNodeByIdAsync(connector.connectorEnd.endpointNodeId)
 
       const stroke = connector.strokes[0]
-      const strokeHex = stroke && stroke.type === 'SOLID'
-        ? '#' + [stroke.color.r, stroke.color.g, stroke.color.b].map(c => Math.round(c * 255).toString(16).padStart(2, '0')).join('').toUpperCase()
-        : undefined
+      const strokeHex =
+        stroke && stroke.type === 'SOLID'
+          ? '#' +
+            [stroke.color.r, stroke.color.g, stroke.color.b]
+              .map((c) =>
+                Math.round(c * 255)
+                  .toString(16)
+                  .padStart(2, '0')
+              )
+              .join('')
+              .toUpperCase()
+          : undefined
 
       return {
         id: connector.id,
@@ -2456,7 +2541,19 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-connector': {
-      const { id, fromId, toId, fromMagnet, toMagnet, lineType, startCap, endCap, stroke, strokeWeight, cornerRadius } = args as {
+      const {
+        id,
+        fromId,
+        toId,
+        fromMagnet,
+        toMagnet,
+        lineType,
+        startCap,
+        endCap,
+        stroke,
+        strokeWeight,
+        cornerRadius
+      } = args as {
         id: string
         fromId?: string
         toId?: string
@@ -2502,16 +2599,16 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       // Map friendly cap names to FigJam enum values
       const mapCapSet = (cap: string): ConnectorStrokeCap => {
         const mapping: Record<string, ConnectorStrokeCap> = {
-          'NONE': 'NONE',
-          'ARROW': 'ARROW_EQUILATERAL',
-          'ARROW_EQUILATERAL': 'ARROW_EQUILATERAL',
-          'ARROW_LINES': 'ARROW_LINES',
-          'TRIANGLE': 'TRIANGLE_FILLED',
-          'TRIANGLE_FILLED': 'TRIANGLE_FILLED',
-          'DIAMOND': 'DIAMOND_FILLED',
-          'DIAMOND_FILLED': 'DIAMOND_FILLED',
-          'CIRCLE': 'CIRCLE_FILLED',
-          'CIRCLE_FILLED': 'CIRCLE_FILLED'
+          NONE: 'NONE',
+          ARROW: 'ARROW_EQUILATERAL',
+          ARROW_EQUILATERAL: 'ARROW_EQUILATERAL',
+          ARROW_LINES: 'ARROW_LINES',
+          TRIANGLE: 'TRIANGLE_FILLED',
+          TRIANGLE_FILLED: 'TRIANGLE_FILLED',
+          DIAMOND: 'DIAMOND_FILLED',
+          DIAMOND_FILLED: 'DIAMOND_FILLED',
+          CIRCLE: 'CIRCLE_FILLED',
+          CIRCLE_FILLED: 'CIRCLE_FILLED'
         }
         return mapping[cap] || 'NONE'
       }
@@ -2553,31 +2650,42 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       findConnectors(page)
 
-      const results = await Promise.all(connectors.map(async (c) => {
-        const fromNode = await figma.getNodeByIdAsync(c.connectorStart.endpointNodeId)
-        const toNode = await figma.getNodeByIdAsync(c.connectorEnd.endpointNodeId)
-        const stroke = c.strokes[0]
-        const strokeHex = stroke && stroke.type === 'SOLID'
-          ? '#' + [stroke.color.r, stroke.color.g, stroke.color.b].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('').toUpperCase()
-          : undefined
+      const results = await Promise.all(
+        connectors.map(async (c) => {
+          const fromNode = await figma.getNodeByIdAsync(c.connectorStart.endpointNodeId)
+          const toNode = await figma.getNodeByIdAsync(c.connectorEnd.endpointNodeId)
+          const stroke = c.strokes[0]
+          const strokeHex =
+            stroke && stroke.type === 'SOLID'
+              ? '#' +
+                [stroke.color.r, stroke.color.g, stroke.color.b]
+                  .map((v) =>
+                    Math.round(v * 255)
+                      .toString(16)
+                      .padStart(2, '0')
+                  )
+                  .join('')
+                  .toUpperCase()
+              : undefined
 
-        return {
-          id: c.id,
-          name: c.name,
-          fromNode: {
-            id: c.connectorStart.endpointNodeId,
-            name: fromNode?.name || 'Unknown',
-            magnet: c.connectorStart.magnet
-          },
-          toNode: {
-            id: c.connectorEnd.endpointNodeId,
-            name: toNode?.name || 'Unknown',
-            magnet: c.connectorEnd.magnet
-          },
-          lineType: c.connectorLineType,
-          stroke: strokeHex
-        }
-      }))
+          return {
+            id: c.id,
+            name: c.name,
+            fromNode: {
+              id: c.connectorStart.endpointNodeId,
+              name: fromNode?.name || 'Unknown',
+              magnet: c.connectorStart.magnet
+            },
+            toNode: {
+              id: c.connectorEnd.endpointNodeId,
+              name: toNode?.name || 'Unknown',
+              magnet: c.connectorEnd.magnet
+            },
+            lineType: c.connectorLineType,
+            stroke: strokeHex
+          }
+        })
+      )
 
       return results
     }
@@ -2591,7 +2699,8 @@ async function appendToParent(node: SceneNode, parentId?: string, insertIndex?: 
   if (parentId) {
     const parent = await retry(
       () => figma.getNodeByIdAsync(parentId) as Promise<(FrameNode & ChildrenMixin) | null>,
-      10, 50
+      10,
+      50
     )
     if (parent && 'appendChild' in parent) {
       if (insertIndex !== undefined && 'insertChild' in parent) {
@@ -2779,25 +2888,25 @@ function getHexColor(color: string): string {
  */
 async function createSolidPaint(color: string): Promise<SolidPaint> {
   const parsed = parsestring(color)
-  
+
   if (parsed.hex) {
     return { type: 'SOLID', color: hexToRgb(parsed.hex) }
   }
-  
+
   // Variable reference
   const variables = await figma.variables.getLocalVariablesAsync('COLOR')
-  const variable = variables.find(v => v.name === parsed.variable)
-  
+  const variable = variables.find((v) => v.name === parsed.variable)
+
   if (!variable) {
     console.warn(`Variable "${parsed.variable}" not found, using black`)
     return { type: 'SOLID', color: { r: 0, g: 0, b: 0 } }
   }
-  
+
   const paint: SolidPaint = {
     type: 'SOLID',
     color: { r: 0, g: 0, b: 0 } // Will be overridden by variable
   }
-  
+
   return figma.variables.setBoundVariableForPaint(paint, 'color', variable)
 }
 

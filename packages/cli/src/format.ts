@@ -1,4 +1,5 @@
 import pc from 'picocolors'
+
 import type { FigmaNode, FigmaPaint } from './types.ts'
 
 export const TYPE_LABELS: Record<string, string> = {

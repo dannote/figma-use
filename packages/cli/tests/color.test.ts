@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'bun:test'
+
 import { parseColor, colorToFill, rgbaToHex } from '../src/color.ts'
 
 describe('color', () => {

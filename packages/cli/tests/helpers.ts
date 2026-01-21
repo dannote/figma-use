@@ -27,7 +27,7 @@ let originalPageId: string | null = null
 export async function setupTestPage(suiteName: string): Promise<string> {
   // Reset tracked nodes for this suite
   trackedNodes = []
-  
+
   // Save original page
   const currentPage = (await run('eval "return {id: figma.currentPage.id}"')) as { id: string }
   originalPageId = currentPage.id

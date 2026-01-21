@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { getStatus, getFileKey } from '../client.ts'
 
 export default defineCommand({

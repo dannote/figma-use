@@ -53,7 +53,9 @@ export function colorToFill(color: string | RGBA) {
 export function rgbaToHex(color: RGBA, includeAlpha = false): string {
   const hex = formatHex({ mode: 'rgb', r: color.r, g: color.g, b: color.b }) ?? '#000000'
   if (includeAlpha && color.a < 1) {
-    const alpha = Math.round(color.a * 255).toString(16).padStart(2, '0')
+    const alpha = Math.round(color.a * 255)
+      .toString(16)
+      .padStart(2, '0')
     return `${hex}${alpha}`.toUpperCase()
   }
   return hex.toUpperCase()

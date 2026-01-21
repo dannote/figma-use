@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { printResult } from '../../output.ts'
 
@@ -20,7 +21,10 @@ export default defineCommand({
     from: { type: 'string', description: 'New start node ID (optionally :magnet)' },
     to: { type: 'string', description: 'New end node ID (optionally :magnet)' },
     type: { type: 'string', description: 'Line type: straight, elbowed, curved' },
-    'start-cap': { type: 'string', description: 'Start cap: none, arrow, triangle, diamond, circle' },
+    'start-cap': {
+      type: 'string',
+      description: 'Start cap: none, arrow, triangle, diamond, circle'
+    },
     'end-cap': { type: 'string', description: 'End cap: none, arrow, triangle, diamond, circle' },
     stroke: { type: 'string', description: 'Stroke color (hex)' },
     weight: { type: 'string', description: 'Stroke weight' },

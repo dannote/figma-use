@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand, handleError } from '../../client.ts'
 
 export default defineCommand({
@@ -28,7 +29,9 @@ export default defineCommand({
       }
 
       console.log(`[connector] "${result.name}" (${result.id})`)
-      console.log(`  from: ${result.fromNode.name} (${result.fromNode.id}) @ ${result.fromNode.magnet}`)
+      console.log(
+        `  from: ${result.fromNode.name} (${result.fromNode.id}) @ ${result.fromNode.magnet}`
+      )
       console.log(`  to: ${result.toNode.name} (${result.toNode.id}) @ ${result.toNode.magnet}`)
       console.log(`  type: ${result.lineType.toLowerCase()}`)
       console.log(`  caps: ${result.startCap.toLowerCase()} → ${result.endCap.toLowerCase()}`)

@@ -1,9 +1,10 @@
 import svgpath from 'svgpath'
+
 import { queryNodes } from './query.ts'
 
 console.log('[Figma Bridge] Plugin main loaded at', new Date().toISOString())
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function retry<T>(
   fn: () => Promise<T | null | undefined>,
@@ -15,8 +16,12 @@ async function retry<T>(
     const result = await fn()
     if (result) return result
     if (attempt < maxAttempts - 1) {
-      const delay = backoff === 'linear' ? delayMs * (attempt + 1) :
-                    backoff === 'exponential' ? delayMs * Math.pow(2, attempt) : delayMs
+      const delay =
+        backoff === 'linear'
+          ? delayMs * (attempt + 1)
+          : backoff === 'exponential'
+            ? delayMs * Math.pow(2, attempt)
+            : delayMs
       await sleep(delay)
     }
   }
@@ -197,7 +202,12 @@ const NEEDS_ALL_PAGES = new Set([
 
 let allPagesLoaded = false
 
-figma.ui.onmessage = async (msg: { type: string; id?: string; command?: string; args?: unknown }) => {
+figma.ui.onmessage = async (msg: {
+  type: string
+  id?: string
+  command?: string
+  args?: unknown
+}) => {
   // Handle file info request
   if (msg.type === 'get-file-info') {
     // sessionID is unique per open file
@@ -796,7 +806,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'create-component': {
-      const { name, parentId, x, y, width, height, fill } = args as { 
+      const { name, parentId, x, y, width, height, fill } = args as {
         name: string
         parentId?: string
         x?: number
@@ -1000,16 +1010,16 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'bind-fill-variable-by-name': {
-      const { id, variableName, recursive } = args as { 
+      const { id, variableName, recursive } = args as {
         id: string
         variableName: string
-        recursive?: boolean 
+        recursive?: boolean
       }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node) throw new Error('Node not found')
 
       const variables = await figma.variables.getLocalVariablesAsync('COLOR')
-      const variable = variables.find(v => v.name === variableName)
+      const variable = variables.find((v) => v.name === variableName)
       if (!variable) throw new Error(`Variable "${variableName}" not found`)
 
       function bindFills(n: SceneNode) {
@@ -1853,15 +1863,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         select?: string[]
         limit?: number
       }
-      const root = rootId
-        ? await figma.getNodeByIdAsync(rootId)
-        : figma.currentPage
+      const root = rootId ? await figma.getNodeByIdAsync(rootId) : figma.currentPage
       if (!root) return { error: 'Root node not found' }
 
       const nodes = queryNodes(selector, root, { limit: limit ?? 1000 })
       const fields = select || ['id', 'name', 'type']
 
-      return nodes.map(node => {
+      return nodes.map((node) => {
         const result: Record<string, unknown> = {}
         for (const field of fields) {
           if (field in node) {
@@ -1907,10 +1915,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         pendingGridLayouts?: PendingGridLayout[]
       }
       // Multiplayer nodes may not be immediately visible
-      const root = await retry(
-        () => figma.getNodeByIdAsync(nodeId),
-        10, 100, 'linear'
-      )
+      const root = await retry(() => figma.getNodeByIdAsync(nodeId), 10, 100, 'linear')
       if (!root) return null
 
       // Create ComponentSet instances via Plugin API (multiplayer can't link them correctly)
@@ -1966,22 +1971,29 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           }
 
           // Parse grid template syntax: "100px 1fr auto" → [{type, value}, ...]
-          const parseGridTemplate = (template: string): Array<{type: 'FIXED' | 'FLEX' | 'HUG', value: number}> => {
-            return template.split(/\s+/).filter(Boolean).map(part => {
-              if (part.endsWith('px')) {
-                return { type: 'FIXED' as const, value: parseFloat(part) }
-              } else if (part.endsWith('fr')) {
-                return { type: 'FLEX' as const, value: parseFloat(part) || 1 }
-              } else if (part === 'auto' || part === 'hug') {
-                return { type: 'HUG' as const, value: 1 }
-              } else {
-                return { type: 'FIXED' as const, value: parseFloat(part) || 100 }
-              }
-            })
+          const parseGridTemplate = (
+            template: string
+          ): Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value: number }> => {
+            return template
+              .split(/\s+/)
+              .filter(Boolean)
+              .map((part) => {
+                if (part.endsWith('px')) {
+                  return { type: 'FIXED' as const, value: parseFloat(part) }
+                } else if (part.endsWith('fr')) {
+                  return { type: 'FLEX' as const, value: parseFloat(part) || 1 }
+                } else if (part === 'auto' || part === 'hug') {
+                  return { type: 'HUG' as const, value: 1 }
+                } else {
+                  return { type: 'FIXED' as const, value: parseFloat(part) || 100 }
+                }
+              })
           }
 
           // Parse templates first to get counts
-          const colSizes = grid.gridTemplateColumns ? parseGridTemplate(grid.gridTemplateColumns) : null
+          const colSizes = grid.gridTemplateColumns
+            ? parseGridTemplate(grid.gridTemplateColumns)
+            : null
           const rowSizes = grid.gridTemplateRows ? parseGridTemplate(grid.gridTemplateRows) : null
 
           // Set counts first (Figma requires this before setting sizes)
@@ -2199,7 +2211,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     // ==================== CONNECTORS ====================
     case 'create-connector': {
-      const { fromId, toId, fromMagnet, toMagnet, lineType, startCap, endCap, stroke, strokeWeight, cornerRadius } = args as {
+      const {
+        fromId,
+        toId,
+        fromMagnet,
+        toMagnet,
+        lineType,
+        startCap,
+        endCap,
+        stroke,
+        strokeWeight,
+        cornerRadius
+      } = args as {
         fromId: string
         toId: string
         fromMagnet?: string
@@ -2214,8 +2237,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       const fromNode = await figma.getNodeByIdAsync(fromId)
       const toNode = await figma.getNodeByIdAsync(toId)
-      if (!fromNode || !('absoluteBoundingBox' in fromNode)) throw new Error('From node not found or invalid')
-      if (!toNode || !('absoluteBoundingBox' in toNode)) throw new Error('To node not found or invalid')
+      if (!fromNode || !('absoluteBoundingBox' in fromNode))
+        throw new Error('From node not found or invalid')
+      if (!toNode || !('absoluteBoundingBox' in toNode))
+        throw new Error('To node not found or invalid')
 
       const connector = figma.createConnector()
       connector.connectorStart = {
@@ -2253,9 +2278,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const toNode = await figma.getNodeByIdAsync(connector.connectorEnd.endpointNodeId)
 
       const stroke = connector.strokes[0]
-      const strokeHex = stroke && stroke.type === 'SOLID'
-        ? '#' + [stroke.color.r, stroke.color.g, stroke.color.b].map(c => Math.round(c * 255).toString(16).padStart(2, '0')).join('').toUpperCase()
-        : undefined
+      const strokeHex =
+        stroke && stroke.type === 'SOLID'
+          ? '#' +
+            [stroke.color.r, stroke.color.g, stroke.color.b]
+              .map((c) =>
+                Math.round(c * 255)
+                  .toString(16)
+                  .padStart(2, '0')
+              )
+              .join('')
+              .toUpperCase()
+          : undefined
 
       return {
         id: connector.id,
@@ -2280,7 +2314,19 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-connector': {
-      const { id, fromId, toId, fromMagnet, toMagnet, lineType, startCap, endCap, stroke, strokeWeight, cornerRadius } = args as {
+      const {
+        id,
+        fromId,
+        toId,
+        fromMagnet,
+        toMagnet,
+        lineType,
+        startCap,
+        endCap,
+        stroke,
+        strokeWeight,
+        cornerRadius
+      } = args as {
         id: string
         fromId?: string
         toId?: string
@@ -2360,31 +2406,42 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       findConnectors(page)
 
-      const results = await Promise.all(connectors.map(async (c) => {
-        const fromNode = await figma.getNodeByIdAsync(c.connectorStart.endpointNodeId)
-        const toNode = await figma.getNodeByIdAsync(c.connectorEnd.endpointNodeId)
-        const stroke = c.strokes[0]
-        const strokeHex = stroke && stroke.type === 'SOLID'
-          ? '#' + [stroke.color.r, stroke.color.g, stroke.color.b].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('').toUpperCase()
-          : undefined
+      const results = await Promise.all(
+        connectors.map(async (c) => {
+          const fromNode = await figma.getNodeByIdAsync(c.connectorStart.endpointNodeId)
+          const toNode = await figma.getNodeByIdAsync(c.connectorEnd.endpointNodeId)
+          const stroke = c.strokes[0]
+          const strokeHex =
+            stroke && stroke.type === 'SOLID'
+              ? '#' +
+                [stroke.color.r, stroke.color.g, stroke.color.b]
+                  .map((v) =>
+                    Math.round(v * 255)
+                      .toString(16)
+                      .padStart(2, '0')
+                  )
+                  .join('')
+                  .toUpperCase()
+              : undefined
 
-        return {
-          id: c.id,
-          name: c.name,
-          fromNode: {
-            id: c.connectorStart.endpointNodeId,
-            name: fromNode?.name || 'Unknown',
-            magnet: c.connectorStart.magnet
-          },
-          toNode: {
-            id: c.connectorEnd.endpointNodeId,
-            name: toNode?.name || 'Unknown',
-            magnet: c.connectorEnd.magnet
-          },
-          lineType: c.connectorLineType,
-          stroke: strokeHex
-        }
-      }))
+          return {
+            id: c.id,
+            name: c.name,
+            fromNode: {
+              id: c.connectorStart.endpointNodeId,
+              name: fromNode?.name || 'Unknown',
+              magnet: c.connectorStart.magnet
+            },
+            toNode: {
+              id: c.connectorEnd.endpointNodeId,
+              name: toNode?.name || 'Unknown',
+              magnet: c.connectorEnd.magnet
+            },
+            lineType: c.connectorLineType,
+            stroke: strokeHex
+          }
+        })
+      )
 
       return results
     }
@@ -2398,7 +2455,8 @@ async function appendToParent(node: SceneNode, parentId?: string, insertIndex?: 
   if (parentId) {
     const parent = await retry(
       () => figma.getNodeByIdAsync(parentId) as Promise<(FrameNode & ChildrenMixin) | null>,
-      10, 50
+      10,
+      50
     )
     if (parent && 'appendChild' in parent) {
       if (insertIndex !== undefined && 'insertChild' in parent) {
@@ -2586,25 +2644,25 @@ function getHexColor(color: string): string {
  */
 async function createSolidPaint(color: string): Promise<SolidPaint> {
   const parsed = parsestring(color)
-  
+
   if (parsed.hex) {
     return { type: 'SOLID', color: hexToRgb(parsed.hex) }
   }
-  
+
   // Variable reference
   const variables = await figma.variables.getLocalVariablesAsync('COLOR')
-  const variable = variables.find(v => v.name === parsed.variable)
-  
+  const variable = variables.find((v) => v.name === parsed.variable)
+
   if (!variable) {
     console.warn(`Variable "${parsed.variable}" not found, using black`)
     return { type: 'SOLID', color: { r: 0, g: 0, b: 0 } }
   }
-  
+
   const paint: SolidPaint = {
     type: 'SOLID',
     color: { r: 0, g: 0, b: 0 } // Will be overridden by variable
   }
-  
+
   return figma.variables.setBoundVariableForPaint(paint, 'color', variable)
 }
 

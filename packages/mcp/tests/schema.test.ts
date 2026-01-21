@@ -1,6 +1,7 @@
-import { describe, test, expect, beforeAll } from 'bun:test'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
+import { describe, test, expect, beforeAll } from 'bun:test'
+
 import { getTools } from '../src/index.ts'
 
 const MCP_SCHEMA_URL =

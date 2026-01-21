@@ -1,8 +1,9 @@
 import { defineCommand } from 'citty'
+import { writeFileSync } from 'fs'
+
 import { sendCommand, handleError } from '../../client.ts'
 import { checkExportSize } from '../../export-guard.ts'
 import { fail } from '../../format.ts'
-import { writeFileSync } from 'fs'
 
 export default defineCommand({
   meta: { description: 'Export node as image' },

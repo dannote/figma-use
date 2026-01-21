@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import serve from './serve.ts'
 
 export default defineCommand({

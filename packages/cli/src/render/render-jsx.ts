@@ -1,8 +1,9 @@
-import * as React from 'react'
 import { transformSync } from 'esbuild'
+import * as React from 'react'
+
 import { sendCommand } from '../client.ts'
-import { renderWithWidgetApi } from './widget-renderer.ts'
 import { loadVariablesIntoRegistry, isRegistryLoaded, preloadIcons, collectIcons } from './index.ts'
+import { renderWithWidgetApi } from './widget-renderer.ts'
 
 function buildComponent(jsx: string): React.FC {
   const code = `
@@ -26,7 +27,9 @@ export async function renderJsx(
 
   if (!isRegistryLoaded()) {
     try {
-      const vars = await sendCommand<Array<{ id: string; name: string }>>('get-variables', { simple: true })
+      const vars = await sendCommand<Array<{ id: string; name: string }>>('get-variables', {
+        simple: true
+      })
       loadVariablesIntoRegistry(vars)
     } catch {}
   }

@@ -1,15 +1,16 @@
 import { defineCommand } from 'citty'
-import get from './get.ts'
-import tree from './tree.ts'
+
+import bounds from './bounds.ts'
 import children from './children.ts'
-import deleteCmd from './delete.ts'
 import clone from './clone.ts'
-import rename from './rename.ts'
+import deleteCmd from './delete.ts'
+import get from './get.ts'
 import move from './move.ts'
+import rename from './rename.ts'
 import resize from './resize.ts'
 import setParent from './set-parent.ts'
 import toComponent from './to-component.ts'
-import bounds from './bounds.ts'
+import tree from './tree.ts'
 
 export default defineCommand({
   meta: { description: 'Node operations' },

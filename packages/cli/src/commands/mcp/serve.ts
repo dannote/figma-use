@@ -1,10 +1,12 @@
 import { defineCommand } from 'citty'
 import { createServer } from 'http'
 import { z } from 'zod'
-import type { JSONRPCRequest, JSONRPCResponse } from '@modelcontextprotocol/sdk/types.js'
+
 import { getTools, getToolByName } from '../../../../mcp/src/index.ts'
 import { sendCommand } from '../../client.ts'
 import { renderJsx } from '../../render/index.ts'
+
+import type { JSONRPCRequest, JSONRPCResponse } from '@modelcontextprotocol/sdk/types.js'
 
 const MCP_VERSION = '2024-11-05'
 const mcpSessions = new Map<string, { initialized: boolean }>()

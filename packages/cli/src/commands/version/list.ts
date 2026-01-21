@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { getVersions } from '../../cdp-api.ts'
 import { handleError } from '../../client.ts'
 import { dim, accent } from '../../format.ts'

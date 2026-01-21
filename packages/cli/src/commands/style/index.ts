@@ -1,8 +1,9 @@
 import { defineCommand } from 'citty'
-import list from './list.ts'
+
+import createEffect from './create-effect.ts'
 import createPaint from './create-paint.ts'
 import createText from './create-text.ts'
-import createEffect from './create-effect.ts'
+import list from './list.ts'
 
 export default defineCommand({
   meta: { description: 'Style operations' },

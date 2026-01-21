@@ -45,7 +45,8 @@ function processChild(child: unknown): TreeNode | string | null {
 
 export function node(type: string, props: BaseProps): TreeNode {
   const { children, ...rest } = props
-  const processed = [children].flat(Infinity)
+  const processed = [children]
+    .flat(Infinity)
     .map(processChild)
     .filter((c): c is TreeNode | string => c !== null)
   return { type, props: rest, children: processed }
@@ -60,17 +61,17 @@ export interface StyleProps {
   rowGap?: number
   justify?: 'start' | 'end' | 'center' | 'between'
   items?: 'start' | 'end' | 'center'
-  
+
   // Size
   w?: number | 'fill'
   h?: number | 'fill'
   width?: number | 'fill'
   height?: number | 'fill'
-  
+
   // Position
   x?: number
   y?: number
-  
+
   // Padding
   p?: number
   px?: number
@@ -80,7 +81,7 @@ export interface StyleProps {
   pb?: number
   pl?: number
   padding?: number
-  
+
   // Appearance
   bg?: string
   fill?: string
@@ -89,7 +90,7 @@ export interface StyleProps {
   rounded?: number
   cornerRadius?: number
   opacity?: number
-  
+
   // Text
   size?: number
   fontSize?: number
@@ -98,14 +99,21 @@ export interface StyleProps {
   weight?: number | 'bold' | 'medium' | 'normal'
   fontWeight?: number | 'bold' | 'medium' | 'normal'
   color?: string
-  
+
   // Other
   src?: string
   href?: string
 }
 
 // Custom child type that allows TreeNode in JSX
-type FigmaChild = TreeNode | string | number | null | undefined | boolean | (TreeNode | string | number | null | undefined | boolean)[]
+type FigmaChild =
+  | TreeNode
+  | string
+  | number
+  | null
+  | undefined
+  | boolean
+  | (TreeNode | string | number | null | undefined | boolean)[]
 
 export interface BaseProps extends StyleProps {
   name?: string

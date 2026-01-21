@@ -1,6 +1,7 @@
-import ts from 'typescript'
 import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
+import ts from 'typescript'
+
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 
 export interface ToolDef extends Tool {
@@ -163,11 +164,16 @@ export async function getTools(): Promise<ToolDef[]> {
   // Add render tool (uses multiplayer protocol, not plugin command)
   tools.push({
     name: 'figma_render',
-    description: 'Render JSX to Figma. Pure JSX only (no variables, no logic). Elements: Frame, Rectangle, Ellipse, Text, Line, Star, Polygon, Vector, Group, Icon. Style shorthands: w, h, bg, rounded, p, px, py, flex, gap, justify, items, size, weight, color.',
+    description:
+      'Render JSX to Figma. Pure JSX only (no variables, no logic). Elements: Frame, Rectangle, Ellipse, Text, Line, Star, Polygon, Vector, Group, Icon. Style shorthands: w, h, bg, rounded, p, px, py, flex, gap, justify, items, size, weight, color.',
     inputSchema: {
       type: 'object',
       properties: {
-        jsx: { type: 'string', description: 'JSX code to render (e.g., <Frame style={{w: 200, h: 100, bg: "#FF0000"}} />)' },
+        jsx: {
+          type: 'string',
+          description:
+            'JSX code to render (e.g., <Frame style={{w: 200, h: 100, bg: "#FF0000"}} />)'
+        },
         x: { type: 'string', description: 'X position of rendered root' },
         y: { type: 'string', description: 'Y position of rendered root' },
         parent: { type: 'string', description: 'Parent node ID (sessionID:localID)' }

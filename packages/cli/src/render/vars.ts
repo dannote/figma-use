@@ -20,7 +20,6 @@
  * ```
  */
 
-
 const VAR_SYMBOL = Symbol.for('figma.variable')
 
 /** Variable definition - either string name or object with name and value */
