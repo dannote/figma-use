@@ -2,18 +2,13 @@ import { defineCommand } from 'citty'
 import { writeFileSync } from 'fs'
 
 import { sendCommand, handleError } from '../../client.ts'
+import { googleFontsUrl } from '../../css-builder.ts'
 import {
-  createRoot,
-  createFontFace,
-  createFontFaceSrc,
-  googleFontsUrl,
-  googleFontsImport
-} from '../../css-builder.ts'
-
-interface FontInfo {
-  family: string
-  styles: string[]
-}
+  getFonts,
+  fetchGoogleFontsList,
+  generateFontsCss,
+  styleToWeight
+} from '../../fonts.ts'
 
 export default defineCommand({
   meta: { description: 'List fonts used in the current page' },
@@ -30,9 +25,9 @@ export default defineCommand({
         await sendCommand('set-current-page', { name: args.page })
       }
 
-      const fonts = await sendCommand<FontInfo[]>('get-fonts')
+      const fonts = await getFonts()
 
-      if (!fonts || fonts.length === 0) {
+      if (fonts.length === 0) {
         console.log(args.json ? '[]' : 'No fonts found')
         return
       }
@@ -42,49 +37,11 @@ export default defineCommand({
         return
       }
 
-      // Fetch Google Fonts list once
-      const googleFontsList = await fetchGoogleFonts()
+      const googleFontsList = await fetchGoogleFontsList()
       const isGoogle = (family: string) => googleFontsList.has(family)
 
       if (args.css || args.out) {
-        const root = createRoot()
-
-        // Add Google Fonts import if any
-        const googleFonts = fonts
-          .filter((f) => isGoogle(f.family))
-          .map((f) => ({
-            family: f.family,
-            weights: f.styles.map(styleToWeight)
-          }))
-
-        if (googleFonts.length > 0) {
-          root.append(googleFontsImport(googleFonts))
-        }
-
-        // Add @font-face for non-Google fonts
-        for (const font of fonts) {
-          if (isGoogle(font.family)) continue
-
-          for (const style of font.styles) {
-            const weight = styleToWeight(style)
-            const fontStyle = style.toLowerCase().includes('italic') ? 'italic' : 'normal'
-            const filename = `${font.family.replace(/\s+/g, '-')}-${style}`
-
-            root.append(
-              createFontFace({
-                family: font.family,
-                weight,
-                style: fontStyle as 'normal' | 'italic',
-                src: createFontFaceSrc([
-                  { url: `./fonts/${filename}.woff2`, format: 'woff2' },
-                  { url: `./fonts/${filename}.woff`, format: 'woff' }
-                ])
-              })
-            )
-          }
-        }
-
-        const css = root.toString()
+        const css = await generateFontsCss(fonts)
 
         if (args.out) {
           writeFileSync(args.out, css)
@@ -138,62 +95,3 @@ export default defineCommand({
     }
   }
 })
-
-function styleToWeight(style: string): number {
-  const styleMap: Record<string, number> = {
-    Thin: 100,
-    Hairline: 100,
-    ExtraLight: 200,
-    UltraLight: 200,
-    Light: 300,
-    Regular: 400,
-    Normal: 400,
-    Medium: 500,
-    SemiBold: 600,
-    DemiBold: 600,
-    Bold: 700,
-    ExtraBold: 800,
-    UltraBold: 800,
-    Black: 900,
-    Heavy: 900
-  }
-
-  for (const [key, weight] of Object.entries(styleMap)) {
-    if (style.includes(key)) return weight
-  }
-  return 400
-}
-
-let googleFontsCache: Set<string> | null = null
-
-async function fetchGoogleFonts(): Promise<Set<string>> {
-  if (googleFontsCache) return googleFontsCache
-
-  try {
-    const res = await fetch('https://fonts.google.com/metadata/fonts')
-    const data = (await res.json()) as { familyMetadataList: Array<{ family: string }> }
-    googleFontsCache = new Set(data.familyMetadataList.map((f) => f.family))
-    return googleFontsCache
-  } catch {
-    // Fallback to common fonts if API fails
-    return new Set([
-      'Inter',
-      'Roboto',
-      'Open Sans',
-      'Lato',
-      'Montserrat',
-      'Poppins',
-      'Nunito',
-      'Raleway',
-      'Ubuntu',
-      'Noto Sans',
-      'PT Sans',
-      'Fira Sans',
-      'Work Sans',
-      'Rubik',
-      'DM Sans',
-      'Manrope',
-      'Space Grotesk'
-    ])
-  }
-}
