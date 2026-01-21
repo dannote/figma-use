@@ -15,7 +15,7 @@ CLI communicates directly with Figma via Chrome DevTools Protocol (CDP). No prox
 ```bash
 bun install
 bun run build           # Build CLI bundle
-bun test                # Run 203 integration tests
+bun test                # Run 184 integration tests
 
 # Figma must be running with:
 open -a Figma --args --remote-debugging-port=9222
@@ -107,10 +107,10 @@ await sendCommand('convert-to-component', { id })
    git commit -m "feat: description"
    
    # Bump version in package.json
-   git add -A && git commit -m "v0.8.0"
-   git tag v0.8.0
+   git add -A && git commit -m "v0.9.0"
+   git tag v0.9.0
    git push && git push --tags
-   npm publish --access public
+   npm publish
    ```
 
 4. **npm publish requires passkey** — user must run manually
