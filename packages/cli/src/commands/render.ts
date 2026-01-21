@@ -4,7 +4,7 @@ import { ok, fail } from '../format.ts'
 import { resolve } from 'path'
 import { existsSync } from 'fs'
 import * as React from 'react'
-import { transformSync } from 'esbuild'
+import * as esbuild from 'esbuild'
 import { renderWithWidgetApi } from '../render/widget-renderer.ts'
 import {
   loadVariablesIntoRegistry,
@@ -21,18 +21,60 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf-8')
 }
 
-function buildComponent(jsx: string): Function {
-  const code = `
-    const h = React.createElement
-    const Frame = 'frame', Text = 'text', Rectangle = 'rectangle', Ellipse = 'ellipse', Line = 'line', Image = 'image', SVG = 'svg'
-    return function Component() { return ${jsx.trim()} }
-  `
-  const result = transformSync(code, {
-    loader: 'tsx',
+const MOCK_RENDER_MODULE = `
+  export const Frame = 'frame'
+  export const Text = 'text'
+  export const Rectangle = 'rectangle'
+  export const Ellipse = 'ellipse'
+  export const Line = 'line'
+  export const Image = 'image'
+  export const SVG = 'svg'
+  export const Icon = 'icon'
+  export const View = 'frame'
+  export const Rect = 'rectangle'
+  export const defineComponent = (name, el) => () => el
+  export const defineVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, v.value]))
+`
+
+async function buildComponent(input: string): Promise<Function> {
+  let code = input.trim()
+  
+  // Pure JSX snippet (no import/export) - wrap it
+  if (!code.includes('import ') && !code.includes('export ')) {
+    code = `import { Frame, Text, Rectangle, Ellipse, Line, Image, SVG, Icon } from 'figma-use/render'
+export default () => ${code}`
+  }
+  // Has imports but no export
+  else if (!code.includes('export ')) {
+    code = `${code}\nexport default () => null`
+  }
+  
+  const result = await esbuild.build({
+    stdin: { contents: code, loader: 'tsx' },
+    bundle: true,
+    write: false,
+    format: 'iife',
+    globalName: '__mod',
     jsx: 'transform',
-    jsxFactory: 'h'
+    jsxFactory: 'React.createElement',
+    plugins: [{
+      name: 'mock-imports',
+      setup(build) {
+        build.onResolve({ filter: /^figma-use\/render$|^\./ }, (args) => ({
+          path: args.path,
+          namespace: 'mock'
+        }))
+        build.onLoad({ filter: /.*/, namespace: 'mock' }, () => ({
+          contents: MOCK_RENDER_MODULE,
+          loader: 'js'
+        }))
+      }
+    }]
   })
-  return new Function('React', result.code)(React)
+  
+  const bundled = result.outputFiles![0]!.text
+  const fn = new Function('React', `${bundled}; return __mod.default`)
+  return fn(React)
 }
 
 const HELP = `
@@ -91,7 +133,7 @@ export default defineCommand({
           console.error(fail('No input from stdin'))
           process.exit(1)
         }
-        Component = buildComponent(jsx)
+        Component = await buildComponent(jsx)
       } else if (args.file) {
         const filePath = resolve(args.file)
         if (!existsSync(filePath)) {
