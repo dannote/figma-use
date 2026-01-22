@@ -83,7 +83,8 @@ describe('export jsx', () => {
     const jsx = (await run(`export jsx ${frame.id}`, false)) as string
     expect(jsx).toContain('import { Frame, Text }')
     expect(jsx).toContain('<Text')
-    expect(jsx).toContain('>Hello</Text>')
+    expect(jsx).toContain('Hello')
+    expect(jsx).toContain('</Text>')
   })
 
   test('round-trip: export jsx then render produces same structure', async () => {

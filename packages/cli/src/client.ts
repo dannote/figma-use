@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import * as esbuild from 'esbuild'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -8,6 +9,7 @@ export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
 
 let rpcInjected = false
+let currentRpcHash: string | null = null
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -26,7 +28,7 @@ function getPluginDir(): string {
   return join(cliDir, '../../packages/plugin/src')
 }
 
-async function buildRpcBundle(): Promise<string> {
+async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   const pluginDir = getPluginDir()
   const entryPoint = join(pluginDir, 'rpc.ts')
 
@@ -39,20 +41,24 @@ async function buildRpcBundle(): Promise<string> {
     minify: true
   })
 
-  return result.outputFiles![0]!.text
+  const code = result.outputFiles![0]!.text
+  const hash = createHash('sha256').update(code).digest('hex').slice(0, 16)
+
+  return { code, hash }
 }
 
 async function ensureRpcInjected(): Promise<void> {
-  if (rpcInjected) return
+  const { code, hash } = await buildRpcBundle()
 
-  const isReady = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
-  if (isReady) {
-    rpcInjected = true
-    return
+  // Check if RPC is already injected with same version
+  if (rpcInjected && currentRpcHash === hash) {
+    const remoteHash = await cdpEval<string | undefined>('window.__figmaRpcHash')
+    if (remoteHash === hash) return
   }
 
-  const rpcCode = await buildRpcBundle()
-  await cdpEval(rpcCode)
+  // Inject fresh RPC
+  await cdpEval(code)
+  await cdpEval(`window.__figmaRpcHash = ${JSON.stringify(hash)}`)
 
   const ready = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
   if (!ready) {
@@ -60,6 +66,7 @@ async function ensureRpcInjected(): Promise<void> {
   }
 
   rpcInjected = true
+  currentRpcHash = hash
 }
 
 export async function sendCommand<T = unknown>(

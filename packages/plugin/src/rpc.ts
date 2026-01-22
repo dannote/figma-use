@@ -1786,6 +1786,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       frame.fills = []
       frame.clipsContent = true
 
+      // Track clones that can't be parented to frame (sections, components)
+      const orphanClones: SceneNode[] = []
+
       // Clone visible nodes that intersect viewport
       for (const node of figma.currentPage.children) {
         if (node.id === frame.id) continue
@@ -1802,6 +1805,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
             clone.x = node.x - bounds.x
             clone.y = node.y - bounds.y
             frame.appendChild(clone)
+            // Sections can't be parented to frames - they stay on page
+            if (clone.parent === figma.currentPage) {
+              orphanClones.push(clone)
+            }
           }
         }
       }
@@ -1810,7 +1817,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         format: 'PNG',
         constraint: { type: 'SCALE', value: scale || 1 }
       })
+
+      // Clean up orphan clones first, then frame
+      for (const clone of orphanClones) {
+        clone.remove()
+      }
       frame.remove()
+
       return { data: figma.base64Encode(bytes) }
     }
 

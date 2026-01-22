@@ -68,7 +68,7 @@ export function getDefaultConfig(): FigmaUseConfig {
     },
     storybook: {
       out: './stories',
-      matchIcons: true,
+      matchIcons: false,
       preferIcons: ['lucide', 'tabler'],
       iconThreshold: 0.85,
       framework: 'react'
