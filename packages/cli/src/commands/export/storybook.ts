@@ -232,6 +232,15 @@ function generateComponentAST(
 ): ts.SourceFile {
   const statements: ts.Statement[] = []
 
+  // import React from 'react'
+  statements.push(
+    ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(false, ts.factory.createIdentifier('React'), undefined),
+      ts.factory.createStringLiteral('react')
+    )
+  )
+
   // import { Frame, Text, ... } from '@figma-use/react'
   const renderImports = Array.from(usedComponents).sort()
   if (renderImports.length > 0) {
@@ -726,6 +735,15 @@ function generateTextPropsComponentAST(
   framework: FrameworkConfig
 ): ts.SourceFile {
   const statements: ts.Statement[] = []
+
+  // import React from 'react'
+  statements.push(
+    ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(false, ts.factory.createIdentifier('React'), undefined),
+      ts.factory.createStringLiteral('react')
+    )
+  )
 
   // import { Frame, Text, ... } from '@figma-use/react'
   const renderImports = Array.from(usedComponents).sort()
