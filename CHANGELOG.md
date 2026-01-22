@@ -63,12 +63,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`textAutoResize` in node tree** — shows text resize mode for TEXT nodes
 
+- **`init` command** — create `.figma-use.json` config file
+  ```bash
+  figma-use init                    # Create with defaults
+  figma-use init --force            # Overwrite existing
+  figma-use init --preset strict    # Use strict lint preset
+  ```
+
+- **`.figma-use.json` config file** — unified configuration for lint, storybook export, and formatting
+  ```json
+  {
+    "lint": { "preset": "recommended" },
+    "storybook": {
+      "page": "Components",
+      "out": "./stories",
+      "matchIcons": true,
+      "preferIcons": ["lucide", "tabler"],
+      "iconThreshold": 0.85,
+      "framework": "react"
+    },
+    "format": {
+      "pretty": true,
+      "semi": false,
+      "singleQuote": true
+    }
+  }
+  ```
+  CLI arguments override config values. Config is auto-loaded from current directory or parents.
+
 ### Changed
 
 - **Improved ComponentSet export** — now combines VARIANT and TEXT properties
   - VARIANT props control which JSX variant to render
   - TEXT props become editable string props in the component
   - Stories include args for both variant selection and text editing
+
+### Fixed
+
+- **JSX export improvements**
+  - Include white color (`#FFFFFF`) in icon exports
+  - Skip hidden nodes (`visible: false`) in JSX generation
+  - Increase icon aspect ratio tolerance from 1.5 to 2 (for lock icons etc)
 
 ## [0.10.1] - 2026-01-21
 
