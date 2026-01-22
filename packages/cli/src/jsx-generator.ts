@@ -368,22 +368,116 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
     if (node.strokeWeight && node.strokeWeight !== 1) {
       attrs.push(createJsxAttribute('strokeWidth', numLit(node.strokeWeight)))
     }
+    if (node.strokeAlign && node.strokeAlign !== 'CENTER') {
+      attrs.push(createJsxAttribute('strokeAlign', strLit(node.strokeAlign.toLowerCase())))
+    }
   }
-  if (node.cornerRadius) {
+  // Individual stroke weights
+  if (node.strokeTopWeight !== undefined || node.strokeBottomWeight !== undefined ||
+      node.strokeLeftWeight !== undefined || node.strokeRightWeight !== undefined) {
+    if (node.strokeTopWeight !== node.strokeWeight) {
+      attrs.push(createJsxAttribute('strokeTop', numLit(node.strokeTopWeight!)))
+    }
+    if (node.strokeBottomWeight !== node.strokeWeight) {
+      attrs.push(createJsxAttribute('strokeBottom', numLit(node.strokeBottomWeight!)))
+    }
+    if (node.strokeLeftWeight !== node.strokeWeight) {
+      attrs.push(createJsxAttribute('strokeLeft', numLit(node.strokeLeftWeight!)))
+    }
+    if (node.strokeRightWeight !== node.strokeWeight) {
+      attrs.push(createJsxAttribute('strokeRight', numLit(node.strokeRightWeight!)))
+    }
+  }
+  // Corner radius
+  if (node.topLeftRadius !== undefined && node.topRightRadius !== undefined &&
+      node.bottomLeftRadius !== undefined && node.bottomRightRadius !== undefined) {
+    // Individual radii
+    const { topLeftRadius: tl, topRightRadius: tr, bottomLeftRadius: bl, bottomRightRadius: br } = node
+    if (tl === tr && tr === bl && bl === br) {
+      if (tl > 0) attrs.push(createJsxAttribute('rounded', numLit(tl)))
+    } else {
+      attrs.push(createJsxAttribute('roundedTL', numLit(tl)))
+      attrs.push(createJsxAttribute('roundedTR', numLit(tr)))
+      attrs.push(createJsxAttribute('roundedBL', numLit(bl)))
+      attrs.push(createJsxAttribute('roundedBR', numLit(br)))
+    }
+  } else if (node.cornerRadius) {
     attrs.push(createJsxAttribute('rounded', numLit(node.cornerRadius)))
+  }
+  // Corner smoothing (squircle) - CSS corner-shape: squircle
+  if (node.cornerSmoothing && node.cornerSmoothing > 0) {
+    attrs.push(createJsxAttribute('cornerSmoothing', ts.factory.createNumericLiteral(node.cornerSmoothing.toFixed(2))))
   }
   if (node.opacity !== undefined && node.opacity !== 1) {
     attrs.push(
       createJsxAttribute('opacity', ts.factory.createNumericLiteral(node.opacity.toFixed(2)))
     )
   }
+  // Blend mode
+  if (node.blendMode) {
+    attrs.push(createJsxAttribute('blendMode', strLit(node.blendMode.toLowerCase().replace(/_/g, '-'))))
+  }
+  // Rotation
+  if (node.rotation) {
+    attrs.push(createJsxAttribute('rotate', numLit(Math.round(node.rotation))))
+  }
+  // Clips content (overflow hidden)
+  if (node.clipsContent) {
+    attrs.push(createJsxAttribute('overflow', strLit('hidden')))
+  }
+  // Effects (shadows)
+  if (node.effects?.length) {
+    for (const effect of node.effects) {
+      if (effect.type === 'DROP_SHADOW') {
+        const shadow = [
+          `${effect.offset?.x || 0}px`,
+          `${effect.offset?.y || 0}px`,
+          `${effect.radius || 0}px`,
+          effect.spread ? `${effect.spread}px` : '',
+          effect.color || 'rgba(0,0,0,0.25)'
+        ].filter(Boolean).join(' ')
+        attrs.push(createJsxAttribute('shadow', strLit(shadow)))
+      } else if (effect.type === 'LAYER_BLUR') {
+        attrs.push(createJsxAttribute('blur', numLit(effect.radius || 0)))
+      }
+    }
+  }
   if (node.layoutMode === 'HORIZONTAL') {
     attrs.push(createJsxAttribute('flex', strLit('row')))
   } else if (node.layoutMode === 'VERTICAL') {
     attrs.push(createJsxAttribute('flex', strLit('col')))
   }
+  // Flex wrap
+  if (node.layoutWrap === 'WRAP') {
+    attrs.push(createJsxAttribute('wrap', ts.factory.createTrue()))
+  }
   if (node.itemSpacing) {
     attrs.push(createJsxAttribute('gap', numLit(node.itemSpacing)))
+  }
+  // Absolute positioning
+  if (node.layoutPositioning === 'ABSOLUTE') {
+    attrs.push(createJsxAttribute('position', strLit('absolute')))
+  }
+  // Flex grow
+  if (node.layoutGrow && node.layoutGrow > 0) {
+    attrs.push(createJsxAttribute('grow', numLit(node.layoutGrow)))
+  }
+  // Stretch
+  if (node.layoutAlign === 'STRETCH') {
+    attrs.push(createJsxAttribute('stretch', ts.factory.createTrue()))
+  }
+  // Min/max constraints
+  if (node.minWidth !== undefined && node.minWidth !== null) {
+    attrs.push(createJsxAttribute('minW', numLit(node.minWidth)))
+  }
+  if (node.maxWidth !== undefined && node.maxWidth !== null) {
+    attrs.push(createJsxAttribute('maxW', numLit(node.maxWidth)))
+  }
+  if (node.minHeight !== undefined && node.minHeight !== null) {
+    attrs.push(createJsxAttribute('minH', numLit(node.minHeight)))
+  }
+  if (node.maxHeight !== undefined && node.maxHeight !== null) {
+    attrs.push(createJsxAttribute('maxH', numLit(node.maxHeight)))
   }
   // Alignment
   if (node.primaryAxisAlignItems) {

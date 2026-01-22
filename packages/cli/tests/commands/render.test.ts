@@ -109,6 +109,38 @@ describe('render', () => {
     const cardInfo = (await run(`node get ${result.id} --json`)) as { parentId?: string }
     expect(cardInfo.parentId).toBe(container.id)
   }, 30000)
+
+  test('applies advanced styling props (corners, effects, constraints)', async () => {
+    const jsx = `<Frame w={200} h={100} roundedTL={20} roundedTR={10} roundedBL={5} roundedBR={0} cornerSmoothing={0.6} overflow="hidden" shadow="0px 4px 8px rgba(0,0,0,0.25)" minW={100} maxW={400} />`
+    const result = (await run(
+      `render --stdin --parent "${testFrameId}" --x 500 --y 400 --json`,
+      jsx
+    )) as { id: string }
+    trackNode(result.id)
+
+    const nodeInfo = (await run(`node get ${result.id} --json`)) as {
+      topLeftRadius?: number
+      topRightRadius?: number
+      bottomLeftRadius?: number
+      bottomRightRadius?: number
+      cornerSmoothing?: number
+      clipsContent?: boolean
+      effects?: Array<{ type: string; radius?: number }>
+      minWidth?: number
+      maxWidth?: number
+    }
+
+    expect(nodeInfo.topLeftRadius).toBe(20)
+    expect(nodeInfo.topRightRadius).toBe(10)
+    expect(nodeInfo.bottomLeftRadius).toBe(5)
+    expect(nodeInfo.bottomRightRadius).toBe(0)
+    expect(nodeInfo.cornerSmoothing).toBeCloseTo(0.6, 1)
+    expect(nodeInfo.clipsContent).toBe(true)
+    expect(nodeInfo.effects?.length).toBe(1)
+    expect(nodeInfo.effects?.[0].type).toBe('DROP_SHADOW')
+    expect(nodeInfo.minWidth).toBe(100)
+    expect(nodeInfo.maxWidth).toBe(400)
+  }, 30000)
 })
 
 describe('render from file', () => {

@@ -455,15 +455,78 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('strokeWeight' in n && typeof n.strokeWeight === 'number' && n.strokeWeight > 0) {
           base.strokeWeight = n.strokeWeight
         }
+        // Stroke align (only if not default CENTER)
+        if ('strokeAlign' in n && n.strokeAlign !== 'CENTER') {
+          base.strokeAlign = n.strokeAlign
+        }
+        // Individual stroke weights (if different from strokeWeight)
+        if ('strokeTopWeight' in n) {
+          const sw = n.strokeWeight as number
+          if (n.strokeTopWeight !== sw) base.strokeTopWeight = n.strokeTopWeight
+          if ((n as FrameNode).strokeBottomWeight !== sw) base.strokeBottomWeight = (n as FrameNode).strokeBottomWeight
+          if ((n as FrameNode).strokeLeftWeight !== sw) base.strokeLeftWeight = (n as FrameNode).strokeLeftWeight
+          if ((n as FrameNode).strokeRightWeight !== sw) base.strokeRightWeight = (n as FrameNode).strokeRightWeight
+        }
         if ('cornerRadius' in n && typeof n.cornerRadius === 'number' && n.cornerRadius > 0) {
           base.cornerRadius = n.cornerRadius
         }
+        // Corner smoothing (iOS squircle style)
+        if ('cornerSmoothing' in n && typeof n.cornerSmoothing === 'number' && n.cornerSmoothing > 0) {
+          base.cornerSmoothing = n.cornerSmoothing
+        }
+        // Individual corner radii (if different from cornerRadius)
+        if ('topLeftRadius' in n) {
+          const cr = n.cornerRadius as number
+          const frame = n as FrameNode
+          if (frame.topLeftRadius !== cr || frame.topRightRadius !== cr || 
+              frame.bottomLeftRadius !== cr || frame.bottomRightRadius !== cr) {
+            base.topLeftRadius = frame.topLeftRadius
+            base.topRightRadius = frame.topRightRadius
+            base.bottomLeftRadius = frame.bottomLeftRadius
+            base.bottomRightRadius = frame.bottomRightRadius
+          }
+        }
         if ('opacity' in n && n.opacity !== 1) base.opacity = n.opacity
+        // Blend mode (only if not default)
+        if ('blendMode' in n && n.blendMode !== 'PASS_THROUGH' && n.blendMode !== 'NORMAL') {
+          base.blendMode = n.blendMode
+        }
         if ('visible' in n && !n.visible) base.visible = false
         if ('locked' in n && n.locked) base.locked = true
+        // Rotation
+        if ('rotation' in n && n.rotation !== 0) {
+          base.rotation = Math.round(n.rotation * 100) / 100
+        }
+        // Clips content (overflow hidden)
+        if ('clipsContent' in n && n.clipsContent) {
+          base.clipsContent = true
+        }
+        // Effects (shadows, blur)
+        if ('effects' in n && Array.isArray(n.effects) && n.effects.length > 0) {
+          const visibleEffects = n.effects.filter((e: Effect) => e.visible !== false)
+          if (visibleEffects.length > 0) {
+            base.effects = visibleEffects.map((e: Effect) => {
+              const effect: Record<string, unknown> = { type: e.type }
+              if ('radius' in e) effect.radius = e.radius
+              if ('color' in e && e.color) {
+                effect.color = rgbToHex(e.color)
+                if (e.color.a !== 1) effect.opacity = Math.round(e.color.a * 100) / 100
+              }
+              if ('offset' in e && e.offset) {
+                effect.offset = { x: e.offset.x, y: e.offset.y }
+              }
+              if ('spread' in e) effect.spread = e.spread
+              return effect
+            })
+          }
+        }
         if ('layoutMode' in n && n.layoutMode !== 'NONE') {
           base.layoutMode = n.layoutMode
           if ('itemSpacing' in n) base.itemSpacing = n.itemSpacing
+          // Layout wrap (flex-wrap)
+          if ('layoutWrap' in n && n.layoutWrap === 'WRAP') {
+            base.layoutWrap = 'WRAP'
+          }
           if ('paddingTop' in n) {
             base.padding = {
               top: n.paddingTop,
@@ -480,6 +543,23 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
             base.counterAxisAlignItems = n.counterAxisAlignItems
           }
         }
+        // Layout positioning (absolute)
+        if ('layoutPositioning' in n && n.layoutPositioning === 'ABSOLUTE') {
+          base.layoutPositioning = 'ABSOLUTE'
+        }
+        // Layout grow (flex-grow)
+        if ('layoutGrow' in n && n.layoutGrow > 0) {
+          base.layoutGrow = n.layoutGrow
+        }
+        // Layout align (stretch)
+        if ('layoutAlign' in n && n.layoutAlign === 'STRETCH') {
+          base.layoutAlign = 'STRETCH'
+        }
+        // Min/max constraints
+        if ('minWidth' in n && n.minWidth !== null) base.minWidth = n.minWidth
+        if ('maxWidth' in n && n.maxWidth !== null) base.maxWidth = n.maxWidth
+        if ('minHeight' in n && n.minHeight !== null) base.minHeight = n.minHeight
+        if ('maxHeight' in n && n.maxHeight !== null) base.maxHeight = n.maxHeight
         if (n.type === 'TEXT') {
           const t = n as TextNode
           base.characters = t.characters
@@ -2192,6 +2272,11 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         h: 'height',
         bg: 'fill',
         rounded: 'cornerRadius',
+        roundedTL: '__roundedTL',
+        roundedTR: '__roundedTR',
+        roundedBL: '__roundedBL',
+        roundedBR: '__roundedBR',
+        cornerSmoothing: '__cornerSmoothing',
         p: 'padding',
         px: '__px',
         py: '__py',
@@ -2205,7 +2290,24 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         flex: 'direction',
         gap: 'spacing',
         wrap: '__wrap',
-        rowGap: '__rowGap'
+        rowGap: '__rowGap',
+        minW: '__minW',
+        maxW: '__maxW',
+        minH: '__minH',
+        maxH: '__maxH',
+        position: '__position',
+        grow: '__grow',
+        stretch: '__stretch',
+        strokeAlign: '__strokeAlign',
+        strokeTop: '__strokeTop',
+        strokeBottom: '__strokeBottom',
+        strokeLeft: '__strokeLeft',
+        strokeRight: '__strokeRight',
+        rotate: '__rotate',
+        overflow: '__overflow',
+        shadow: '__shadow',
+        blur: '__blur',
+        blendMode: '__blendMode'
       }
 
       const DIRECTION_MAP: Record<string, string> = {
@@ -2223,6 +2325,32 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       // Nodes that need wrap applied after creation
       const wrapNodes: Array<{ path: number[]; rowGap?: number }> = []
+      // Nodes that need post-processing for properties not supported by Widget API
+      const postProcessNodes: Array<{
+        path: number[]
+        roundedTL?: number
+        roundedTR?: number
+        roundedBL?: number
+        roundedBR?: number
+        cornerSmoothing?: number
+        minW?: number
+        maxW?: number
+        minH?: number
+        maxH?: number
+        position?: string
+        grow?: number
+        stretch?: boolean
+        strokeAlign?: string
+        strokeTop?: number
+        strokeBottom?: number
+        strokeLeft?: number
+        strokeRight?: number
+        rotate?: number
+        overflow?: string
+        shadow?: string
+        blur?: number
+        blendMode?: string
+      }> = []
 
       function processProps(
         props: Record<string, unknown>,
@@ -2344,6 +2472,25 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           delete processed.__rowGap
         }
 
+        // Collect props that need post-processing (not supported by Widget API)
+        const postProps: Record<string, unknown> = {}
+        const postKeys = [
+          '__roundedTL', '__roundedTR', '__roundedBL', '__roundedBR', '__cornerSmoothing',
+          '__minW', '__maxW', '__minH', '__maxH', '__position', '__grow', '__stretch',
+          '__strokeAlign', '__strokeTop', '__strokeBottom', '__strokeLeft', '__strokeRight',
+          '__rotate', '__overflow', '__shadow', '__blur', '__blendMode'
+        ]
+        for (const key of postKeys) {
+          if (processed[key] !== undefined) {
+            const cleanKey = key.slice(2) // remove '__' prefix
+            postProps[cleanKey] = processed[key]
+            delete processed[key]
+          }
+        }
+        if (Object.keys(postProps).length > 0) {
+          postProcessNodes.push({ path: [...path], ...postProps } as typeof postProcessNodes[0])
+        }
+
         const builtChildren = (children || [])
           .map((c, i) => buildTree(c, [...path, i]))
           .filter(Boolean)
@@ -2374,6 +2521,115 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           frame.primaryAxisSizingMode = 'FIXED'
           frame.counterAxisSizingMode = 'AUTO'
           if (rowGap !== undefined) frame.counterAxisSpacing = rowGap
+        }
+      }
+
+      // Apply post-process properties not supported by Widget API
+      for (const pp of postProcessNodes) {
+        let target: SceneNode = node
+        for (const index of pp.path) {
+          if ('children' in target) target = (target as FrameNode).children[index]
+        }
+        if (!target) continue
+
+        // Individual corner radii
+        if ('topLeftRadius' in target) {
+          const frame = target as FrameNode
+          if (pp.roundedTL !== undefined) frame.topLeftRadius = pp.roundedTL
+          if (pp.roundedTR !== undefined) frame.topRightRadius = pp.roundedTR
+          if (pp.roundedBL !== undefined) frame.bottomLeftRadius = pp.roundedBL
+          if (pp.roundedBR !== undefined) frame.bottomRightRadius = pp.roundedBR
+        }
+        // Corner smoothing (squircle)
+        if ('cornerSmoothing' in target && pp.cornerSmoothing !== undefined) {
+          ;(target as FrameNode).cornerSmoothing = pp.cornerSmoothing
+        }
+        // Min/max constraints
+        if ('minWidth' in target) {
+          const frame = target as FrameNode
+          if (pp.minW !== undefined) frame.minWidth = pp.minW
+          if (pp.maxW !== undefined) frame.maxWidth = pp.maxW
+          if (pp.minH !== undefined) frame.minHeight = pp.minH
+          if (pp.maxH !== undefined) frame.maxHeight = pp.maxH
+        }
+        // Absolute positioning
+        if ('layoutPositioning' in target && pp.position === 'absolute') {
+          ;(target as FrameNode).layoutPositioning = 'ABSOLUTE'
+        }
+        // Flex grow
+        if ('layoutGrow' in target && pp.grow !== undefined) {
+          ;(target as FrameNode).layoutGrow = pp.grow
+        }
+        // Stretch
+        if ('layoutAlign' in target && pp.stretch) {
+          ;(target as FrameNode).layoutAlign = 'STRETCH'
+        }
+        // Stroke align
+        if ('strokeAlign' in target && pp.strokeAlign) {
+          ;(target as FrameNode).strokeAlign = pp.strokeAlign.toUpperCase() as 'INSIDE' | 'OUTSIDE' | 'CENTER'
+        }
+        // Individual stroke weights
+        if ('strokeTopWeight' in target) {
+          const frame = target as FrameNode
+          if (pp.strokeTop !== undefined) frame.strokeTopWeight = pp.strokeTop
+          if (pp.strokeBottom !== undefined) frame.strokeBottomWeight = pp.strokeBottom
+          if (pp.strokeLeft !== undefined) frame.strokeLeftWeight = pp.strokeLeft
+          if (pp.strokeRight !== undefined) frame.strokeRightWeight = pp.strokeRight
+        }
+        // Rotation
+        if ('rotation' in target && pp.rotate !== undefined) {
+          target.rotation = pp.rotate
+        }
+        // Clips content (overflow)
+        if ('clipsContent' in target && pp.overflow === 'hidden') {
+          ;(target as FrameNode).clipsContent = true
+        }
+        // Blend mode
+        if ('blendMode' in target && pp.blendMode) {
+          const mode = pp.blendMode.toUpperCase().replace(/-/g, '_')
+          ;(target as BlendMixin).blendMode = mode as BlendMode
+        }
+        // Effects (shadow, blur)
+        if ('effects' in target) {
+          const effects: Effect[] = []
+          if (pp.shadow) {
+            const parts = pp.shadow.match(/(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s*(-?\d+(?:\.\d+)?px)?\s*(.+)?/)
+            if (parts) {
+              const x = parseFloat(parts[1])
+              const y = parseFloat(parts[2])
+              const blur = parseFloat(parts[3])
+              const spread = parts[4] ? parseFloat(parts[4]) : 0
+              const colorStr = parts[5]?.trim() || 'rgba(0,0,0,0.25)'
+              // Parse color
+              let r = 0, g = 0, b = 0, a = 0.25
+              const rgbaMatch = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
+              if (rgbaMatch) {
+                r = parseInt(rgbaMatch[1]) / 255
+                g = parseInt(rgbaMatch[2]) / 255
+                b = parseInt(rgbaMatch[3]) / 255
+                a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1
+              }
+              effects.push({
+                type: 'DROP_SHADOW',
+                visible: true,
+                blendMode: 'NORMAL',
+                radius: blur,
+                spread,
+                offset: { x, y },
+                color: { r, g, b, a }
+              })
+            }
+          }
+          if (pp.blur !== undefined) {
+            effects.push({
+              type: 'LAYER_BLUR',
+              visible: true,
+              radius: pp.blur
+            })
+          }
+          if (effects.length > 0) {
+            ;(target as FrameNode).effects = effects
+          }
         }
       }
 
@@ -3554,8 +3810,67 @@ function serializeNode(node: BaseNode): object {
   if ('strokeWeight' in node && typeof node.strokeWeight === 'number' && node.strokeWeight > 0) {
     base.strokeWeight = node.strokeWeight
   }
+  // Stroke align
+  if ('strokeAlign' in node && node.strokeAlign !== 'CENTER') {
+    base.strokeAlign = node.strokeAlign
+  }
+  // Individual stroke weights
+  if ('strokeTopWeight' in node) {
+    const sw = node.strokeWeight as number
+    if (node.strokeTopWeight !== sw) base.strokeTopWeight = node.strokeTopWeight
+    if ((node as FrameNode).strokeBottomWeight !== sw) base.strokeBottomWeight = (node as FrameNode).strokeBottomWeight
+    if ((node as FrameNode).strokeLeftWeight !== sw) base.strokeLeftWeight = (node as FrameNode).strokeLeftWeight
+    if ((node as FrameNode).strokeRightWeight !== sw) base.strokeRightWeight = (node as FrameNode).strokeRightWeight
+  }
   if ('cornerRadius' in node && typeof node.cornerRadius === 'number' && node.cornerRadius > 0) {
     base.cornerRadius = node.cornerRadius
+  }
+  // Corner smoothing
+  if ('cornerSmoothing' in node && typeof node.cornerSmoothing === 'number' && node.cornerSmoothing > 0) {
+    base.cornerSmoothing = node.cornerSmoothing
+  }
+  // Individual corner radii
+  if ('topLeftRadius' in node) {
+    const cr = node.cornerRadius as number
+    const frame = node as FrameNode
+    if (frame.topLeftRadius !== cr || frame.topRightRadius !== cr || 
+        frame.bottomLeftRadius !== cr || frame.bottomRightRadius !== cr) {
+      base.topLeftRadius = frame.topLeftRadius
+      base.topRightRadius = frame.topRightRadius
+      base.bottomLeftRadius = frame.bottomLeftRadius
+      base.bottomRightRadius = frame.bottomRightRadius
+    }
+  }
+  // Blend mode
+  if ('blendMode' in node && node.blendMode !== 'PASS_THROUGH' && node.blendMode !== 'NORMAL') {
+    base.blendMode = node.blendMode
+  }
+  // Rotation
+  if ('rotation' in node && node.rotation !== 0) {
+    base.rotation = Math.round(node.rotation * 100) / 100
+  }
+  // Clips content
+  if ('clipsContent' in node && node.clipsContent) {
+    base.clipsContent = true
+  }
+  // Effects
+  if ('effects' in node && Array.isArray(node.effects) && node.effects.length > 0) {
+    const visibleEffects = node.effects.filter((e: Effect) => e.visible !== false)
+    if (visibleEffects.length > 0) {
+      base.effects = visibleEffects.map((e: Effect) => {
+        const effect: Record<string, unknown> = { type: e.type }
+        if ('radius' in e) effect.radius = e.radius
+        if ('color' in e && e.color) {
+          effect.color = rgbToHex(e.color)
+          if (e.color.a !== 1) effect.opacity = Math.round(e.color.a * 100) / 100
+        }
+        if ('offset' in e && e.offset) {
+          effect.offset = { x: e.offset.x, y: e.offset.y }
+        }
+        if ('spread' in e) effect.spread = e.spread
+        return effect
+      })
+    }
   }
 
   if ('componentPropertyDefinitions' in node) {
@@ -3573,6 +3888,10 @@ function serializeNode(node: BaseNode): object {
   if ('layoutMode' in node && node.layoutMode !== 'NONE') {
     base.layoutMode = node.layoutMode
     if ('itemSpacing' in node) base.itemSpacing = node.itemSpacing
+    // Layout wrap
+    if ('layoutWrap' in node && node.layoutWrap === 'WRAP') {
+      base.layoutWrap = 'WRAP'
+    }
     if ('primaryAxisSizingMode' in node) base.primaryAxisSizingMode = node.primaryAxisSizingMode
     if ('counterAxisSizingMode' in node) base.counterAxisSizingMode = node.counterAxisSizingMode
     if ('primaryAxisAlignItems' in node && node.primaryAxisAlignItems !== 'MIN') {
@@ -3603,6 +3922,24 @@ function serializeNode(node: BaseNode): object {
       if (gridNode.gridRowSizes?.length > 0) base.gridRowSizes = gridNode.gridRowSizes
     }
   }
+
+  // Layout positioning (absolute)
+  if ('layoutPositioning' in node && node.layoutPositioning === 'ABSOLUTE') {
+    base.layoutPositioning = 'ABSOLUTE'
+  }
+  // Layout grow (flex-grow)
+  if ('layoutGrow' in node && node.layoutGrow > 0) {
+    base.layoutGrow = node.layoutGrow
+  }
+  // Layout align (stretch)
+  if ('layoutAlign' in node && node.layoutAlign === 'STRETCH') {
+    base.layoutAlign = 'STRETCH'
+  }
+  // Min/max constraints
+  if ('minWidth' in node && node.minWidth !== null) base.minWidth = node.minWidth
+  if ('maxWidth' in node && node.maxWidth !== null) base.maxWidth = node.maxWidth
+  if ('minHeight' in node && node.minHeight !== null) base.minHeight = node.minHeight
+  if ('maxHeight' in node && node.maxHeight !== null) base.maxHeight = node.maxHeight
 
   // Text properties
   if (node.type === 'TEXT') {

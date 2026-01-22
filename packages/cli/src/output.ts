@@ -22,7 +22,54 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
   if (stroke) details.push(`stroke: ${stroke}`)
 
   if (node.cornerRadius && node.cornerRadius !== 0) {
-    details.push(`radius: ${node.cornerRadius}px`)
+    let radiusStr = `${node.cornerRadius}px`
+    if (node.cornerSmoothing && node.cornerSmoothing > 0) {
+      radiusStr += ` (smooth: ${Math.round((node.cornerSmoothing as number) * 100)}%)`
+    }
+    details.push(`radius: ${radiusStr}`)
+  }
+
+  // Individual corner radii if different
+  if (node.topLeftRadius !== undefined || node.topRightRadius !== undefined) {
+    const tl = node.topLeftRadius ?? node.cornerRadius ?? 0
+    const tr = node.topRightRadius ?? node.cornerRadius ?? 0
+    const bl = node.bottomLeftRadius ?? node.cornerRadius ?? 0
+    const br = node.bottomRightRadius ?? node.cornerRadius ?? 0
+    if (tl !== tr || tr !== bl || bl !== br) {
+      let cornerStr = `↖${tl} ↗${tr} ↘${br} ↙${bl}`
+      if (node.cornerSmoothing && (node.cornerSmoothing as number) > 0) {
+        cornerStr += ` (smooth: ${Math.round((node.cornerSmoothing as number) * 100)}%)`
+      }
+      details.push(`corners: ${cornerStr}`)
+    }
+  }
+
+  // Effects (shadows, blur)
+  if (node.effects && Array.isArray(node.effects) && node.effects.length > 0) {
+    const effectStrs = (node.effects as Array<{ type: string; radius?: number }>)
+      .map(e => {
+        if (e.type === 'DROP_SHADOW') return `shadow(${e.radius || 0}px)`
+        if (e.type === 'INNER_SHADOW') return `inner-shadow(${e.radius || 0}px)`
+        if (e.type === 'LAYER_BLUR') return `blur(${e.radius || 0}px)`
+        if (e.type === 'BACKGROUND_BLUR') return `backdrop-blur(${e.radius || 0}px)`
+        return e.type.toLowerCase()
+      })
+    details.push(`effects: ${effectStrs.join(', ')}`)
+  }
+
+  // Rotation
+  if (node.rotation && node.rotation !== 0) {
+    details.push(`rotate: ${Math.round(node.rotation as number)}°`)
+  }
+
+  // Blend mode
+  if (node.blendMode && node.blendMode !== 'PASS_THROUGH' && node.blendMode !== 'NORMAL') {
+    details.push(`blend: ${(node.blendMode as string).toLowerCase().replace(/_/g, '-')}`)
+  }
+
+  // Clips content
+  if (node.clipsContent) {
+    details.push(`overflow: hidden`)
   }
 
   if (node.fontSize) {
@@ -40,7 +87,30 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
   }
 
   if (node.layoutMode) {
-    details.push(`layout: ${node.layoutMode}`)
+    let layoutStr = `${(node.layoutMode as string).toLowerCase()}`
+    if (node.layoutWrap === 'WRAP') layoutStr += ' wrap'
+    if (node.itemSpacing) layoutStr += ` gap=${node.itemSpacing}`
+    details.push(`flex: ${layoutStr}`)
+  }
+
+  // Min/max constraints
+  const constraints: string[] = []
+  if (node.minWidth !== undefined && node.minWidth !== null) constraints.push(`min-w: ${node.minWidth}`)
+  if (node.maxWidth !== undefined && node.maxWidth !== null) constraints.push(`max-w: ${node.maxWidth}`)
+  if (node.minHeight !== undefined && node.minHeight !== null) constraints.push(`min-h: ${node.minHeight}`)
+  if (node.maxHeight !== undefined && node.maxHeight !== null) constraints.push(`max-h: ${node.maxHeight}`)
+  if (constraints.length > 0) {
+    details.push(constraints.join(', '))
+  }
+
+  // Layout positioning
+  if (node.layoutPositioning === 'ABSOLUTE') {
+    details.push(`position: absolute`)
+  }
+
+  // Layout grow
+  if (node.layoutGrow && (node.layoutGrow as number) > 0) {
+    details.push(`grow: ${node.layoutGrow}`)
   }
 
   if (node.opacity !== undefined && node.opacity !== 1) {

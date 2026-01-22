@@ -20,27 +20,64 @@ Render JSX to Figma.
 
 EXAMPLES
 
-  echo '<frame style={{ p: 24, bg: "#3B82F6", rounded: 12 }}>
-    <text style={{ size: 18, color: "#FFF" }}>Hello</text>
-  </frame>' | figma-use render --stdin
+  echo '<Frame w={200} h={100} bg="#3B82F6" rounded={12} p={24}>
+    <Text size={18} color="#FFF">Hello</Text>
+  </Frame>' | figma-use render --stdin
 
   figma-use render ./Card.figma.tsx --props '{"title": "Hello"}'
 
 ELEMENTS
 
-  Frame, Rectangle, Ellipse, Text, Line, Star, Polygon, Vector, Group, Icon, Image
+  Frame, Rectangle, Ellipse, Text, Line, Image, SVG, Icon, Instance
 
-SHORTHANDS
+SIZE & POSITION
 
-  w, h          width, height
-  bg            fill color
-  rounded       cornerRadius
-  p, px, py     padding
-  flex          direction ("row" | "col")
-  gap           spacing
-  wrap          enable flex wrap
-  size, weight  fontSize, fontWeight
-  justify, items  alignment
+  w, h            width, height (number or "fill")
+  minW, maxW      min/max width constraints
+  minH, maxH      min/max height constraints
+  x, y            position
+
+LAYOUT (Auto-layout)
+
+  flex            direction ("row" | "col")
+  gap             spacing between items
+  wrap            enable flex wrap
+  justify         main axis: "start" | "center" | "end" | "between"
+  items           cross axis: "start" | "center" | "end"
+  p, px, py       padding (all, x-axis, y-axis)
+  pt, pr, pb, pl  padding (top, right, bottom, left)
+  position        "absolute" for absolute positioning
+  grow            flex grow
+  stretch         stretch to fill cross-axis
+
+APPEARANCE
+
+  bg              fill color (#HEX or var:Name)
+  stroke          stroke color
+  strokeWidth     stroke thickness
+  strokeAlign     "inside" | "outside" | "center"
+  opacity         0..1 opacity
+  blendMode       blend mode (multiply, overlay, etc.)
+
+CORNERS
+
+  rounded         corner radius (all corners)
+  roundedTL/TR/BL/BR  individual corner radii
+  cornerSmoothing iOS squircle smoothing (0..1)
+
+EFFECTS
+
+  shadow          drop shadow ("Xpx Ypx Rpx color")
+  blur            layer blur radius
+  overflow        "hidden" to clip content
+  rotate          rotation in degrees
+
+TEXT
+
+  size            font size
+  font            font family
+  weight          font weight (400, 500, "bold")
+  color           text color
 `
 
 export default defineCommand({

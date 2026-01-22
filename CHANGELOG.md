@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Extended styling props** — comprehensive property support for export and render
+  - **Corner smoothing** — iOS squircle corners (`cornerSmoothing={0.6}` → CSS `corner-shape: squircle`)
+  - **Individual corner radii** — `roundedTL`, `roundedTR`, `roundedBL`, `roundedBR`
+  - **Effects** — drop shadows (`shadow="0px 4px 8px rgba(0,0,0,0.25)"`) and blur (`blur={10}`)
+  - **Constraints** — `minW`, `maxW`, `minH`, `maxH`
+  - **Blend modes** — `blendMode="multiply"` etc.
+  - **Rotation** — `rotate={45}`
+  - **Overflow** — `overflow="hidden"` (clipsContent)
+  - **Stroke align** — `strokeAlign="inside"` / `"outside"`
+  - **Individual stroke weights** — `strokeTop`, `strokeBottom`, `strokeLeft`, `strokeRight`
+  - **Flex wrap** — `wrap={true}` for auto-layout
+  - **Absolute positioning** — `position="absolute"`
+  - **Flex grow** — `grow={1}`
+  - **Stretch** — `stretch={true}` (layoutAlign: STRETCH)
+
+- **Improved human-readable output** — `node get` now shows:
+  - Corner radii with smoothing percentage
+  - Effects (shadows, blur)
+  - Rotation, blend mode, overflow
+  - Layout constraints (min/max width/height)
+
 - **Smart sizing in export JSX** — respect auto-layout sizing modes
   - `HUG` → no width/height (content-sized)
   - `FILL` → `w="fill"` / `h="fill"`

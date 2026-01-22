@@ -1,8 +1,22 @@
 const CLI = 'bun ../../dist/cli/index.js'
 const cwd = import.meta.dir + '/..'
 
-export async function run(cmd: string, parseJson: boolean = true): Promise<unknown> {
-  const proc = Bun.spawn(['sh', '-c', `${CLI} ${cmd}`], { cwd, stdout: 'pipe', stderr: 'pipe' })
+export async function run(cmd: string, parseJsonOrStdin: boolean | string = true): Promise<unknown> {
+  const parseJson = typeof parseJsonOrStdin === 'boolean' ? parseJsonOrStdin : true
+  const stdin = typeof parseJsonOrStdin === 'string' ? parseJsonOrStdin : undefined
+
+  const proc = Bun.spawn(['sh', '-c', `${CLI} ${cmd}`], { 
+    cwd, 
+    stdout: 'pipe', 
+    stderr: 'pipe',
+    stdin: stdin ? 'pipe' : undefined
+  })
+  
+  if (stdin && proc.stdin) {
+    proc.stdin.write(stdin)
+    proc.stdin.end()
+  }
+  
   const stdout = await new Response(proc.stdout).text()
   const stderr = await new Response(proc.stderr).text()
   await proc.exited

@@ -201,26 +201,69 @@ In JSX:
 
 ## Style Shorthands
 
+**Size & Position:**
 | Short | Full | Values |
 |-------|------|--------|
-| `w`, `h` | width, height | number |
-| `bg` | backgroundColor | hex or `$Variable` |
-| `rounded` | borderRadius | number |
-| `p`, `px`, `py` | padding | number |
+| `w`, `h` | width, height | number or `"fill"` |
+| `minW`, `maxW` | minWidth, maxWidth | number |
+| `minH`, `maxH` | minHeight, maxHeight | number |
+| `x`, `y` | position | number |
+
+**Layout:**
+| Short | Full | Values |
+|-------|------|--------|
 | `flex` | flexDirection | `"row"`, `"col"` |
-| `display` | layoutMode | `"flex"`, `"grid"` |
+| `gap` | spacing | number |
+| `wrap` | layoutWrap | `true` |
+| `justify` | justifyContent | `"start"`, `"center"`, `"end"`, `"between"` |
+| `items` | alignItems | `"start"`, `"center"`, `"end"` |
+| `p`, `px`, `py` | padding | number |
+| `pt`, `pr`, `pb`, `pl` | padding sides | number |
+| `position` | layoutPositioning | `"absolute"` |
+| `grow` | layoutGrow | number |
+| `stretch` | layoutAlign | `true` → STRETCH |
+
+**Appearance:**
+| Short | Full | Values |
+|-------|------|--------|
+| `bg` | fill | hex or `$Variable` |
+| `stroke` | strokeColor | hex |
+| `strokeWidth` | strokeWeight | number |
+| `strokeAlign` | strokeAlign | `"inside"`, `"outside"` |
+| `opacity` | opacity | 0..1 |
+| `blendMode` | blendMode | `"multiply"`, etc. |
+
+**Corners:**
+| Short | Full | Values |
+|-------|------|--------|
+| `rounded` | cornerRadius | number |
+| `roundedTL/TR/BL/BR` | individual corners | number |
+| `cornerSmoothing` | squircle smoothing | 0..1 (iOS style) |
+
+**Effects:**
+| Short | Full | Values |
+|-------|------|--------|
+| `shadow` | dropShadow | `"0px 4px 8px rgba(0,0,0,0.25)"` |
+| `blur` | layerBlur | number |
+| `overflow` | clipsContent | `"hidden"` |
+| `rotate` | rotation | degrees |
+
+**Text:**
+| Short | Full | Values |
+|-------|------|--------|
+| `size` | fontSize | number |
+| `weight` | fontWeight | `"bold"`, number |
+| `font` | fontFamily | string |
+| `color` | textColor | hex |
+
+**Grid (CSS Grid layout):**
+| Short | Full | Values |
+|-------|------|--------|
+| `display` | layoutMode | `"grid"` |
 | `cols` | gridTemplateColumns | `"100px 1fr auto"` |
 | `rows` | gridTemplateRows | `"auto auto"` |
 | `colGap` | columnGap | number |
 | `rowGap` | rowGap | number |
-| `justify` | justifyContent | `"start"`, `"center"`, `"end"`, `"between"` |
-| `items` | alignItems | `"start"`, `"center"`, `"end"`, `"stretch"` |
-| `size` | fontSize | number |
-| `weight` | fontWeight | `"bold"`, number |
-| `font` | fontFamily | string |
-| `pt`, `pr`, `pb`, `pl` | padding sides | number |
-
-Also: `gap`, `opacity`, `color`, `stroke`, `strokeWidth`, `textAlign`, `x`, `y`
 
 ## Components (via .figma.tsx)
 

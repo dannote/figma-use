@@ -61,12 +61,19 @@ export interface StyleProps {
   rowGap?: number
   justify?: 'start' | 'end' | 'center' | 'between'
   items?: 'start' | 'end' | 'center'
+  position?: 'absolute' | 'relative'
+  grow?: number
+  stretch?: boolean
 
   // Size
   w?: number | 'fill'
   h?: number | 'fill'
   width?: number | 'fill'
   height?: number | 'fill'
+  minW?: number
+  maxW?: number
+  minH?: number
+  maxH?: number
 
   // Position
   x?: number
@@ -87,9 +94,24 @@ export interface StyleProps {
   fill?: string
   stroke?: string
   strokeWidth?: number
+  strokeAlign?: 'inside' | 'outside' | 'center'
+  strokeTop?: number
+  strokeBottom?: number
+  strokeLeft?: number
+  strokeRight?: number
   rounded?: number
   cornerRadius?: number
+  roundedTL?: number
+  roundedTR?: number
+  roundedBL?: number
+  roundedBR?: number
+  cornerSmoothing?: number
   opacity?: number
+  blendMode?: string
+  rotate?: number
+  overflow?: 'hidden' | 'visible'
+  shadow?: string
+  blur?: number
 
   // Text
   size?: number
