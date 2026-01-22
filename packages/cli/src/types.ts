@@ -14,8 +14,14 @@ export interface FigmaNode {
   visible?: boolean
   locked?: boolean
   layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL'
+  primaryAxisSizingMode?: 'FIXED' | 'AUTO'
+  counterAxisSizingMode?: 'FIXED' | 'AUTO'
+  layoutSizingHorizontal?: 'FIXED' | 'HUG' | 'FILL'
+  layoutSizingVertical?: 'FIXED' | 'HUG' | 'FILL'
   itemSpacing?: number
   padding?: { top: number; right: number; bottom: number; left: number }
+  primaryAxisAlignItems?: 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN'
+  counterAxisAlignItems?: 'MIN' | 'CENTER' | 'MAX' | 'BASELINE'
   children?: FigmaNode[]
   characters?: string
   fontSize?: number

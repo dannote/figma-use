@@ -435,6 +435,14 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('width' in n) base.width = Math.round(n.width)
         if ('height' in n) base.height = Math.round(n.height)
 
+        // Layout sizing for auto-layout children
+        if ('layoutSizingHorizontal' in n && n.layoutSizingHorizontal !== 'FIXED') {
+          base.layoutSizingHorizontal = n.layoutSizingHorizontal
+        }
+        if ('layoutSizingVertical' in n && n.layoutSizingVertical !== 'FIXED') {
+          base.layoutSizingVertical = n.layoutSizingVertical
+        }
+
         // Only essential properties for tree view (skip invisible fills/strokes)
         if ('fills' in n && Array.isArray(n.fills)) {
           const solid = n.fills.find((f: Paint) => f.type === 'SOLID' && f.visible !== false) as SolidPaint | undefined
@@ -3523,6 +3531,14 @@ function serializeNode(node: BaseNode): object {
   if ('width' in node) base.width = Math.round(node.width)
   if ('height' in node) base.height = Math.round(node.height)
 
+  // Layout sizing for children in auto-layout
+  if ('layoutSizingHorizontal' in node && node.layoutSizingHorizontal !== 'FIXED') {
+    base.layoutSizingHorizontal = node.layoutSizingHorizontal
+  }
+  if ('layoutSizingVertical' in node && node.layoutSizingVertical !== 'FIXED') {
+    base.layoutSizingVertical = node.layoutSizingVertical
+  }
+
   // Only include non-default values
   if ('opacity' in node && node.opacity !== 1) base.opacity = node.opacity
   if ('visible' in node && !node.visible) base.visible = false
@@ -3557,6 +3573,14 @@ function serializeNode(node: BaseNode): object {
   if ('layoutMode' in node && node.layoutMode !== 'NONE') {
     base.layoutMode = node.layoutMode
     if ('itemSpacing' in node) base.itemSpacing = node.itemSpacing
+    if ('primaryAxisSizingMode' in node) base.primaryAxisSizingMode = node.primaryAxisSizingMode
+    if ('counterAxisSizingMode' in node) base.counterAxisSizingMode = node.counterAxisSizingMode
+    if ('primaryAxisAlignItems' in node && node.primaryAxisAlignItems !== 'MIN') {
+      base.primaryAxisAlignItems = node.primaryAxisAlignItems
+    }
+    if ('counterAxisAlignItems' in node && node.counterAxisAlignItems !== 'MIN') {
+      base.counterAxisAlignItems = node.counterAxisAlignItems
+    }
     if (
       'paddingLeft' in node &&
       (node.paddingLeft || node.paddingRight || node.paddingTop || node.paddingBottom)

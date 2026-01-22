@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Smart sizing in export JSX** — respect auto-layout sizing modes
+  - `HUG` → no width/height (content-sized)
+  - `FILL` → `w="fill"` / `h="fill"`
+  - `FIXED` → `w={200}` / `h={100}`
+
 - **Semantic HTML in export** — automatically convert to semantic HTML elements
   ```bash
   figma-use export jsx 1:23              # Input → <input>, Button → <button>

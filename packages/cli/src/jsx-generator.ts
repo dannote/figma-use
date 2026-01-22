@@ -347,8 +347,19 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
       attrs.push(createJsxAttribute('name', strLit(node.name)))
     }
   }
-  if (node.width) attrs.push(createJsxAttribute('w', numLit(node.width)))
-  if (node.height) attrs.push(createJsxAttribute('h', numLit(node.height)))
+  // Width: skip if HUG, use "fill" if FILL, otherwise fixed
+  if (node.layoutSizingHorizontal === 'FILL') {
+    attrs.push(createJsxAttribute('w', strLit('fill')))
+  } else if (node.layoutSizingHorizontal !== 'HUG' && node.width) {
+    attrs.push(createJsxAttribute('w', numLit(node.width)))
+  }
+
+  // Height: skip if HUG, use "fill" if FILL, otherwise fixed
+  if (node.layoutSizingVertical === 'FILL') {
+    attrs.push(createJsxAttribute('h', strLit('fill')))
+  } else if (node.layoutSizingVertical !== 'HUG' && node.height) {
+    attrs.push(createJsxAttribute('h', numLit(node.height)))
+  }
   if (node.fills?.[0]?.type === 'SOLID' && node.fills[0].color) {
     attrs.push(createJsxAttribute('bg', strLit(node.fills[0].color)))
   }
