@@ -3105,7 +3105,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'analyze-colors': {
-      const colors = new Map<string, { count: number; nodes: string[]; variableName: string | null; isStyle: boolean }>()
+      // Key: "hex|variableName" or "hex|" for hardcoded
+      const colors = new Map<string, { hex: string; count: number; nodes: string[]; variableName: string | null; isStyle: boolean }>()
       const variableCache = new Map<string, string>()
 
       async function getVariableName(varId: string): Promise<string | null> {
@@ -3120,18 +3121,25 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
       }
 
+      async function addColor(hex: string, varName: string | null, nodeId: string, isStyle: boolean) {
+        const key = `${hex}|${varName || ''}`
+        const entry = colors.get(key) || { hex, count: 0, nodes: [], variableName: varName, isStyle: false }
+        entry.count++
+        if (entry.nodes.length < 5) entry.nodes.push(nodeId)
+        if (isStyle) entry.isStyle = true
+        colors.set(key, entry)
+      }
+
       async function extractColors(node: SceneNode) {
+        const hasStyle = 'fillStyleId' in node && node.fillStyleId && typeof node.fillStyleId === 'string'
+
         if ('fills' in node && Array.isArray(node.fills)) {
           for (const fill of node.fills) {
             if (fill.type === 'SOLID' && fill.visible !== false) {
               const hex = rgbToHex(fill.color).toUpperCase()
               const varBinding = fill.boundVariables?.color
               const varName = varBinding ? await getVariableName(varBinding.id) : null
-              const entry = colors.get(hex) || { count: 0, nodes: [], variableName: null, isStyle: false }
-              entry.count++
-              if (entry.nodes.length < 5) entry.nodes.push(node.id)
-              if (varName && !entry.variableName) entry.variableName = varName
-              colors.set(hex, entry)
+              await addColor(hex, varName, node.id, !!hasStyle)
             }
           }
         }
@@ -3141,24 +3149,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
               const hex = rgbToHex(stroke.color).toUpperCase()
               const varBinding = stroke.boundVariables?.color
               const varName = varBinding ? await getVariableName(varBinding.id) : null
-              const entry = colors.get(hex) || { count: 0, nodes: [], variableName: null, isStyle: false }
-              entry.count++
-              if (entry.nodes.length < 5) entry.nodes.push(node.id)
-              if (varName && !entry.variableName) entry.variableName = varName
-              colors.set(hex, entry)
-            }
-          }
-        }
-        // Check for fill/stroke styles
-        if ('fillStyleId' in node && node.fillStyleId && typeof node.fillStyleId === 'string') {
-          // Has fill style - mark those colors
-          if ('fills' in node && Array.isArray(node.fills)) {
-            for (const fill of node.fills) {
-              if (fill.type === 'SOLID') {
-                const hex = rgbToHex(fill.color).toUpperCase()
-                const entry = colors.get(hex)
-                if (entry) entry.isStyle = true
-              }
+              await addColor(hex, varName, node.id, false)
             }
           }
         }
@@ -3169,13 +3160,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         await extractColors(node)
       }
 
-      const result = [...colors.entries()].map(([hex, data]) => ({
-        hex,
-        count: data.count,
-        nodes: data.nodes,
-        variableName: data.variableName,
-        isStyle: data.isStyle
-      }))
+      const result = [...colors.values()]
 
       return { colors: result, totalNodes: nodes.length }
     }
