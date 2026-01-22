@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`lint` command** — design linter with 17 rules for consistency, accessibility, and best practices
+  ```bash
+  figma-use lint                          # Recommended preset
+  figma-use lint --preset strict          # Stricter rules  
+  figma-use lint --preset accessibility   # A11y rules only
+  figma-use lint --rule color-contrast    # Specific rule
+  figma-use lint -v                       # Verbose with suggestions
+  figma-use lint --json                   # JSON output for CI
+  figma-use lint --list-rules             # Show all available rules
+  ```
+
+  **Rules by category:**
+  
+  | Category | Rules |
+  |----------|-------|
+  | Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required` |
+  | Layout | `prefer-auto-layout`, `pixel-perfect` |
+  | Typography | `text-style-required`, `min-text-size`, `no-mixed-styles` |
+  | Accessibility | `color-contrast`, `touch-target-size` |
+  | Structure | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
+  | Components | `no-detached-instances` |
+
+  **Presets:** `recommended`, `strict`, `accessibility`, `design-system`
+
+- New `packages/linter/` — standalone linting engine with ESLint-inspired architecture
+  - `defineRule()` helper for creating custom rules
+  - Configurable severity per rule (error/warning/info/off)
+  - Auto-fix support for fixable rules
+  - Console and JSON reporters
+
 - **`set text-resize` command** — control text auto-resize mode
   ```bash
   figma-use set text-resize <id> height          # Wrap text to width

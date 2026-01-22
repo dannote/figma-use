@@ -96,6 +96,7 @@ case 'my-command': {
 - Colors: hex format `#RGB`, `#RRGGBB`, `#RRGGBBAA`, or `var:VariableName` / `$VariableName`
 - Output: human-readable by default, `--json` for machine parsing
 - Inline styles: create commands accept `--fill`, `--stroke`, `--radius`, etc.
+- Terminal colors: use `picocolors` (`import pc from 'picocolors'`), never hardcode ANSI escapes
 
 ## No Inline Eval
 

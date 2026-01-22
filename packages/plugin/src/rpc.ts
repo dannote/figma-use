@@ -2834,6 +2834,149 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return results
     }
 
+    case 'lint-tree': {
+      const { rootId } = args as { rootId?: string }
+      let root: BaseNode
+
+      if (rootId) {
+        const node = await figma.getNodeByIdAsync(rootId)
+        if (!node) throw new Error(`Node ${rootId} not found`)
+        root = node
+      } else {
+        root = figma.currentPage
+      }
+
+      function serializeForLint(node: BaseNode): object {
+        const result: Record<string, unknown> = {
+          id: node.id,
+          name: node.name,
+          type: node.type
+        }
+
+        // Geometry
+        if ('x' in node) result.x = node.x
+        if ('y' in node) result.y = node.y
+        if ('width' in node) result.width = node.width
+        if ('height' in node) result.height = node.height
+        if ('rotation' in node) result.rotation = node.rotation
+
+        // Visibility
+        if ('visible' in node) result.visible = node.visible
+        if ('locked' in node) result.locked = node.locked
+
+        // Fills & Strokes with variable bindings
+        if ('fills' in node && Array.isArray(node.fills)) {
+          result.fills = node.fills.map((paint: Paint) => {
+            const p: Record<string, unknown> = {
+              type: paint.type,
+              visible: paint.visible !== false
+            }
+            if (paint.type === 'SOLID') {
+              p.color = {
+                r: paint.color.r,
+                g: paint.color.g,
+                b: paint.color.b
+              }
+              p.opacity = paint.opacity
+              // Check for variable binding
+              if ('boundVariables' in paint && paint.boundVariables?.color) {
+                p.boundVariables = { color: { id: paint.boundVariables.color.id } }
+              }
+            }
+            return p
+          })
+        }
+
+        if ('strokes' in node && Array.isArray(node.strokes)) {
+          result.strokes = node.strokes.map((paint: Paint) => {
+            const p: Record<string, unknown> = {
+              type: paint.type,
+              visible: paint.visible !== false
+            }
+            if (paint.type === 'SOLID') {
+              p.color = {
+                r: paint.color.r,
+                g: paint.color.g,
+                b: paint.color.b
+              }
+              p.opacity = paint.opacity
+              if ('boundVariables' in paint && paint.boundVariables?.color) {
+                p.boundVariables = { color: { id: paint.boundVariables.color.id } }
+              }
+            }
+            return p
+          })
+        }
+
+        if ('strokeWeight' in node) result.strokeWeight = node.strokeWeight
+        if ('cornerRadius' in node) result.cornerRadius = node.cornerRadius
+
+        // Layout
+        if ('layoutMode' in node) {
+          result.layoutMode = node.layoutMode
+          if ('itemSpacing' in node) result.itemSpacing = node.itemSpacing
+          if ('paddingTop' in node) {
+            result.paddingTop = node.paddingTop
+            result.paddingRight = node.paddingRight
+            result.paddingBottom = node.paddingBottom
+            result.paddingLeft = node.paddingLeft
+          }
+        }
+
+        // Text
+        if (node.type === 'TEXT') {
+          const textNode = node as TextNode
+          result.characters = textNode.characters
+          result.fontSize = typeof textNode.fontSize === 'number' ? textNode.fontSize : undefined
+          result.fontName = typeof textNode.fontName === 'object' ? textNode.fontName : undefined
+          result.lineHeight = typeof textNode.lineHeight === 'object' ? textNode.lineHeight : undefined
+          result.textStyleId = textNode.textStyleId || undefined
+        }
+
+        // Components
+        if (node.type === 'INSTANCE') {
+          const instance = node as InstanceNode
+          result.componentId = instance.componentId
+          if (instance.mainComponent) {
+            result.mainComponent = {
+              id: instance.mainComponent.id,
+              name: instance.mainComponent.name
+            }
+          }
+        }
+
+        // Effects
+        if ('effects' in node && Array.isArray(node.effects) && node.effects.length > 0) {
+          result.effects = node.effects.map((e) => ({
+            type: e.type,
+            visible: e.visible,
+            radius: 'radius' in e ? e.radius : undefined,
+            color: 'color' in e ? e.color : undefined,
+            offset: 'offset' in e ? e.offset : undefined
+          }))
+        }
+
+        // Children (recursive)
+        if ('children' in node && (node as ChildrenMixin).children.length > 0) {
+          result.children = (node as ChildrenMixin).children.map(serializeForLint)
+        }
+
+        return result
+      }
+
+      return JSON.stringify(serializeForLint(root))
+    }
+
+    case 'variable-list': {
+      const variables = await figma.variables.getLocalVariablesAsync()
+      return JSON.stringify(variables.map((v) => ({
+        id: v.id,
+        name: v.name,
+        resolvedType: v.resolvedType,
+        valuesByMode: v.valuesByMode
+      })))
+    }
+
     default:
       throw new Error(`Unknown command: ${command}`)
   }

@@ -9,6 +9,7 @@
   "dependencies": {
     "citty": "^0.1.6",
     "consola": "^3.4.2",
+    "diff": "^8.0.3",
     "esbuild": "^0.25.4",
     "fontoxpath": "^3.34.0",
     "postcss": "^8.5.6",

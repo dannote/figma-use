@@ -362,6 +362,47 @@ figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
 
 Full XPath 3.1 support — predicates, functions, arithmetic, axes.
 
+### Lint
+
+Check designs for consistency, accessibility, and best practices:
+
+```bash
+figma-use lint                          # Recommended rules
+figma-use lint --preset strict          # Stricter for production
+figma-use lint --preset accessibility   # A11y checks only
+figma-use lint -v                       # With fix suggestions
+```
+
+Output:
+```
+✖ Header/Title (1:234)
+    ✖  Contrast ratio 2.1:1 is below AA threshold (4.5:1)    color-contrast
+    ⚠  Touch target 32x32 is below minimum 44x44             touch-target-size
+
+⚠ Card/Body (1:567)  
+    ⚠  Hardcoded fill color #1A1A1A                          no-hardcoded-colors
+    ℹ  Frame with 3 children doesn't use Auto Layout         prefer-auto-layout
+
+────────────────────────────────────────────────────────────────
+✖ 1 error  ⚠ 3 warnings  ℹ 1 info
+```
+
+**17 rules** across 6 categories:
+
+| Category | Rules |
+|----------|-------|
+| Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required` |
+| Layout | `prefer-auto-layout`, `pixel-perfect` |
+| Typography | `text-style-required`, `min-text-size`, `no-mixed-styles` |
+| Accessibility | `color-contrast`, `touch-target-size` |
+| Structure | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
+| Components | `no-detached-instances` |
+
+JSON output for CI/CD:
+```bash
+figma-use lint --json > report.json
+```
+
 ## Full Command Reference
 
 See [REFERENCE.md](./REFERENCE.md) for the complete list of 100+ commands.

@@ -343,6 +343,32 @@ figma-use viewport zoom-to-fit <id>
 
 Full reference: [REFERENCE.md](https://github.com/dannote/figma-use/blob/master/REFERENCE.md)
 
+## Lint
+
+Check designs for consistency and accessibility issues:
+
+```bash
+figma-use lint                          # Recommended preset
+figma-use lint --preset strict          # Stricter rules
+figma-use lint --preset accessibility   # A11y only (contrast, touch targets)
+figma-use lint --rule color-contrast    # Single rule
+figma-use lint -v                       # With fix suggestions
+figma-use lint --json                   # For CI/CD
+figma-use lint --list-rules             # Show all rules
+```
+
+**Presets:** `recommended`, `strict`, `accessibility`, `design-system`
+
+**17 rules:**
+- Design tokens: `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required`
+- Layout: `prefer-auto-layout`, `pixel-perfect`
+- Typography: `text-style-required`, `min-text-size`, `no-mixed-styles`
+- Accessibility: `color-contrast`, `touch-target-size`
+- Structure: `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups`
+- Components: `no-detached-instances`
+
+Exit code 1 if errors found — use in CI pipelines.
+
 ## Output
 
 Human-readable by default. Add `--json` for machine parsing.

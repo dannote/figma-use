@@ -1,0 +1,13 @@
+{
+  "name": "@anthropic-tools/figma-linter",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./rules": "./src/rules/index.ts",
+    "./presets": "./src/config/presets.ts"
+  },
+  "files": [
+    "src"
+  ]
+}
