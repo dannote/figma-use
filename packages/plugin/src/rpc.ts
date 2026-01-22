@@ -1001,6 +1001,45 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return clones.length === 1 ? clones[0] : clones
     }
 
+    case 'replace-node-with': {
+      const { targetId, sourceId } = args as { targetId: string; sourceId: string }
+      const target = (await figma.getNodeByIdAsync(targetId)) as SceneNode | null
+      const source = (await figma.getNodeByIdAsync(sourceId)) as SceneNode | null
+
+      if (!target) throw new Error('Target node not found')
+      if (!source) throw new Error('Source node not found')
+
+      const parent = target.parent
+      if (!parent || !('children' in parent)) throw new Error('Target has no valid parent')
+
+      const index = parent.children.indexOf(target)
+      const x = target.x
+      const y = target.y
+
+      // Create replacement: instance if component, clone otherwise
+      let replacement: SceneNode
+      if (source.type === 'COMPONENT') {
+        replacement = (source as ComponentNode).createInstance()
+      } else {
+        replacement = source.clone()
+      }
+
+      // Insert at same position
+      parent.insertChild(index, replacement)
+      replacement.x = x
+      replacement.y = y
+
+      // Remove original target
+      target.remove()
+
+      // If source was a temp render (not a component), remove it too
+      if (source.type !== 'COMPONENT' && source.parent) {
+        source.remove()
+      }
+
+      return serializeNode(replacement)
+    }
+
     case 'convert-to-component': {
       const { id } = args as { id: string }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null

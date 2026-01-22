@@ -1,5 +1,4 @@
 import { defineCommand } from 'citty'
-import * as esbuild from 'esbuild'
 import { existsSync } from 'fs'
 import { resolve } from 'path'
 import * as React from 'react'
@@ -10,77 +9,11 @@ import {
   loadVariablesIntoRegistry,
   isRegistryLoaded,
   preloadIcons,
-  collectIcons
+  collectIcons,
+  readStdin,
+  buildComponent
 } from '../render/index.ts'
 import { renderWithWidgetApi } from '../render/widget-renderer.ts'
-
-async function readStdin(): Promise<string> {
-  const chunks: Buffer[] = []
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk)
-  }
-  return Buffer.concat(chunks).toString('utf-8')
-}
-
-const MOCK_RENDER_MODULE = `
-  export const Frame = 'frame'
-  export const Text = 'text'
-  export const Rectangle = 'rectangle'
-  export const Ellipse = 'ellipse'
-  export const Line = 'line'
-  export const Image = 'image'
-  export const SVG = 'svg'
-  export const Icon = (props) => ({ __icon: true, name: props.name, size: props.size, color: props.color })
-  export const View = 'frame'
-  export const Rect = 'rectangle'
-  export const Section = 'section'
-  export const Group = 'group'
-  export const defineComponent = (name, el) => () => el
-  export const defineVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, v.value]))
-`
-
-async function buildComponent(input: string): Promise<Function> {
-  let code = input.trim()
-
-  // Pure JSX snippet (no import/export) - wrap it
-  if (!code.includes('import ') && !code.includes('export ')) {
-    code = `import { Frame, Text, Rectangle, Ellipse, Line, Image, SVG, Icon } from 'figma-use/render'
-export default () => ${code}`
-  }
-  // Has imports but no export
-  else if (!code.includes('export ')) {
-    code = `${code}\nexport default () => null`
-  }
-
-  const result = await esbuild.build({
-    stdin: { contents: code, loader: 'tsx' },
-    bundle: true,
-    write: false,
-    format: 'iife',
-    globalName: '__mod',
-    jsx: 'transform',
-    jsxFactory: 'React.createElement',
-    plugins: [
-      {
-        name: 'mock-imports',
-        setup(build) {
-          build.onResolve({ filter: /^figma-use\/render$|^\./ }, (args) => ({
-            path: args.path,
-            namespace: 'mock'
-          }))
-          build.onLoad({ filter: /.*/, namespace: 'mock' }, () => ({
-            contents: MOCK_RENDER_MODULE,
-            loader: 'js'
-          }))
-        }
-      }
-    ]
-  })
-
-  const bundled = result.outputFiles![0]!.text
-  const fn = new Function('React', `${bundled}; return __mod.default`)
-  return fn(React)
-}
 
 const HELP = `
 Render JSX to Figma.

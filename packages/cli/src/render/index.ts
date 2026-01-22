@@ -43,3 +43,5 @@ export {
   resetComponentSetRegistry,
   getComponentSetRegistry
 } from './component-set.tsx'
+
+export { buildComponent, readStdin, renderFromString } from './render-from-string.ts'
