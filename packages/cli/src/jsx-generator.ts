@@ -239,6 +239,10 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
     if (node.fills?.[0]?.color && node.fills[0].color !== '#000000') {
       attrs.push(createJsxAttribute('color', strLit(node.fills[0].color)))
     }
+    // textAutoResize: WIDTH_AND_HEIGHT = no wrap (default), HEIGHT = wrap
+    if (node.textAutoResize === 'HEIGHT') {
+      attrs.push(createJsxAttribute('wrap', ts.factory.createTrue()))
+    }
     return ts.factory.createJsxElement(
       ts.factory.createJsxOpeningElement(
         ts.factory.createIdentifier('Text'),

@@ -33,6 +33,7 @@ interface TextProps extends Omit<BaseProps, 'children'> {
   color?: string
   font?: string
   textAlign?: 'left' | 'center' | 'right'
+  wrap?: boolean
 }
 
 const SYSTEM_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -110,14 +111,15 @@ export function Frame(props: BaseProps) {
 }
 
 export function Text(props: TextProps) {
-  const { children, name, size, weight, color, font, textAlign, ...rest } = props
+  const { children, name, size, weight, color, font, textAlign, wrap, ...rest } = props
   const style: CSSProperties = {
     ...propsToStyle(rest),
     fontSize: size,
     fontWeight: weight === 'bold' ? 700 : weight,
     color,
     fontFamily: font ? `"${font}", ${SYSTEM_FONT}` : SYSTEM_FONT,
-    textAlign
+    textAlign,
+    whiteSpace: wrap ? 'normal' : 'nowrap'
   }
 
   return (

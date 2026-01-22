@@ -17,6 +17,7 @@ import rotation from './rotation.ts'
 import strokeAlign from './stroke-align.ts'
 import stroke from './stroke.ts'
 import text from './text.ts'
+import textResize from './text-resize.ts'
 import visible from './visible.ts'
 
 export default defineCommand({
@@ -31,6 +32,7 @@ export default defineCommand({
     visible,
     locked,
     text,
+    'text-resize': textResize,
     font,
     'font-range': fontRange,
     effect,

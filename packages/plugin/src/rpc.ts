@@ -375,6 +375,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           const t = n as TextNode
           base.characters = t.characters
           if (typeof t.fontSize === 'number') base.fontSize = t.fontSize
+          base.textAutoResize = t.textAutoResize
           if (typeof t.fontName === 'object') {
             base.fontFamily = t.fontName.family
             base.fontStyle = t.fontName.style
@@ -1166,6 +1167,16 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const fontName = node.fontName as FontName
       await loadFont(fontName.family, fontName.style)
       node.characters = text
+      return serializeNode(node)
+    }
+
+    case 'set-text-auto-resize': {
+      const { id, mode } = args as { id: string; mode: 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'TRUNCATE' }
+      const node = (await figma.getNodeByIdAsync(id)) as TextNode | null
+      if (!node || node.type !== 'TEXT') throw new Error('Text node not found')
+      const fontName = node.fontName as FontName
+      await loadFont(fontName.family, fontName.style)
+      node.textAutoResize = mode
       return serializeNode(node)
     }
 
