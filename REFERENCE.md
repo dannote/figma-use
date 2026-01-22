@@ -105,6 +105,8 @@ figma-use node bounds <id>                 # Position, size, center point
 figma-use node delete <id> [id2] [id3...]
 figma-use node clone <id> [id2...]          # Clone in same parent
 figma-use node clone <id> --parent <pid>   # Clone to different parent
+figma-use node replace-with <id> --target <source-id>  # Replace with node/component
+echo '<Frame .../>' | figma-use node replace-with <id> --stdin  # Replace with JSX
 figma-use node rename <id> "New Name"
 figma-use node move <id> --x 100 --y 200
 figma-use node move <id> --dx 10 --dy -5   # Relative move

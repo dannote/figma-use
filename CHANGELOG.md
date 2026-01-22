@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`node replace-with`** — replace node with another node or JSX from stdin
+  ```bash
+  figma-use node replace-with <id> --target <component-id>  # Creates instance
+  echo '<Frame .../>' | figma-use node replace-with <id> --stdin
+  ```
+  If target is a component, creates an instance. Otherwise clones the node.
+
 - **`node ancestors`** — get parent chain from node to page root
   ```bash
   figma-use node ancestors <id>           # Up to 10 ancestors

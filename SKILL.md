@@ -455,6 +455,15 @@ figma-use node set-parent <new-id> --parent <target-page-id>
 figma-use node move <new-id> --x 50 --y 50
 ```
 
+### Replace node
+```bash
+# Replace with component (creates instance)
+figma-use node replace-with <id> --target <component-id>
+
+# Replace with JSX from stdin
+echo '<Icon name="lucide:x" size={16} />' | figma-use node replace-with <id> --stdin
+```
+
 ### Convert to component
 ```bash
 figma-use node to-component <id>
