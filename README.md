@@ -418,6 +418,37 @@ figma-use mcp serve
 
 Exposes 90+ tools. See [MCP.md](./MCP.md) for setup.
 
+## Configuration
+
+For Storybook export and linting, create a config file:
+
+```bash
+figma-use init
+```
+
+Creates `.figma-use.json`:
+
+```json
+{
+  "storybook": {
+    "page": "Components",
+    "out": "./stories",
+    "matchIcons": true,
+    "preferIcons": ["lucide", "tabler"]
+  },
+  "lint": {
+    "preset": "recommended"
+  },
+  "format": {
+    "pretty": true,
+    "semi": false,
+    "singleQuote": true
+  }
+}
+```
+
+CLI arguments override config values.
+
 ## For AI Agents
 
 Includes [SKILL.md](./SKILL.md) — a reference for Claude Code, Cursor, and other agents.
