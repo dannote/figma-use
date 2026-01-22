@@ -1,5 +1,4 @@
 import { createHash } from 'crypto'
-import * as esbuild from 'esbuild'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -12,6 +11,7 @@ export { getFileKey } from './cdp.ts'
 let rpcInjected = false
 let currentRpcHash: string | null = null
 let useDaemon: boolean | null = null
+let esbuildModule: typeof import('esbuild') | null = null
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -30,11 +30,36 @@ function getPluginDir(): string {
   return join(cliDir, '../../packages/plugin/src')
 }
 
+import { existsSync, readFileSync, writeFileSync, statSync } from 'fs'
+import { tmpdir } from 'os'
+
+const RPC_CACHE_PATH = join(tmpdir(), 'figma-use-rpc-cache.json')
+
 async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   const pluginDir = getPluginDir()
   const entryPoint = join(pluginDir, 'rpc.ts')
 
-  const result = await esbuild.build({
+  // Check cache - if rpc.ts hasn't changed, use cached bundle
+  const rpcStat = statSync(entryPoint)
+  const rpcMtime = rpcStat.mtimeMs
+
+  if (existsSync(RPC_CACHE_PATH)) {
+    try {
+      const cache = JSON.parse(readFileSync(RPC_CACHE_PATH, 'utf-8'))
+      if (cache.mtime === rpcMtime && cache.code && cache.hash) {
+        return { code: cache.code, hash: cache.hash }
+      }
+    } catch {
+      // Cache corrupted, rebuild
+    }
+  }
+
+  // Lazy load esbuild only when needed
+  if (!esbuildModule) {
+    esbuildModule = await import('esbuild')
+  }
+
+  const result = await esbuildModule.build({
     entryPoints: [entryPoint],
     bundle: true,
     write: false,
@@ -45,6 +70,13 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
 
   const code = result.outputFiles![0]!.text
   const hash = createHash('sha256').update(code).digest('hex').slice(0, 16)
+
+  // Save to cache
+  try {
+    writeFileSync(RPC_CACHE_PATH, JSON.stringify({ mtime: rpcMtime, code, hash }))
+  } catch {
+    // Ignore cache write errors
+  }
 
   return { code, hash }
 }
