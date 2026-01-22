@@ -21,6 +21,10 @@ export const recommended: Preset = {
     'no-deeply-nested': 'warning',
     'no-empty-frames': 'info',
     'pixel-perfect': 'info',
+    'no-groups': 'info',
+    'effect-style-required': 'info',
+    'no-mixed-styles': 'warning',
+    'no-detached-instances': 'off',
   },
 }
 
@@ -39,6 +43,10 @@ export const strict: Preset = {
     'no-deeply-nested': 'error',
     'no-empty-frames': 'warning',
     'pixel-perfect': 'warning',
+    'no-groups': 'warning',
+    'effect-style-required': 'warning',
+    'no-mixed-styles': 'error',
+    'no-detached-instances': 'warning',
   },
 }
 
@@ -58,6 +66,10 @@ export const accessibility: Preset = {
     'no-deeply-nested': 'off',
     'no-empty-frames': 'off',
     'pixel-perfect': 'off',
+    'no-groups': 'off',
+    'effect-style-required': 'off',
+    'no-mixed-styles': 'off',
+    'no-detached-instances': 'off',
   },
 }
 
@@ -76,6 +88,10 @@ export const designSystem: Preset = {
     'no-deeply-nested': 'error',
     'no-empty-frames': 'error',
     'pixel-perfect': 'error',
+    'no-groups': 'error',
+    'effect-style-required': 'error',
+    'no-mixed-styles': 'error',
+    'no-detached-instances': 'error',
   },
 }
 

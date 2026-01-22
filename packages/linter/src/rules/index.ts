@@ -11,6 +11,10 @@ export { default as noHiddenLayers } from './no-hidden-layers.ts'
 export { default as noDeeplyNested } from './no-deeply-nested.ts'
 export { default as noEmptyFrames } from './no-empty-frames.ts'
 export { default as pixelPerfect } from './pixel-perfect.ts'
+export { default as noGroups } from './no-groups.ts'
+export { default as effectStyleRequired } from './effect-style-required.ts'
+export { default as noMixedStyles } from './no-mixed-styles.ts'
+export { default as noDetachedInstances } from './no-detached-instances.ts'
 
 import noHardcodedColors from './no-hardcoded-colors.ts'
 import noDefaultNames from './no-default-names.ts'
@@ -25,6 +29,10 @@ import noHiddenLayers from './no-hidden-layers.ts'
 import noDeeplyNested from './no-deeply-nested.ts'
 import noEmptyFrames from './no-empty-frames.ts'
 import pixelPerfect from './pixel-perfect.ts'
+import noGroups from './no-groups.ts'
+import effectStyleRequired from './effect-style-required.ts'
+import noMixedStyles from './no-mixed-styles.ts'
+import noDetachedInstances from './no-detached-instances.ts'
 
 import type { Rule } from '../core/types.ts'
 
@@ -42,4 +50,8 @@ export const allRules: Record<string, Rule> = {
   'no-deeply-nested': noDeeplyNested,
   'no-empty-frames': noEmptyFrames,
   'pixel-perfect': pixelPerfect,
+  'no-groups': noGroups,
+  'effect-style-required': effectStyleRequired,
+  'no-mixed-styles': noMixedStyles,
+  'no-detached-instances': noDetachedInstances,
 }

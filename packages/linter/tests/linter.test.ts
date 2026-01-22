@@ -222,4 +222,80 @@ describe('Linter', () => {
 
     expect(result.errorCount + result.warningCount + result.infoCount).toBe(result.messages.length)
   })
+
+  test('detects groups', () => {
+    const nodes: FigmaNode[] = [
+      {
+        id: '1:1',
+        name: 'My Group',
+        type: 'GROUP',
+        children: [
+          { id: '1:2', name: 'Child', type: 'RECTANGLE' },
+        ],
+      },
+    ]
+
+    const linter = createLinter({ rules: ['no-groups'] })
+    const result = linter.lint(nodes)
+
+    expect(result.messages.length).toBe(1)
+    expect(result.messages[0].ruleId).toBe('no-groups')
+  })
+
+  test('detects effects without styles', () => {
+    const nodes: FigmaNode[] = [
+      {
+        id: '1:1',
+        name: 'Card',
+        type: 'FRAME',
+        effects: [
+          { type: 'DROP_SHADOW', visible: true, radius: 10 },
+        ],
+      },
+    ]
+
+    const linter = createLinter({ rules: ['effect-style-required'] })
+    const result = linter.lint(nodes)
+
+    expect(result.messages.length).toBe(1)
+    expect(result.messages[0].message).toContain('Drop shadow')
+  })
+
+  test('detects mixed text styles', () => {
+    const nodes: FigmaNode[] = [
+      {
+        id: '1:1',
+        name: 'Mixed Text',
+        type: 'TEXT',
+        characters: 'Hello World with different styles',
+        // fontSize is undefined when mixed
+      },
+    ]
+
+    const linter = createLinter({ rules: ['no-mixed-styles'] })
+    const result = linter.lint(nodes)
+
+    expect(result.messages.length).toBe(1)
+    expect(result.messages[0].ruleId).toBe('no-mixed-styles')
+  })
+
+  test('detects potential detached instances', () => {
+    const nodes: FigmaNode[] = [
+      {
+        id: '1:1',
+        name: 'Button Primary',
+        type: 'FRAME',
+        layoutMode: 'HORIZONTAL',
+        children: [
+          { id: '1:2', name: 'Label', type: 'TEXT', characters: 'Click me' },
+        ],
+      },
+    ]
+
+    const linter = createLinter({ rules: ['no-detached-instances'] })
+    const result = linter.lint(nodes)
+
+    expect(result.messages.length).toBe(1)
+    expect(result.messages[0].message).toContain('Button Primary')
+  })
 })
