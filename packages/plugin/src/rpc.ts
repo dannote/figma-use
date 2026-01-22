@@ -340,7 +340,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node) throw new Error('Node not found')
 
-      const result: Record<string, unknown> = { id: node.id, name: node.name }
+      const result: Record<string, unknown> = { id: node.id, name: node.name, type: node.type }
 
       if ('fills' in node && Array.isArray(node.fills)) {
         const fillBindings: Array<{ index: number; variableId: string; variableName: string }> = []
