@@ -362,28 +362,36 @@ figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
 
 Full XPath 3.1 support — predicates, functions, arithmetic, axes.
 
-### Analyze Clusters
+### Analyze
 
-Find repeated patterns in a design — potential components that should be extracted:
+Discovery tools for understanding design systems:
 
 ```bash
+# Find repeated patterns (potential components)
 figma-use analyze clusters
+
+# Color palette — usage frequency, variables vs hardcoded
+figma-use analyze colors
+figma-use analyze colors --show-similar    # Find colors to merge
+
+# Typography — all font combinations
+figma-use analyze typography
+figma-use analyze typography --group-by size
+
+# Spacing — gap/padding values, grid compliance
+figma-use analyze spacing --grid 8
 ```
 
-Output:
+Example output:
 ```
 [0] 48× frame "Header" pattern (100% match)
     1280×56 | Frame > [Frame×2, Text]
-    examples: 53171:21628, 53171:21704, 53171:21768
+    examples: 53171:21628, 53171:21704
 
-[1] 72× frame "LegendItem" pattern (87% match)
-    212×40 (±8px) | Frame > [Icon, Text]
-    examples: 53171:18929, 53171:18971, 53171:19013
-
-12 clusters from 1847 nodes (892 clustered)
+#303030  ████████████████████ 1840× (var)
+#E5E5E5  ████████████████████ 1726× (var)
+#000000  ████████ 238×
 ```
-
-Uses fuzzy matching to handle hand-drawn variations. Confidence score shows how consistent the instances are.
 
 ### Lint (Experimental)
 

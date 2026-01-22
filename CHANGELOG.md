@@ -13,15 +13,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`analyze clusters` command** — find repeated design patterns (potential components)
+- **`analyze` commands** — design analysis tools for discovery and audit
+
+  **`analyze clusters`** — find repeated patterns (potential components)
   ```bash
   figma-use analyze clusters                # Find all clusters
   figma-use analyze clusters --limit 10     # Show top 10
   figma-use analyze clusters --min-count 5  # Min 5 instances
-  figma-use analyze clusters --min-size 50  # Min 50px nodes
-  figma-use analyze clusters --json         # JSON output
   ```
-  Uses fuzzy matching with size buckets to handle hand-drawn variations. Shows confidence score (100% = all identical, lower = variations exist).
+  Uses fuzzy matching with size buckets. Shows confidence score.
+
+  **`analyze colors`** — color palette usage
+  ```bash
+  figma-use analyze colors                  # Colors by frequency
+  figma-use analyze colors --show-similar   # Find similar colors to merge
+  ```
+  Shows which colors come from variables/styles vs hardcoded.
+
+  **`analyze typography`** — font usage map
+  ```bash
+  figma-use analyze typography              # All font combinations
+  figma-use analyze typography --group-by size   # Group by size
+  figma-use analyze typography --group-by family # Group by family
+  ```
+
+  **`analyze spacing`** — gap and padding values
+  ```bash
+  figma-use analyze spacing                 # All spacing values
+  figma-use analyze spacing --grid 8        # Warn if not divisible by 8
+  ```
 
 - **V8 compile cache** — 25% faster startup on repeated runs (Node.js 22+)
 

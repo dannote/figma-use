@@ -3104,6 +3104,169 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return { clusters: result, totalNodes: nodes.length }
     }
 
+    case 'analyze-colors': {
+      const colors = new Map<string, { count: number; nodes: string[]; isVariable: boolean; isStyle: boolean }>()
+
+      function extractColors(node: SceneNode) {
+        if ('fills' in node && Array.isArray(node.fills)) {
+          for (const fill of node.fills) {
+            if (fill.type === 'SOLID' && fill.visible !== false) {
+              const hex = rgbToHex(fill.color).toUpperCase()
+              const isVariable = fill.boundVariables?.color !== undefined
+              const entry = colors.get(hex) || { count: 0, nodes: [], isVariable: false, isStyle: false }
+              entry.count++
+              if (entry.nodes.length < 5) entry.nodes.push(node.id)
+              if (isVariable) entry.isVariable = true
+              colors.set(hex, entry)
+            }
+          }
+        }
+        if ('strokes' in node && Array.isArray(node.strokes)) {
+          for (const stroke of node.strokes) {
+            if (stroke.type === 'SOLID' && stroke.visible !== false) {
+              const hex = rgbToHex(stroke.color).toUpperCase()
+              const isVariable = stroke.boundVariables?.color !== undefined
+              const entry = colors.get(hex) || { count: 0, nodes: [], isVariable: false, isStyle: false }
+              entry.count++
+              if (entry.nodes.length < 5) entry.nodes.push(node.id)
+              if (isVariable) entry.isVariable = true
+              colors.set(hex, entry)
+            }
+          }
+        }
+        // Check for fill/stroke styles
+        if ('fillStyleId' in node && node.fillStyleId && typeof node.fillStyleId === 'string') {
+          // Has fill style - mark those colors
+          if ('fills' in node && Array.isArray(node.fills)) {
+            for (const fill of node.fills) {
+              if (fill.type === 'SOLID') {
+                const hex = rgbToHex(fill.color).toUpperCase()
+                const entry = colors.get(hex)
+                if (entry) entry.isStyle = true
+              }
+            }
+          }
+        }
+      }
+
+      const nodes = figma.currentPage.findAll()
+      for (const node of nodes) {
+        extractColors(node)
+      }
+
+      const result = [...colors.entries()].map(([hex, data]) => ({
+        hex,
+        count: data.count,
+        nodes: data.nodes,
+        isVariable: data.isVariable,
+        isStyle: data.isStyle
+      }))
+
+      return { colors: result, totalNodes: nodes.length }
+    }
+
+    case 'analyze-typography': {
+      const styles = new Map<string, {
+        family: string
+        size: number
+        weight: string
+        lineHeight: string
+        count: number
+        nodes: string[]
+        isStyle: boolean
+      }>()
+
+      const nodes = figma.currentPage.findAll(n => n.type === 'TEXT') as TextNode[]
+
+      for (const node of nodes) {
+        const font = node.fontName
+        if (font === figma.mixed) continue
+
+        const family = font.family
+        const weight = font.style
+        const size = typeof node.fontSize === 'number' ? node.fontSize : 0
+        const lh = node.lineHeight
+        const lineHeight = lh === figma.mixed ? 'mixed' :
+          lh.unit === 'AUTO' ? 'auto' :
+          lh.unit === 'PERCENT' ? `${lh.value}%` : `${lh.value}px`
+
+        const key = `${family}|${size}|${weight}|${lineHeight}`
+        const hasStyle = node.textStyleId && typeof node.textStyleId === 'string'
+
+        const entry = styles.get(key) || {
+          family,
+          size,
+          weight,
+          lineHeight,
+          count: 0,
+          nodes: [],
+          isStyle: false
+        }
+        entry.count++
+        if (entry.nodes.length < 5) entry.nodes.push(node.id)
+        if (hasStyle) entry.isStyle = true
+        styles.set(key, entry)
+      }
+
+      return {
+        styles: [...styles.values()],
+        totalTextNodes: nodes.length
+      }
+    }
+
+    case 'analyze-spacing': {
+      const gaps = new Map<number, { count: number; nodes: string[] }>()
+      const paddings = new Map<number, { count: number; nodes: string[] }>()
+
+      const nodes = figma.currentPage.findAll()
+
+      for (const node of nodes) {
+        if (!('layoutMode' in node) || node.layoutMode === 'NONE') continue
+
+        // Gap (itemSpacing)
+        if ('itemSpacing' in node && typeof node.itemSpacing === 'number') {
+          const val = Math.round(node.itemSpacing)
+          const entry = gaps.get(val) || { count: 0, nodes: [] }
+          entry.count++
+          if (entry.nodes.length < 5) entry.nodes.push(node.id)
+          gaps.set(val, entry)
+        }
+
+        // Padding
+        if ('paddingTop' in node) {
+          const values = [
+            Math.round(node.paddingTop || 0),
+            Math.round(node.paddingRight || 0),
+            Math.round(node.paddingBottom || 0),
+            Math.round(node.paddingLeft || 0)
+          ]
+          for (const val of values) {
+            if (val === 0) continue
+            const entry = paddings.get(val) || { count: 0, nodes: [] }
+            entry.count++
+            if (entry.nodes.length < 5) entry.nodes.push(node.id)
+            paddings.set(val, entry)
+          }
+        }
+      }
+
+      return {
+        gaps: [...gaps.entries()].map(([value, data]) => ({
+          value,
+          type: 'gap' as const,
+          count: data.count,
+          nodes: data.nodes
+        })),
+        paddings: [...paddings.entries()].map(([value, data]) => ({
+          value,
+          type: 'padding' as const,
+          count: data.count,
+          nodes: data.nodes
+        })),
+        totalNodes: nodes.length
+      }
+    }
+
     default:
       throw new Error(`Unknown command: ${command}`)
   }

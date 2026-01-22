@@ -343,24 +343,34 @@ figma-use viewport zoom-to-fit <id>
 
 Full reference: [REFERENCE.md](https://github.com/dannote/figma-use/blob/master/REFERENCE.md)
 
-## Analyze Clusters
+## Analyze
 
-Find repeated patterns — potential components to extract:
+Discovery tools for understanding design systems:
 
 ```bash
+# Repeated patterns — potential components
 figma-use analyze clusters
-figma-use analyze clusters --limit 10      # Top 10 clusters
-figma-use analyze clusters --min-count 5   # At least 5 instances
-figma-use analyze clusters --json          # Machine-readable
+figma-use analyze clusters --min-count 5
+
+# Color palette
+figma-use analyze colors                   # Usage frequency
+figma-use analyze colors --show-similar    # Find similar colors to merge
+
+# Typography
+figma-use analyze typography               # All font combinations
+figma-use analyze typography --group-by size
+
+# Spacing
+figma-use analyze spacing --grid 8         # Check 8px grid compliance
 ```
 
 **Use cases:**
 - **Component extraction** — find copy-pasted elements that should be components
-- **Design audit** — identify inconsistencies (similar but not identical elements)
-- **Refactoring** — discover patterns before restructuring a file
+- **Design audit** — identify inconsistencies, similar-but-different elements
+- **Design system creation** — discover existing colors, typography, spacing patterns
 - **Onboarding** — understand structure of unfamiliar design files
 
-Output shows count, structure signature, confidence (100% = identical, lower = variations), and example IDs.
+Output shows counts, examples, and warnings (e.g., off-grid spacing, hardcoded colors).
 
 ## Lint (Experimental)
 

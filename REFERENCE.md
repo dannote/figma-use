@@ -276,16 +276,32 @@ figma-use component delete-prop <id> --name "Label"
 
 ## Analyze
 
+Design analysis tools for discovery and audit.
+
 ```bash
-figma-use analyze clusters                 # Find repeated patterns (potential components)
+# Clusters — find repeated patterns (potential components)
+figma-use analyze clusters                 # Find all clusters
 figma-use analyze clusters --limit 10      # Top 10 clusters
 figma-use analyze clusters --min-count 5   # Require at least 5 instances
 figma-use analyze clusters --min-size 50   # Skip nodes smaller than 50px
-figma-use analyze clusters --json          # JSON output
+
+# Colors — palette usage
+figma-use analyze colors                   # Colors by frequency
+figma-use analyze colors --show-similar    # Find similar colors to merge
+figma-use analyze colors --threshold 20    # Similarity threshold (0-50)
+
+# Typography — font usage
+figma-use analyze typography               # All font combinations
+figma-use analyze typography --group-by size    # Group by font size
+figma-use analyze typography --group-by family  # Group by font family
+figma-use analyze typography --group-by weight  # Group by weight
+
+# Spacing — gap and padding values
+figma-use analyze spacing                  # All spacing values
+figma-use analyze spacing --grid 8         # Warn if not divisible by 8px
 ```
 
-Output shows pattern signature, instance count, confidence score, and example node IDs.
-Uses fuzzy matching (size buckets) to handle hand-drawn variations.
+All commands support `--json` for machine-readable output.
 
 ## Lint (Experimental)
 
