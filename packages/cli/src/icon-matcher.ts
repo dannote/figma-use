@@ -82,9 +82,9 @@ function isLikelyIcon(node: FigmaNode): boolean {
   const h = node.height ?? 0
   if (w < 4 || w > 128 || h < 4 || h > 128) return false
 
-  // Roughly square
+  // Roughly square (allow some stretch for lock icons etc)
   const ratio = Math.max(w, h) / Math.min(w, h)
-  if (ratio > 1.5) return false
+  if (ratio > 2) return false
 
   return true
 }

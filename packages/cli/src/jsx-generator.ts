@@ -34,11 +34,7 @@ const RESERVED = new Set([
 ])
 
 function findIconColor(node: FigmaNode): string | null {
-  if (
-    node.fills?.[0]?.type === 'SOLID' &&
-    node.fills[0].color &&
-    node.fills[0].color !== '#FFFFFF'
-  ) {
+  if (node.fills?.[0]?.type === 'SOLID' && node.fills[0].color) {
     return node.fills[0].color
   }
   if (node.strokes?.[0]?.type === 'SOLID' && node.strokes[0].color) {
@@ -197,6 +193,9 @@ export interface JsxContext {
 }
 
 export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | null {
+  // Skip hidden nodes
+  if (node.visible === false) return null
+
   // Check for matched icon first (from whaticon), then explicit iconify name
   const iconName = node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
   if (iconName) {
