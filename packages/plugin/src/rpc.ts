@@ -394,6 +394,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
             const weight = styleToWeight[t.fontName.style] || 400
             if (weight !== 400) base.fontWeight = weight
           }
+          // Export component property references for text
+          if (t.componentPropertyReferences?.characters) {
+            base.textPropertyRef = t.componentPropertyReferences.characters
+          }
         }
 
         if ('children' in n && (n as FrameNode).children) {

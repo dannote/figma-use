@@ -192,7 +192,11 @@ function svgToJsx(svgString: string): ts.JsxElement | ts.JsxSelfClosingElement |
   )
 }
 
-export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
+export interface JsxContext {
+  textPropMap?: Map<string, string> // textPropertyRef → propName
+}
+
+export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | null {
   // Check for matched icon first (from whaticon), then explicit iconify name
   const iconName = node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
   if (iconName) {
@@ -243,13 +247,20 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
     if (node.textAutoResize === 'HEIGHT') {
       attrs.push(createJsxAttribute('wrap', ts.factory.createTrue()))
     }
+
+    // Check if text is bound to a component property
+    const propName = node.textPropertyRef && ctx.textPropMap?.get(node.textPropertyRef)
+    const textContent: ts.JsxChild = propName
+      ? ts.factory.createJsxExpression(undefined, ts.factory.createIdentifier(propName))
+      : ts.factory.createJsxText(node.characters, false)
+
     return ts.factory.createJsxElement(
       ts.factory.createJsxOpeningElement(
         ts.factory.createIdentifier('Text'),
         undefined,
         ts.factory.createJsxAttributes(attrs)
       ),
-      [ts.factory.createJsxText(node.characters, false)],
+      [textContent],
       ts.factory.createJsxClosingElement(ts.factory.createIdentifier('Text'))
     )
   }
@@ -326,7 +337,7 @@ export function nodeToJsx(node: FigmaNode): ts.JsxChild | null {
   const children: ts.JsxChild[] = []
   if (node.children) {
     for (const child of node.children) {
-      const childJsx = nodeToJsx(child)
+      const childJsx = nodeToJsx(child, ctx)
       if (childJsx) children.push(childJsx)
     }
   }

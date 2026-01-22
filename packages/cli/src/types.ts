@@ -23,6 +23,7 @@ export interface FigmaNode {
   fontStyle?: string
   fontWeight?: number
   textAutoResize?: 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'NONE' | 'TRUNCATE'
+  textPropertyRef?: string
   childCount?: number
   svgData?: string
   matchedIcon?: string

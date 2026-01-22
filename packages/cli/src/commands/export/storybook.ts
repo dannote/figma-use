@@ -54,7 +54,7 @@ interface ComponentInfo {
 interface PropInfo {
   name: string
   camelName: string
-  type: 'boolean' | 'string'
+  type: 'boolean' | 'string' | 'text'
   options?: string[]
   defaultValue: string
 }
@@ -97,26 +97,35 @@ function parseProps(definitions: Record<string, ComponentPropertyDefinition>): P
   const props: PropInfo[] = []
 
   for (const [name, def] of Object.entries(definitions)) {
-    if (def.type !== 'VARIANT') continue
+    if (def.type === 'VARIANT') {
+      const options = def.variantOptions || []
+      const isBoolean =
+        options.length === 2 &&
+        options.every((o) => o.toLowerCase() === 'true' || o.toLowerCase() === 'false')
 
-    const options = def.variantOptions || []
-    const isBoolean =
-      options.length === 2 &&
-      options.every((o) => o.toLowerCase() === 'true' || o.toLowerCase() === 'false')
+      // Auto-rename generic "Property N" to semantic names for booleans
+      let camelName = toCamelCase(name.split('#')[0])
+      if (isBoolean && /^property\d*$/i.test(camelName)) {
+        camelName = 'checked'
+      }
 
-    // Auto-rename generic "Property N" to semantic names for booleans
-    let camelName = toCamelCase(name)
-    if (isBoolean && /^property\d*$/i.test(camelName)) {
-      camelName = 'checked'
+      props.push({
+        name,
+        camelName,
+        type: isBoolean ? 'boolean' : 'string',
+        options: isBoolean ? undefined : options,
+        defaultValue: def.defaultValue
+      })
+    } else if (def.type === 'TEXT') {
+      // TEXT properties become string props
+      const baseName = name.split('#')[0]
+      props.push({
+        name,
+        camelName: toCamelCase(baseName),
+        type: 'text',
+        defaultValue: def.defaultValue
+      })
     }
-
-    props.push({
-      name,
-      camelName,
-      type: isBoolean ? 'boolean' : 'string',
-      options: isBoolean ? undefined : options,
-      defaultValue: def.defaultValue
-    })
   }
 
   return props
@@ -173,9 +182,23 @@ function groupComponents(components: ComponentInfo[]): Map<string, ComponentGrou
     } else if (comp.name.includes('/')) {
       baseName = comp.name.split('/')[0]
       groupKey = `name:${baseName}`
+      // Check for TEXT properties on regular components
+      if (comp.componentPropertyDefinitions) {
+        const textProps = parseProps(comp.componentPropertyDefinitions).filter((p) => p.type === 'text')
+        if (textProps.length > 0) {
+          props = textProps
+        }
+      }
     } else {
       baseName = comp.name
       groupKey = `id:${comp.id}`
+      // Check for TEXT properties on regular components
+      if (comp.componentPropertyDefinitions) {
+        const textProps = parseProps(comp.componentPropertyDefinitions).filter((p) => p.type === 'text')
+        if (textProps.length > 0) {
+          props = textProps
+        }
+      }
     }
 
     if (!groups.has(groupKey)) {
@@ -231,12 +254,16 @@ function generateComponentAST(
 
   // interface Props { ... }
   const propsMembers = props.map((p) => {
-    const typeNode =
-      p.type === 'boolean'
-        ? ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
-        : ts.factory.createUnionTypeNode(
-            (p.options || []).map((o) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(o)))
-          )
+    let typeNode: ts.TypeNode
+    if (p.type === 'boolean') {
+      typeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
+    } else if (p.type === 'text') {
+      typeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+    } else {
+      typeNode = ts.factory.createUnionTypeNode(
+        (p.options || []).map((o) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(o)))
+      )
+    }
     return ts.factory.createPropertySignature(
       undefined,
       p.camelName,
@@ -257,10 +284,11 @@ function generateComponentAST(
 
   // Generate component function body
   const bodyStatements: ts.Statement[] = []
+  const variantProps = props.filter((p) => p.type !== 'text')
 
-  if (props.length === 1 && props[0].type === 'boolean') {
+  if (variantProps.length === 1 && variantProps[0].type === 'boolean') {
     // Simple boolean: if (prop) return <true> else return <false>
-    const prop = props[0]
+    const prop = variantProps[0]
     const trueKey = `${prop.name}=true`
     const falseKey = `${prop.name}=false`
     const trueJsx = variants.get(trueKey)
@@ -275,12 +303,12 @@ function generateComponentAST(
         )
       )
     }
-  } else {
+  } else if (variantProps.length > 0) {
     // Multiple props: chain of if statements
     for (const [key, jsx] of variants) {
-      const variantProps = parseVariantName(key)
-      const conditions = props.map((p) => {
-        const value = variantProps[p.name]
+      const variantValues = parseVariantName(key)
+      const conditions = variantProps.map((p) => {
+        const value = variantValues[p.name]
         if (p.type === 'boolean') {
           return value === 'true'
             ? ts.factory.createIdentifier(p.camelName)
@@ -305,6 +333,12 @@ function generateComponentAST(
       )
     }
     bodyStatements.push(ts.factory.createReturnStatement(ts.factory.createNull()))
+  } else {
+    // Only TEXT props, no variants - return first JSX
+    const firstJsx = variants.values().next().value
+    if (firstJsx) {
+      bodyStatements.push(ts.factory.createReturnStatement(firstJsx as ts.Expression))
+    }
   }
 
   // export function Component({ props }: Props) { ... }
@@ -397,13 +431,14 @@ function generateStorybookWithComponentAST(
   // export const Variant: StoryObj<typeof Component> = { args: { ... } }
   for (const variant of variants) {
     const argsProperties = props.map((p) => {
-      const value = variant.propValues[p.name]
+      // For TEXT props, use defaultValue; for VARIANT props, use propValues from variant name
+      const value = p.type === 'text' ? p.defaultValue : variant.propValues[p.name]
       const valueExpr =
         p.type === 'boolean'
           ? value === 'true'
             ? ts.factory.createTrue()
             : ts.factory.createFalse()
-          : ts.factory.createStringLiteral(value)
+          : ts.factory.createStringLiteral(value || '')
       return ts.factory.createPropertyAssignment(p.camelName, valueExpr)
     })
 
@@ -552,7 +587,8 @@ interface ProcessOptions {
 
 async function processComponent(
   comp: ComponentInfo,
-  options: ProcessOptions
+  options: ProcessOptions,
+  textPropMap?: Map<string, string>
 ): Promise<{ jsx: ts.JsxChild; usedComponents: Set<string> } | null> {
   const node = await sendCommand<FigmaNode>('get-node-tree', { id: comp.id })
   if (!node) return null
@@ -571,7 +607,7 @@ async function processComponent(
     })
   }
 
-  const jsx = nodeToJsx(node)
+  const jsx = nodeToJsx(node, { textPropMap })
   if (!jsx) return null
 
   const usedComponents = new Set<string>()
@@ -594,6 +630,21 @@ async function exportGroup(
     // ComponentSet with props → generate component + stories with args
     if (isComponentSet && props && props.length > 0) {
       return await exportComponentSet(baseName, comps, props, options, framework, formatOptions, outDir, printer)
+    }
+
+    // Regular components with TEXT props → generate component with text props
+    const textProps = props?.filter((p) => p.type === 'text') || []
+    if (textProps.length > 0 && comps.length === 1) {
+      return await exportComponentWithTextProps(
+        baseName,
+        comps[0],
+        textProps,
+        options,
+        framework,
+        formatOptions,
+        outDir,
+        printer
+      )
     }
 
     // Regular components → generate stories with render
@@ -625,6 +676,221 @@ async function exportGroup(
   }
 }
 
+async function exportComponentWithTextProps(
+  baseName: string,
+  comp: ComponentInfo,
+  props: PropInfo[],
+  options: ProcessOptions,
+  framework: FrameworkConfig,
+  formatOptions: FormatOptions,
+  outDir: string,
+  printer: ts.Printer
+): Promise<ExportResult | ExportError> {
+  const componentName = toPascalCase(baseName.replace(/\//g, ''))
+
+  // Build textPropMap: textPropertyRef → camelName
+  const textPropMap = new Map<string, string>()
+  for (const prop of props) {
+    textPropMap.set(prop.name, prop.camelName)
+  }
+
+  const result = await processComponent(comp, options, textPropMap)
+  if (!result) {
+    return { name: baseName, error: 'Failed to process component' }
+  }
+
+  // Generate component file with text props
+  const componentFile = generateTextPropsComponentAST(componentName, props, result.jsx, result.usedComponents, framework)
+  let componentCode = printer.printFile(componentFile)
+  componentCode = await formatCode(componentCode, formatOptions)
+
+  const componentPath = join(outDir, `${componentName}.tsx`)
+  writeFileSync(componentPath, componentCode)
+
+  // Generate stories file
+  const storiesFile = generateStorybookWithTextPropsAST(baseName, componentName, props, framework)
+  let storiesCode = printer.printFile(storiesFile)
+  storiesCode = await formatCode(storiesCode, formatOptions)
+
+  const storiesPath = join(outDir, `${componentName}.stories.tsx`)
+  writeFileSync(storiesPath, storiesCode)
+
+  return { name: baseName, file: storiesPath, variants: 1 }
+}
+
+function generateTextPropsComponentAST(
+  componentName: string,
+  props: PropInfo[],
+  jsx: ts.JsxChild,
+  usedComponents: Set<string>,
+  framework: FrameworkConfig
+): ts.SourceFile {
+  const statements: ts.Statement[] = []
+
+  // import { Frame, Text, ... } from '@figma-use/react'
+  const renderImports = Array.from(usedComponents).sort()
+  if (renderImports.length > 0) {
+    statements.push(
+      ts.factory.createImportDeclaration(
+        undefined,
+        ts.factory.createImportClause(
+          false,
+          undefined,
+          ts.factory.createNamedImports(
+            renderImports.map((name) =>
+              ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+            )
+          )
+        ),
+        ts.factory.createStringLiteral(framework.module)
+      )
+    )
+  }
+
+  // interface Props { label?: string, ... }
+  const propsMembers = props.map((p) =>
+    ts.factory.createPropertySignature(
+      undefined,
+      p.camelName,
+      ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+      ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+    )
+  )
+
+  statements.push(
+    ts.factory.createInterfaceDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      `${componentName}Props`,
+      undefined,
+      undefined,
+      propsMembers
+    )
+  )
+
+  // export function Component({ label = 'default', ... }: Props) { return <...> }
+  const funcParams = ts.factory.createParameterDeclaration(
+    undefined,
+    undefined,
+    ts.factory.createObjectBindingPattern(
+      props.map((p) =>
+        ts.factory.createBindingElement(
+          undefined,
+          undefined,
+          ts.factory.createIdentifier(p.camelName),
+          ts.factory.createStringLiteral(p.defaultValue)
+        )
+      )
+    ),
+    undefined,
+    ts.factory.createTypeReferenceNode(`${componentName}Props`)
+  )
+
+  statements.push(
+    ts.factory.createFunctionDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      undefined,
+      componentName,
+      undefined,
+      [funcParams],
+      undefined,
+      ts.factory.createBlock([ts.factory.createReturnStatement(jsx as ts.Expression)], true)
+    )
+  )
+
+  return ts.factory.createSourceFile(
+    statements,
+    ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
+    ts.NodeFlags.None
+  )
+}
+
+function generateStorybookWithTextPropsAST(
+  title: string,
+  componentName: string,
+  props: PropInfo[],
+  framework: FrameworkConfig
+): ts.SourceFile {
+  const statements: ts.Statement[] = []
+
+  // import type { Meta, StoryObj } from '@storybook/react'
+  statements.push(
+    ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(
+        true,
+        undefined,
+        ts.factory.createNamedImports([
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Meta')),
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('StoryObj'))
+        ])
+      ),
+      ts.factory.createStringLiteral(framework.storybookType)
+    )
+  )
+
+  // import { Component } from './Component'
+  statements.push(
+    ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(
+        false,
+        undefined,
+        ts.factory.createNamedImports([
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(componentName))
+        ])
+      ),
+      ts.factory.createStringLiteral(`./${componentName}`)
+    )
+  )
+
+  // export default { title, component } satisfies Meta<typeof Component>
+  statements.push(
+    ts.factory.createExportDefault(
+      ts.factory.createSatisfiesExpression(
+        ts.factory.createObjectLiteralExpression([
+          ts.factory.createPropertyAssignment('title', ts.factory.createStringLiteral(title)),
+          ts.factory.createPropertyAssignment('component', ts.factory.createIdentifier(componentName))
+        ]),
+        ts.factory.createTypeReferenceNode('Meta', [
+          ts.factory.createTypeQueryNode(ts.factory.createIdentifier(componentName))
+        ])
+      )
+    )
+  )
+
+  // export const Default: StoryObj<typeof Component> = { args: { label: 'default', ... } }
+  const argsProperties = props.map((p) =>
+    ts.factory.createPropertyAssignment(p.camelName, ts.factory.createStringLiteral(p.defaultValue))
+  )
+
+  statements.push(
+    ts.factory.createVariableStatement(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            'Default',
+            undefined,
+            ts.factory.createTypeReferenceNode('StoryObj', [
+              ts.factory.createTypeQueryNode(ts.factory.createIdentifier(componentName))
+            ]),
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createPropertyAssignment('args', ts.factory.createObjectLiteralExpression(argsProperties))
+            ])
+          )
+        ],
+        ts.NodeFlags.Const
+      )
+    )
+  )
+
+  return ts.factory.createSourceFile(
+    statements,
+    ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
+    ts.NodeFlags.None
+  )
+}
+
 async function exportComponentSet(
   baseName: string,
   comps: ComponentInfo[],
@@ -640,8 +906,16 @@ async function exportComponentSet(
   const usedComponents = new Set<string>()
   const storyVariants: Array<{ name: string; propValues: Record<string, string> }> = []
 
+  // Build textPropMap for TEXT properties
+  const textPropMap = new Map<string, string>()
+  for (const prop of props) {
+    if (prop.type === 'text') {
+      textPropMap.set(prop.name, prop.camelName)
+    }
+  }
+
   for (const comp of comps) {
-    const result = await processComponent(comp, options)
+    const result = await processComponent(comp, options, textPropMap)
     if (!result) continue
 
     for (const c of result.usedComponents) usedComponents.add(c)
@@ -651,14 +925,17 @@ async function exportComponentSet(
     variantJsxMap.set(key, result.jsx)
 
     const storyName = props
+      .filter((p) => p.type !== 'text') // Only VARIANT props in story name
       .map((p) => {
         const val = propValues[p.name]
+        if (!val) return ''
         // Rename true/false to Checked/Unchecked for boolean checked prop
         if (p.camelName === 'checked' && p.type === 'boolean') {
           return val === 'true' ? 'Checked' : 'Unchecked'
         }
         return val.charAt(0).toUpperCase() + val.slice(1)
       })
+      .filter(Boolean)
       .join('')
     storyVariants.push({ name: storyName || 'Default', propValues })
   }
