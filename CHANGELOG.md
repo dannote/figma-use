@@ -60,6 +60,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
   Detects roles from component names and structure: button, checkbox, radio, switch, slider, textbox, combobox, tab, link, table, list, separator, dialog, etc.
 
+- **`comment watch`** — wait for new comments (for agent automation)
+  ```bash
+  figma-use comment watch                 # Wait indefinitely
+  figma-use comment watch --timeout 60    # Exit after 60s if no comment
+  figma-use comment watch --json          # JSON output for parsing
+  ```
+  Returns comment text, author, and node context when a new comment arrives.
+
 ### Removed
 
 - **culori dependency** — unused color parsing library

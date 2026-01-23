@@ -587,6 +587,36 @@ figma-use node set-parent <id> --parent <section-id>
 
 ⚠️ Deleting section deletes all children!
 
+### Comment-driven workflow
+
+Wait for designer feedback and react:
+
+```bash
+figma-use comment watch --json
+```
+
+Output when comment arrives:
+```json
+{
+  "id": "123456",
+  "message": "Make this button bigger",
+  "user": { "handle": "designer" },
+  "client_meta": { "node_id": "1:23" }
+}
+```
+
+Agent workflow — run once per comment, then restart:
+
+1. `figma-use comment watch --json` — blocks until new comment
+2. Parse the JSON, get `message` and `client_meta.node_id`
+3. Process the request (modify design, etc.)
+4. Reply: `figma-use comment add "Done!" --reply <comment-id>`
+5. Exit. External runner restarts for next comment.
+
+Options:
+- `--timeout 60` — exit after 60s if no comment (returns `{"timeout":true}`)
+- `--interval 5` — poll every 5s (default: 3s)
+
 ### Vector paths — iterative workflow
 
 Draw, screenshot, adjust, repeat — like a designer tweaking Bezier curves:
