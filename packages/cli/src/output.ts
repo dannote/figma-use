@@ -1,4 +1,6 @@
-import { formatFill, formatStroke, formatBox, formatType, ok, fail, dim } from './format.ts'
+import { ok, fail, dim, entity, list as fmtList, kv } from 'agentfmt'
+
+import { formatFill, formatStroke, formatBox, formatType } from './format.ts'
 
 import type { FigmaNode, FigmaPage, DeletedResult, ExportResult, StatusResult } from './types.ts'
 
@@ -8,7 +10,7 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
   const name = node.name || node.characters || ''
   const id = node.id
 
-  lines.push(`${indent}[${type}] "${name}" (${id})`)
+  lines.push(`${indent}${entity(type, String(name), String(id))}`)
 
   const details: string[] = []
 
@@ -46,14 +48,13 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
 
   // Effects (shadows, blur)
   if (node.effects && Array.isArray(node.effects) && node.effects.length > 0) {
-    const effectStrs = (node.effects as Array<{ type: string; radius?: number }>)
-      .map(e => {
-        if (e.type === 'DROP_SHADOW') return `shadow(${e.radius || 0}px)`
-        if (e.type === 'INNER_SHADOW') return `inner-shadow(${e.radius || 0}px)`
-        if (e.type === 'LAYER_BLUR') return `blur(${e.radius || 0}px)`
-        if (e.type === 'BACKGROUND_BLUR') return `backdrop-blur(${e.radius || 0}px)`
-        return e.type.toLowerCase()
-      })
+    const effectStrs = (node.effects as Array<{ type: string; radius?: number }>).map((e) => {
+      if (e.type === 'DROP_SHADOW') return `shadow(${e.radius || 0}px)`
+      if (e.type === 'INNER_SHADOW') return `inner-shadow(${e.radius || 0}px)`
+      if (e.type === 'LAYER_BLUR') return `blur(${e.radius || 0}px)`
+      if (e.type === 'BACKGROUND_BLUR') return `backdrop-blur(${e.radius || 0}px)`
+      return e.type.toLowerCase()
+    })
     details.push(`effects: ${effectStrs.join(', ')}`)
   }
 
@@ -95,10 +96,14 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
 
   // Min/max constraints
   const constraints: string[] = []
-  if (node.minWidth !== undefined && node.minWidth !== null) constraints.push(`min-w: ${node.minWidth}`)
-  if (node.maxWidth !== undefined && node.maxWidth !== null) constraints.push(`max-w: ${node.maxWidth}`)
-  if (node.minHeight !== undefined && node.minHeight !== null) constraints.push(`min-h: ${node.minHeight}`)
-  if (node.maxHeight !== undefined && node.maxHeight !== null) constraints.push(`max-h: ${node.maxHeight}`)
+  if (node.minWidth !== undefined && node.minWidth !== null)
+    constraints.push(`min-w: ${node.minWidth}`)
+  if (node.maxWidth !== undefined && node.maxWidth !== null)
+    constraints.push(`max-w: ${node.maxWidth}`)
+  if (node.minHeight !== undefined && node.minHeight !== null)
+    constraints.push(`min-h: ${node.minHeight}`)
+  if (node.maxHeight !== undefined && node.maxHeight !== null)
+    constraints.push(`max-h: ${node.maxHeight}`)
   if (constraints.length > 0) {
     details.push(constraints.join(', '))
   }
@@ -152,33 +157,32 @@ function formatNode(node: Record<string, unknown>, indent = ''): string {
 }
 
 function formatNodeList(nodes: Array<Record<string, unknown>>): string {
-  return nodes
-    .map((node, i) => {
-      const type = formatType(node.type as string)
-      const name = node.name || node.characters || ''
-      const id = node.id
-      const box = formatBox(node as { width?: number; height?: number; x?: number; y?: number })
+  const items = nodes.map((node) => {
+    const type = formatType(node.type as string)
+    const name = node.name || node.characters || ''
+    const id = node.id
+    const box = formatBox(node as { width?: number; height?: number; x?: number; y?: number })
 
-      const details: string[] = []
-      if (box) details.push(`box: ${box}`)
+    const details: Record<string, unknown> = {}
+    if (box) details.box = box
 
-      const fill = formatFill(node.fills as FigmaNode['fills'])
-      if (fill) details.push(`fill: ${fill}`)
+    const fill = formatFill(node.fills as FigmaNode['fills'])
+    if (fill) details.fill = fill
 
-      const stroke = formatStroke(node.strokes as FigmaNode['strokes'], node.strokeWeight as number)
-      if (stroke) details.push(`stroke: ${stroke}`)
+    const stroke = formatStroke(node.strokes as FigmaNode['strokes'], node.strokeWeight as number)
+    if (stroke) details.stroke = stroke
 
-      if (node.cornerRadius && node.cornerRadius !== 0) {
-        details.push(`radius: ${node.cornerRadius}px`)
-      }
+    if (node.cornerRadius && node.cornerRadius !== 0) {
+      details.radius = `${node.cornerRadius}px`
+    }
 
-      let line = `[${i}] ${type} "${name}" (${id})`
-      if (details.length > 0) {
-        line += '\n    ' + details.join('\n    ')
-      }
-      return line
-    })
-    .join('\n\n')
+    return {
+      header: `${type} "${name}" (${id})`,
+      details: Object.keys(details).length > 0 ? details : undefined
+    }
+  })
+
+  return fmtList(items)
 }
 
 function formatCreated(node: Record<string, unknown>, action = 'Created'): string {
@@ -217,7 +221,10 @@ function formatDeleted(result: DeletedResult): string {
 }
 
 function formatPages(pages: FigmaPage[]): string {
-  return pages.map((p, i) => `[${i}] "${p.name}" (${p.id})`).join('\n')
+  const items = pages.map((p) => ({
+    header: `"${p.name}" (${p.id})`
+  }))
+  return fmtList(items)
 }
 
 function formatStatus(status: StatusResult): string {

@@ -1,7 +1,13 @@
-import pc from 'picocolors'
+import { ok, fail, dim, bold, green, cyan, box as fmtBox } from 'agentfmt'
 
 import type { FigmaNode, FigmaPaint } from './types.ts'
 
+// Re-export from agentfmt
+export { ok, fail, dim, bold }
+export const success = green
+export const accent = cyan
+
+// Figma type labels
 export const TYPE_LABELS: Record<string, string> = {
   FRAME: 'frame',
   RECTANGLE: 'rect',
@@ -20,13 +26,11 @@ export const TYPE_LABELS: Record<string, string> = {
   PAGE: 'page'
 }
 
-export const ok = (msg: string) => `${pc.green('✓')} ${msg}`
-export const fail = (msg: string) => `${pc.red('✗')} ${msg}`
-export const success = pc.green
-export const accent = pc.cyan
-export const dim = pc.dim
-export const bold = pc.bold
+export function formatType(type: string): string {
+  return TYPE_LABELS[type] || type.toLowerCase()
+}
 
+// Figma color/paint formatting
 export function formatColor(paint: FigmaPaint): string {
   if (paint.type === 'SOLID' && paint.color) {
     const alpha =
@@ -55,6 +59,7 @@ export function formatStroke(strokes?: FigmaPaint[], weight?: number): string | 
   return weight ? `${color} ${weight}px` : color
 }
 
+// Box formatting (delegates to agentfmt)
 export function formatBox(node: {
   width?: number
   height?: number
@@ -62,17 +67,10 @@ export function formatBox(node: {
   y?: number
 }): string | null {
   if (node.width === undefined || node.height === undefined) return null
-  const size = `${Math.round(node.width)}×${Math.round(node.height)}`
-  if (node.x !== undefined && node.y !== undefined) {
-    return `${size} at (${Math.round(node.x)}, ${Math.round(node.y)})`
-  }
-  return size
+  return fmtBox(node.width, node.height, node.x, node.y)
 }
 
-export function formatType(type: string): string {
-  return TYPE_LABELS[type] || type.toLowerCase()
-}
-
+// Figma-specific formatters
 export function formatLayout(node: FigmaNode): string | null {
   if (!node.layoutMode || node.layoutMode === 'NONE') return null
   const dir = node.layoutMode === 'HORIZONTAL' ? 'row' : 'col'

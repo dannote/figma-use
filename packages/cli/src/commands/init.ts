@@ -1,7 +1,7 @@
 import { defineCommand } from 'citty'
 import { existsSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import pc from 'picocolors'
+import { yellow, cyan, green, bold, red } from 'agentfmt'
 
 import { CONFIG_FILENAME, getDefaultConfig, findConfigPath } from '../config.ts'
 
@@ -28,8 +28,8 @@ export default defineCommand({
 
     if (existsSync(configPath) && !args.force) {
       const existingPath = findConfigPath()
-      console.log(`${pc.yellow('!')} Config already exists: ${existingPath}`)
-      console.log(`  Use ${pc.cyan('--force')} to overwrite`)
+      console.log(`${yellow('!')} Config already exists: ${existingPath}`)
+      console.log(`  Use ${cyan('--force')} to overwrite`)
       return
     }
 
@@ -41,11 +41,11 @@ export default defineCommand({
     }
 
     writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n')
-    console.log(`${pc.green('✓')} Created ${pc.cyan(CONFIG_FILENAME)}`)
+    console.log(`${green('✓')} Created ${cyan(CONFIG_FILENAME)}`)
     console.log()
     console.log('  Settings:')
-    console.log(`    lint.preset: ${pc.yellow(config.lint!.preset!)}`)
-    console.log(`    storybook.preferIcons: ${pc.yellow(config.storybook!.preferIcons!.join(', '))}`)
-    console.log(`    format.pretty: ${pc.yellow('true')}`)
+    console.log(`    lint.preset: ${yellow(config.lint!.preset!)}`)
+    console.log(`    storybook.preferIcons: ${yellow(config.storybook!.preferIcons!.join(', '))}`)
+    console.log(`    format.pretty: ${yellow('true')}`)
   }
 })

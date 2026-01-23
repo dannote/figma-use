@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty'
 import { createPatch } from 'diff'
-import pc from 'picocolors'
+import { bold, green, red, cyan } from 'agentfmt'
 
 import { sendCommand, handleError } from '../../client.ts'
 import { fail } from '../../format.ts'
@@ -74,13 +74,13 @@ export default defineCommand({
       // Output with colors
       for (const line of patch.split('\n')) {
         if (line.startsWith('---') || line.startsWith('+++')) {
-          console.log(pc.bold(line))
+          console.log(bold(line))
         } else if (line.startsWith('-')) {
-          console.log(pc.red(line))
+          console.log(red(line))
         } else if (line.startsWith('+')) {
-          console.log(pc.green(line))
+          console.log(green(line))
         } else if (line.startsWith('@@')) {
-          console.log(pc.cyan(line))
+          console.log(cyan(line))
         } else {
           console.log(line)
         }

@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty'
 import { createTwoFilesPatch } from 'diff'
-import pc from 'picocolors'
+import { bold, green, red, cyan } from 'agentfmt'
 import * as ts from 'typescript'
 
 import { sendCommand, handleError } from '../../client.ts'
@@ -204,13 +204,13 @@ export default defineCommand({
       const lines = patch.split('\n')
       for (const line of lines) {
         if (line.startsWith('+++') || line.startsWith('---')) {
-          console.log(pc.bold(line))
+          console.log(bold(line))
         } else if (line.startsWith('+')) {
-          console.log(pc.green(line))
+          console.log(green(line))
         } else if (line.startsWith('-')) {
-          console.log(pc.red(line))
+          console.log(red(line))
         } else if (line.startsWith('@@')) {
-          console.log(pc.cyan(line))
+          console.log(cyan(line))
         } else {
           console.log(line)
         }
