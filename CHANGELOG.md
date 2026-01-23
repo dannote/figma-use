@@ -48,6 +48,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   figma-use node replace-with <id> --target <component-id>  # Creates instance
   echo '<Frame .../>' | figma-use node replace-with <id> --stdin
   ```
+
+- **`analyze snapshot`** — extract accessibility tree from Figma designs
+  ```bash
+  figma-use analyze snapshot              # Full page
+  figma-use analyze snapshot <id> -i      # Interactive elements only
+  figma-use analyze snapshot --depth 6    # Limit depth
+  ```
+  Detects roles from component names and structure: button, checkbox, radio, switch, slider, textbox, combobox, tab, link, table, list, separator, dialog, etc.
+
+### Removed
+
+- **culori dependency** — unused color parsing library
   If target is a component, creates an instance. Otherwise clones the node.
 
 - **`node ancestors`** — get parent chain from node to page root

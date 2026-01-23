@@ -380,6 +380,10 @@ figma-use analyze typography --group-by size
 
 # Spacing — gap/padding values, grid compliance
 figma-use analyze spacing --grid 8
+
+# Accessibility snapshot — extract interactive elements tree
+figma-use analyze snapshot                 # Full page
+figma-use analyze snapshot <id> -i         # Interactive elements only
 ```
 
 Example output:

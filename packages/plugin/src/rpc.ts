@@ -3748,6 +3748,697 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }
     }
 
+    case 'snapshot': {
+      const { id, interactive, maxDepth = -1, compact = true } = args as {
+        id?: string
+        interactive?: boolean
+        maxDepth?: number
+        compact?: boolean
+      }
+
+      // === ARIA Role Detection ===
+      // Priority: explicit component name > structural heuristics > generic
+
+      const INTERACTIVE_ROLES = new Set([
+        'button', 'link', 'textbox', 'searchbox', 'checkbox', 'radio', 'switch',
+        'combobox', 'listbox', 'slider', 'spinbutton', 'tab', 'menuitem', 'option', 'treeitem'
+      ])
+
+      // Pattern-based role detection from component/frame names
+      const NAME_PATTERNS: Array<{ pattern: RegExp; role: string; props?: Record<string, unknown> }> = [
+        // Interactive - buttons
+        { pattern: /^button$/i, role: 'button' },
+        { pattern: /^btn[-_\s]/i, role: 'button' },
+        { pattern: /[-_\s]btn$/i, role: 'button' },
+        { pattern: /^cta$/i, role: 'button' },
+        { pattern: /^icon[-_]?button$/i, role: 'button' },
+        // Interactive - links
+        { pattern: /^link$/i, role: 'link' },
+        { pattern: /^anchor$/i, role: 'link' },
+        { pattern: /^text[-_]?link$/i, role: 'link' },
+        // Interactive - inputs
+        { pattern: /^input$/i, role: 'textbox' },
+        { pattern: /^text[-_]?field$/i, role: 'textbox' },
+        { pattern: /^text[-_]?input$/i, role: 'textbox' },
+        { pattern: /^text[-_]?area$/i, role: 'textbox', props: { multiline: true } },
+        { pattern: /^search$/i, role: 'searchbox' },
+        { pattern: /^search[-_]?input$/i, role: 'searchbox' },
+        { pattern: /^password$/i, role: 'textbox' },
+        // Interactive - checkboxes, radios, switches
+        { pattern: /^checkbox$/i, role: 'checkbox' },
+        { pattern: /^check[-_]?box$/i, role: 'checkbox' },
+        { pattern: /^radio$/i, role: 'radio' },
+        { pattern: /^radio[-_]?button$/i, role: 'radio' },
+        { pattern: /^switch$/i, role: 'switch' },
+        { pattern: /^toggle$/i, role: 'switch' },
+        // Interactive - selects
+        { pattern: /^select$/i, role: 'combobox' },
+        { pattern: /^dropdown$/i, role: 'combobox' },
+        { pattern: /^combo[-_]?box$/i, role: 'combobox' },
+        { pattern: /^autocomplete$/i, role: 'combobox' },
+        // Interactive - other
+        { pattern: /^slider$/i, role: 'slider' },
+        { pattern: /^range$/i, role: 'slider' },
+        { pattern: /^tab$/i, role: 'tab' },
+        { pattern: /^menu[-_]?item$/i, role: 'menuitem' },
+        { pattern: /^option$/i, role: 'option' },
+        // Content - headings
+        { pattern: /^heading$/i, role: 'heading' },
+        { pattern: /^title$/i, role: 'heading' },
+        { pattern: /^h1$/i, role: 'heading', props: { level: 1 } },
+        { pattern: /^h2$/i, role: 'heading', props: { level: 2 } },
+        { pattern: /^h3$/i, role: 'heading', props: { level: 3 } },
+        { pattern: /^h4$/i, role: 'heading', props: { level: 4 } },
+        { pattern: /^h5$/i, role: 'heading', props: { level: 5 } },
+        { pattern: /^h6$/i, role: 'heading', props: { level: 6 } },
+        // Content - landmarks
+        { pattern: /^header$/i, role: 'banner' },
+        { pattern: /^nav$/i, role: 'navigation' },
+        { pattern: /^navbar$/i, role: 'navigation' },
+        { pattern: /^navigation$/i, role: 'navigation' },
+        { pattern: /^sidebar$/i, role: 'complementary' },
+        { pattern: /^footer$/i, role: 'contentinfo' },
+        { pattern: /^main$/i, role: 'main' },
+        { pattern: /^section$/i, role: 'region' },
+        { pattern: /^article$/i, role: 'article' },
+        // Content - structure
+        { pattern: /^form$/i, role: 'form' },
+        { pattern: /^table$/i, role: 'table' },
+        { pattern: /^row$/i, role: 'row' },
+        { pattern: /^cell$/i, role: 'cell' },
+        { pattern: /^list$/i, role: 'list' },
+        { pattern: /^list[-_]?item$/i, role: 'listitem' },
+        { pattern: /^menu$/i, role: 'menu' },
+        { pattern: /^toolbar$/i, role: 'toolbar' },
+        { pattern: /^tabs$/i, role: 'tablist' },
+        { pattern: /^tab[-_]?panel$/i, role: 'tabpanel' },
+        { pattern: /^breadcrumb$/i, role: 'navigation' },
+        // Content - UI elements
+        { pattern: /^card$/i, role: 'article' },
+        { pattern: /^modal$/i, role: 'dialog' },
+        { pattern: /^dialog$/i, role: 'dialog' },
+        { pattern: /^popup$/i, role: 'dialog' },
+        { pattern: /^tooltip$/i, role: 'tooltip' },
+        { pattern: /^alert$/i, role: 'alert' },
+        { pattern: /^toast$/i, role: 'alert' },
+        { pattern: /^notification$/i, role: 'alert' },
+        { pattern: /^badge$/i, role: 'status' },
+        { pattern: /^tag$/i, role: 'status' },
+        { pattern: /^chip$/i, role: 'status' },
+        { pattern: /^progress$/i, role: 'progressbar' },
+        { pattern: /^spinner$/i, role: 'progressbar' },
+        { pattern: /^loader$/i, role: 'progressbar' },
+        // Images
+        { pattern: /^avatar$/i, role: 'img' },
+        { pattern: /^icon$/i, role: 'img' },
+        { pattern: /^image$/i, role: 'img' },
+        { pattern: /^img$/i, role: 'img' },
+        { pattern: /^logo$/i, role: 'img' },
+        { pattern: /^thumbnail$/i, role: 'img' },
+        // Labels
+        { pattern: /^label$/i, role: 'label' },
+        { pattern: /^caption$/i, role: 'caption' },
+        { pattern: /^placeholder$/i, role: 'presentation' },
+      ]
+
+      // Text patterns that suggest a link
+      const LINK_TEXT_PATTERNS = [
+        /^https?:\/\//i, // URLs
+        /^www\./i,
+        /\.(com|ru|org|net|io|dev)$/i,
+        /^@\w+/, // mentions
+        /^#\w+/, // hashtags
+      ]
+
+      // Extract base name from component path like "UI/Buttons/Primary, State=Default"
+      function getBaseName(name: string): string {
+        return name.split('/').pop()?.split(',')[0]?.trim() || name
+      }
+
+      // Detect role from node name patterns
+      function detectRoleFromName(name: string): { role: string; props?: Record<string, unknown> } | null {
+        const baseName = getBaseName(name)
+        for (const { pattern, role, props } of NAME_PATTERNS) {
+          if (pattern.test(baseName)) {
+            return { role, props }
+          }
+        }
+        return null
+      }
+
+      // Extract component variant properties (e.g., "State=Checked" -> { checked: true })
+      function extractVariantProps(node: SceneNode): Record<string, unknown> {
+        const props: Record<string, unknown> = {}
+
+        if (node.type === 'INSTANCE') {
+          const instance = node as InstanceNode
+          // Check component properties
+          for (const [key, value] of Object.entries(instance.componentProperties || {})) {
+            const propName = key.toLowerCase()
+            const propValue = typeof value === 'object' && 'value' in value ? value.value : value
+
+            if (propName.includes('state') || propName.includes('checked') || propName.includes('selected')) {
+              if (propValue === 'Checked' || propValue === 'Selected' || propValue === 'On' || propValue === true) {
+                props.checked = true
+              }
+            }
+            if (propName.includes('disabled') || propName.includes('state')) {
+              if (propValue === 'Disabled' || propValue === false) {
+                props.disabled = true
+              }
+            }
+            if (propName.includes('expanded') || propName.includes('open')) {
+              if (propValue === 'Expanded' || propValue === 'Open' || propValue === true) {
+                props.expanded = true
+              }
+            }
+          }
+        }
+
+        // Also check name for variant info like "Switch, State=On"
+        const nameParts = node.name.split(',')
+        for (const part of nameParts) {
+          const [key, val] = part.split('=').map((s) => s.trim().toLowerCase())
+          if (key === 'state' || key === 'checked' || key === 'selected') {
+            if (val === 'checked' || val === 'selected' || val === 'on' || val === 'active') {
+              props.checked = true
+            }
+            if (val === 'disabled') {
+              props.disabled = true
+            }
+          }
+          if (key === 'expanded' || key === 'open') {
+            if (val === 'true' || val === 'expanded' || val === 'open') {
+              props.expanded = true
+            }
+          }
+        }
+
+        // Check opacity for disabled state
+        if ('opacity' in node && (node as SceneNode & { opacity: number }).opacity < 0.5) {
+          props.disabled = true
+        }
+
+        return props
+      }
+
+      // Collect all text from children (for computing accessible name)
+      function collectText(node: SceneNode, maxLength = 100): string {
+        if (node.type === 'TEXT') {
+          return (node as TextNode).characters.trim()
+        }
+        if (!('children' in node)) return ''
+
+        const texts: string[] = []
+        for (const child of (node as ChildrenMixin).children) {
+          if ('visible' in child && !child.visible) continue
+          const text = collectText(child as SceneNode, maxLength - texts.join(' ').length)
+          if (text) texts.push(text)
+          if (texts.join(' ').length >= maxLength) break
+        }
+        return texts.join(' ').slice(0, maxLength)
+      }
+
+      // Check if node looks like a button (structural heuristics)
+      // Chrome relies on <button>, role="button", cursor:pointer — we use visual patterns
+      function looksLikeButton(node: SceneNode): boolean {
+        if (!('children' in node)) return false
+        if (node.type !== 'FRAME' && node.type !== 'INSTANCE' && node.type !== 'COMPONENT') return false
+
+        const frame = node as FrameNode
+
+        // Must have bounded size (not a container)
+        if (frame.width > 200) return false
+        if (frame.height > 50) return false
+        if (frame.height < 28) return false // Typical button min height
+
+        // Check for text content
+        const text = collectText(node, 50).trim()
+        if (!text) return false
+
+        // Skip if text is just a number, date-like, initials, or very long
+        if (/^\d+$/.test(text)) return false
+        if (/^\d{2}[\.\-\/]\d{2}/.test(text)) return false // date patterns
+        if (text.length < 4 || text.length > 25) return false // buttons typically 4-25 chars (skip initials like "АД")
+
+        // Must look styled like a button: fill + rounded corners + auto-layout with padding
+        const hasFill = Array.isArray(frame.fills) && frame.fills.some((f: Paint) => f.visible !== false)
+        if (!hasFill) return false
+
+        const hasRadius = 'cornerRadius' in frame && (frame.cornerRadius as number) >= 4
+        if (!hasRadius) return false // buttons almost always have rounded corners
+
+        const hasAutoLayout = frame.layoutMode !== 'NONE'
+        if (!hasAutoLayout) return false
+
+        // Must have meaningful horizontal padding (button-like)
+        const hPadding = (frame.paddingLeft || 0) + (frame.paddingRight || 0)
+        if (hPadding < 16) return false
+
+        return true
+      }
+
+      // Check if node looks like an input field
+      function looksLikeInput(node: SceneNode): boolean {
+        if (!('children' in node)) return false
+        if (!('layoutMode' in node)) return false
+
+        const frame = node as FrameNode
+        // Typical input: horizontal layout, has stroke or specific background
+        if (frame.layoutMode !== 'HORIZONTAL') return false
+        if (frame.strokes?.length === 0 && !frame.fills?.length) return false
+
+        // Should have placeholder-like text or be relatively empty
+        const text = collectText(node, 50)
+        const placeholderWords = ['введите', 'enter', 'search', 'поиск', 'email', 'пароль', 'password', 'name', 'имя']
+        if (placeholderWords.some((w) => text.toLowerCase().includes(w))) return true
+
+        return false
+      }
+
+      // Infer heading level from font size
+      function inferHeadingLevel(node: SceneNode): number | undefined {
+        if (node.type !== 'TEXT') return undefined
+        const textNode = node as TextNode
+        const fontSize = typeof textNode.fontSize === 'number' ? textNode.fontSize : 16
+        if (fontSize >= 32) return 1
+        if (fontSize >= 24) return 2
+        if (fontSize >= 20) return 3
+        if (fontSize >= 18) return 4
+        if (fontSize >= 16) return 5
+        return 6
+      }
+
+      // Check if text node looks like a link (underlined, blue, or URL-like text)
+      function looksLikeLink(node: SceneNode): boolean {
+        if (node.type !== 'TEXT') return false
+        const textNode = node as TextNode
+        const text = textNode.characters.trim()
+        if (!text) return false
+
+        // Check for URL patterns
+        if (LINK_TEXT_PATTERNS.some((p) => p.test(text))) return true
+
+        // Check for underline decoration
+        if (textNode.textDecoration === 'UNDERLINE') return true
+
+        // Check for blue-ish color (common link color)
+        if (Array.isArray(textNode.fills)) {
+          for (const fill of textNode.fills) {
+            if (fill.type === 'SOLID' && fill.visible !== false) {
+              const { r, g, b } = fill.color
+              // Blue-ish: more blue than red and green
+              if (b > 0.5 && b > r && b > g) return true
+            }
+          }
+        }
+
+        return false
+      }
+
+      // Check if node is a separator/divider (thin horizontal or vertical line)
+      function looksLikeSeparator(node: SceneNode): boolean {
+        if (!('width' in node) || !('height' in node)) return false
+        const w = (node as SceneNode & { width: number }).width
+        const h = (node as SceneNode & { height: number }).height
+
+        // Horizontal separator: very thin height, wider than tall
+        if (h <= 2 && w > h * 10 && w >= 20) return true
+        // Vertical separator: very thin width, taller than wide
+        if (w <= 2 && h > w * 10 && h >= 20) return true
+
+        return false
+      }
+
+      // Check if node looks like a list (vertical stack of similar items)
+      function looksLikeList(node: SceneNode): { isList: boolean; itemCount: number } | null {
+        if (!('children' in node)) return null
+        if (!('layoutMode' in node)) return null
+
+        const frame = node as FrameNode
+        if (frame.layoutMode !== 'VERTICAL') return null
+
+        const children = frame.children.filter((c) => 'visible' in c && c.visible)
+        if (children.length < 3) return null // Need at least 3 items for a list
+
+        // Check if children have similar structure (same type, similar size)
+        const types = children.map((c) => c.type)
+        const allSameType = types.every((t) => t === types[0])
+        if (!allSameType) return null
+
+        // Check similar heights (within 20% tolerance)
+        const heights = children.map((c) => ('height' in c ? (c as SceneNode & { height: number }).height : 0))
+        const avgHeight = heights.reduce((a, b) => a + b, 0) / heights.length
+        if (avgHeight === 0) return null
+        const similarHeights = heights.every((h) => Math.abs(h - avgHeight) / avgHeight < 0.2)
+        if (!similarHeights) return null
+
+        return { isList: true, itemCount: children.length }
+      }
+
+      // Check if node is purely decorative (should be ignored)
+      function isDecorative(node: SceneNode): boolean {
+        // Very small elements are likely decorative
+        if ('width' in node && 'height' in node) {
+          const w = (node as SceneNode & { width: number }).width
+          const h = (node as SceneNode & { height: number }).height
+          if (w < 4 && h < 4) return true
+        }
+
+        // Elements named with decorative patterns
+        const decorativePatterns = [/^divider$/i, /^spacer$/i, /^line$/i, /^decoration$/i, /^bg$/i, /^background$/i]
+        if (decorativePatterns.some((p) => p.test(node.name))) return true
+
+        return false
+      }
+
+      // Check if node looks like a table/grid structure
+      interface TableInfo {
+        isTable: boolean
+        rowCount: number
+        colCount: number
+        hasHeader: boolean
+      }
+
+      function detectTableStructure(node: SceneNode): TableInfo | null {
+        if (!('children' in node)) return null
+        if (!('layoutMode' in node)) return null
+
+        const frame = node as FrameNode
+        // Table container should be vertical auto-layout
+        if (frame.layoutMode !== 'VERTICAL') return null
+
+        const children = frame.children.filter((c) => 'children' in c) as FrameNode[]
+        if (children.length < 2) return null // Need at least header + 1 row
+
+        // Check if all rows have similar structure (same number of cells)
+        const cellCounts = children.map((row) => {
+          if (!('children' in row)) return 0
+          return (row as FrameNode).children.length
+        })
+
+        // All rows should have same number of cells (or close)
+        const firstRowCells = cellCounts[0]
+        if (firstRowCells < 2) return null // Need at least 2 columns
+        const allSimilar = cellCounts.every((c) => Math.abs(c - firstRowCells) <= 1)
+        if (!allSimilar) return null
+
+        // Check if first row looks like a header (different style or contains header-like text)
+        const firstRow = children[0]
+        let hasHeader = false
+        if ('children' in firstRow) {
+          const firstRowChildren = (firstRow as FrameNode).children
+          // Check if first row has bold text or different background
+          hasHeader = firstRowChildren.some((cell) => {
+            if (cell.type === 'TEXT') {
+              const textNode = cell as TextNode
+              // Check for bold font weight
+              if (typeof textNode.fontWeight === 'number' && textNode.fontWeight >= 600) return true
+              if (typeof textNode.fontName === 'object' && textNode.fontName.style?.toLowerCase().includes('bold')) return true
+            }
+            return false
+          })
+        }
+
+        return {
+          isTable: true,
+          rowCount: children.length,
+          colCount: firstRowCells,
+          hasHeader,
+        }
+      }
+
+      let refCounter = 0
+      const refs: Record<string, { id: string; role: string; name?: string }> = {}
+
+      interface AXNode {
+        role: string
+        name?: string
+        id?: string
+        ref?: string
+        props?: Record<string, unknown>
+        children?: AXNode[]
+      }
+
+      function buildAXTree(node: SceneNode, depth: number): AXNode | null {
+        try {
+        if (maxDepth !== -1 && depth > maxDepth) return null
+        if ('visible' in node && !node.visible) return null
+        // Safety: skip nodes without valid string ID
+        if (!node.id || typeof node.id !== 'string') return null
+
+        // Text nodes -> StaticText
+        if (node.type === 'TEXT') {
+          const textNode = node as TextNode
+          const chars = textNode.characters.trim()
+          if (!chars) return null
+          return {
+            role: 'StaticText',
+            name: chars.length > 100 ? chars.slice(0, 100) + '…' : chars,
+            id: node.id,
+          }
+        }
+
+        // Determine role
+        let role = 'generic'
+        let props: Record<string, unknown> = {}
+        let accessibleName: string | undefined
+
+        // 1. Check explicit role from component/frame name
+        const nameDetected = detectRoleFromName(node.name)
+        if (nameDetected) {
+          role = nameDetected.role
+          if (nameDetected.props) props = { ...props, ...nameDetected.props }
+        }
+
+        // 2. For instances, also check main component name
+        if (node.type === 'INSTANCE') {
+          const mainComp = (node as InstanceNode).mainComponent
+          if (mainComp) {
+            const compDetected = detectRoleFromName(mainComp.name)
+            if (compDetected) {
+              role = compDetected.role
+              if (compDetected.props) props = { ...props, ...compDetected.props }
+            }
+            accessibleName = getBaseName(mainComp.name)
+          }
+        }
+
+        // 3. Structural heuristics if still generic
+        if (role === 'generic') {
+          // Check for decorative elements first - skip them
+          if (isDecorative(node)) {
+            return null
+          }
+
+          // Check for separator
+          if (looksLikeSeparator(node)) {
+            role = 'separator'
+          }
+          // Check for table structure
+          else {
+            const tableInfo = detectTableStructure(node)
+            if (tableInfo?.isTable) {
+              role = 'table'
+              props.rowCount = tableInfo.rowCount
+              props.colCount = tableInfo.colCount
+            }
+            // Check for list structure
+            else {
+              const listInfo = looksLikeList(node)
+              if (listInfo?.isList) {
+                role = 'list'
+                props.itemCount = listInfo.itemCount
+              }
+              // Check for button
+              else if (looksLikeButton(node)) {
+                role = 'button'
+                accessibleName = collectText(node, 50)
+              }
+              // Check for input
+              else if (looksLikeInput(node)) {
+                role = 'textbox'
+                accessibleName = collectText(node, 50) || undefined
+              }
+            }
+          }
+        }
+
+        // 3a. Special case: text nodes that look like links
+        if (node.type === 'TEXT' && looksLikeLink(node)) {
+          const textNode = node as TextNode
+          return {
+            role: 'link',
+            name: textNode.characters.trim().slice(0, 100),
+            id: node.id,
+          }
+        }
+
+        // 4. Extract variant properties (checked, disabled, expanded)
+        const variantProps = extractVariantProps(node)
+        props = { ...props, ...variantProps }
+
+        // 5. Compute accessible name if not set
+        if (!accessibleName && INTERACTIVE_ROLES.has(role)) {
+          accessibleName = collectText(node, 50) || getBaseName(node.name)
+        }
+
+        // 5a. For controls with generic name, try to find label from sibling
+        const controlRoles = new Set(['switch', 'checkbox', 'radio', 'slider', 'textbox', 'combobox'])
+        if (controlRoles.has(role) && accessibleName && /^(switch|checkbox|radio|input|toggle)$/i.test(accessibleName)) {
+          // Look at siblings for label text
+          const parent = node.parent
+          if (parent && 'children' in parent) {
+            const siblings = (parent as ChildrenMixin).children
+            const nodeIndex = siblings.indexOf(node as SceneNode)
+            // Check previous sibling for label
+            if (nodeIndex > 0) {
+              const prevSibling = siblings[nodeIndex - 1]
+              if (prevSibling.type === 'TEXT') {
+                accessibleName = (prevSibling as TextNode).characters.trim()
+              } else if ('children' in prevSibling) {
+                const siblingText = collectText(prevSibling as SceneNode, 80)
+                if (siblingText && siblingText.length > 1) {
+                  accessibleName = siblingText
+                }
+              }
+            }
+          }
+        }
+
+        // 6. Add heading level
+        if (role === 'heading' && !props.level) {
+          // Try to infer from first text child
+          if ('children' in node) {
+            const textChild = (node as ChildrenMixin).children.find((c) => c.type === 'TEXT')
+            if (textChild) {
+              props.level = inferHeadingLevel(textChild as SceneNode)
+            }
+          }
+        }
+
+        // Build children
+        let children: AXNode[] | undefined
+        if ('children' in node) {
+          const childNodes = (node as ChildrenMixin).children
+            .map((child) => buildAXTree(child as SceneNode, depth + 1))
+            .filter((n): n is AXNode => n !== null)
+          if (childNodes.length > 0) {
+            children = childNodes
+          }
+        }
+
+        // === Compact mode: simplify tree ===
+        if (compact) {
+          // Skip generic wrappers with single child
+          if (role === 'generic' && children?.length === 1 && !props.checked && !props.disabled) {
+            return children[0]
+          }
+
+          // Flatten StaticText children into parent's name for buttons/links
+          if (INTERACTIVE_ROLES.has(role) && !accessibleName && children) {
+            const textChildren = children.filter((c) => c.role === 'StaticText')
+            if (textChildren.length > 0) {
+              accessibleName = textChildren.map((c) => c.name).join(' ')
+              children = children.filter((c) => c.role !== 'StaticText')
+              if (children.length === 0) children = undefined
+            }
+          }
+        }
+
+        const isInteractive = INTERACTIVE_ROLES.has(role)
+
+        // Interactive filter mode
+        if (interactive && !isInteractive) {
+          const hasInteractiveDescendant = children?.some((c) => c.ref || c.children?.some((cc) => cc.ref))
+          if (!hasInteractiveDescendant) {
+            if (!children || children.length === 0) return null
+            if (children.length === 1) return children[0]
+          }
+        }
+
+        // Assign ref to interactive elements
+        let ref: string | undefined
+        if (isInteractive) {
+          ref = `e${++refCounter}`
+          refs[ref] = { id: node.id, role, name: accessibleName }
+        }
+
+        return {
+          role,
+          name: accessibleName,
+          id: node.id,
+          ref,
+          props: Object.keys(props).length > 0 ? props : undefined,
+          children,
+        }
+        } catch (e) {
+          // Skip nodes that cause errors (e.g., symbols, removed nodes)
+          return null
+        }
+      }
+
+      function formatTree(node: AXNode, indent = 0): string {
+        const prefix = '  '.repeat(indent) + '- '
+        let line = prefix + node.role
+
+        if (node.name) line += ` "${node.name}"`
+        if (node.id) line += ` [${node.id}]`
+        if (node.ref) line += ` [ref=${node.ref}]`
+        if (node.props) {
+          const propParts: string[] = []
+          if (node.props.level) propParts.push(`level=${node.props.level}`)
+          if (node.props.rowCount && node.props.colCount) {
+            propParts.push(`${node.props.rowCount}×${node.props.colCount}`)
+          }
+          if (node.props.itemCount) propParts.push(`${node.props.itemCount} items`)
+          if (node.props.checked) propParts.push('checked')
+          if (node.props.disabled) propParts.push('disabled')
+          if (node.props.expanded) propParts.push('expanded')
+          if (propParts.length > 0) line += ` [${propParts.join(', ')}]`
+        }
+
+        const lines = [line]
+        if (node.children) {
+          for (const child of node.children) {
+            lines.push(formatTree(child, indent + 1))
+          }
+        }
+        return lines.join('\n')
+      }
+
+      let rootNode: SceneNode | PageNode
+      if (id) {
+        const node = await figma.getNodeByIdAsync(id)
+        if (!node || node.type === 'DOCUMENT') throw new Error(`Node ${id} not found`)
+        rootNode = node as SceneNode
+      } else {
+        // Use selection or current page
+        if (figma.currentPage.selection.length > 0) {
+          rootNode = figma.currentPage.selection[0]
+        } else {
+          rootNode = figma.currentPage
+        }
+      }
+
+      let tree: string
+      if (rootNode.type === 'PAGE') {
+        const pageChildren = (rootNode as PageNode).children
+          .map((child) => buildAXTree(child as SceneNode, 0))
+          .filter((n): n is AXNode => n !== null)
+        tree = pageChildren.map((c) => formatTree(c, 0)).join('\n')
+      } else {
+        const snapshot = buildAXTree(rootNode as SceneNode, 0)
+        tree = snapshot ? formatTree(snapshot, 0) : '(empty)'
+      }
+
+      return {
+        tree,
+        refs,
+        refCount: refCounter
+      }
+    }
+
     default:
       throw new Error(`Unknown command: ${command}`)
   }

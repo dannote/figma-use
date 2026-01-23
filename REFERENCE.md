@@ -307,6 +307,13 @@ figma-use analyze typography --group-by weight  # Group by weight
 # Spacing — gap and padding values
 figma-use analyze spacing                  # All spacing values
 figma-use analyze spacing --grid 8         # Warn if not divisible by 8px
+
+# Snapshot — accessibility tree extraction
+figma-use analyze snapshot                 # Snapshot current page
+figma-use analyze snapshot <id>            # Snapshot specific node
+figma-use analyze snapshot -i              # Interactive elements only
+figma-use analyze snapshot --depth 6       # Limit tree depth
+figma-use analyze snapshot --no-compact    # Show all wrapper nodes
 ```
 
 All commands support `--json` for machine-readable output.

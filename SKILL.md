@@ -429,6 +429,11 @@ figma-use analyze typography --group-by size
 
 # Spacing
 figma-use analyze spacing --grid 8         # Check 8px grid compliance
+
+# Accessibility snapshot — extract interactive elements
+figma-use analyze snapshot                 # Full page
+figma-use analyze snapshot <id> -i         # Interactive only (buttons, inputs, etc.)
+figma-use analyze snapshot --depth 6       # Limit depth
 ```
 
 **Use cases:**
