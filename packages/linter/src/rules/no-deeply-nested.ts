@@ -1,4 +1,5 @@
 import { defineRule } from '../core/rule.ts'
+
 import type { NodeRef } from '../core/types.ts'
 
 interface Options {
@@ -14,7 +15,7 @@ export default defineRule({
     id: 'no-deeply-nested',
     category: 'structure',
     description: 'Avoid deeply nested layers that make the design hard to maintain',
-    fixable: false,
+    fixable: false
   },
 
   check(node, context) {
@@ -32,8 +33,8 @@ export default defineRule({
       context.report({
         node,
         message: `Layer nested ${depth} levels deep (max ${maxDepth})`,
-        suggest: 'Flatten structure or extract into a component',
+        suggest: 'Flatten structure or extract into a component'
       })
     }
-  },
+  }
 })

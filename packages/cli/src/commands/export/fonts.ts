@@ -3,12 +3,7 @@ import { writeFileSync } from 'fs'
 
 import { sendCommand, handleError } from '../../client.ts'
 import { googleFontsUrl } from '../../css-builder.ts'
-import {
-  getFonts,
-  fetchGoogleFontsList,
-  generateFontsCss,
-  styleToWeight
-} from '../../fonts.ts'
+import { getFonts, fetchGoogleFontsList, generateFontsCss, styleToWeight } from '../../fonts.ts'
 
 export default defineCommand({
   meta: { description: 'List fonts used in the current page' },

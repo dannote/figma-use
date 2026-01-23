@@ -1,7 +1,7 @@
+import { yellow, cyan, green, bold, red } from 'agentfmt'
 import { defineCommand } from 'citty'
 import { existsSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { yellow, cyan, green, bold, red } from 'agentfmt'
 
 import { CONFIG_FILENAME, getDefaultConfig, findConfigPath } from '../config.ts'
 
@@ -34,10 +34,14 @@ export default defineCommand({
     }
 
     const config = getDefaultConfig()
-    
+
     // Apply preset if specified
     if (args.preset && args.preset !== 'recommended') {
-      config.lint!.preset = args.preset as 'recommended' | 'strict' | 'accessibility' | 'design-system'
+      config.lint!.preset = args.preset as
+        | 'recommended'
+        | 'strict'
+        | 'accessibility'
+        | 'design-system'
     }
 
     writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n')

@@ -12,7 +12,7 @@ interface IconMatch {
 }
 
 let whaticon: typeof import('whaticon') | null = null
-let iconIndex: Awaited<ReturnType<typeof import('whaticon')['loadIndex']>> | null = null
+let iconIndex: Awaited<ReturnType<(typeof import('whaticon'))['loadIndex']>> | null = null
 
 async function getWhaticon() {
   if (!whaticon) {
@@ -20,7 +20,9 @@ async function getWhaticon() {
       whaticon = await import('whaticon')
     } catch (e: unknown) {
       if ((e as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
-        console.error(`whaticon is required for icon matching. Install it:\n\n  ${installHint('whaticon')}\n`)
+        console.error(
+          `whaticon is required for icon matching. Install it:\n\n  ${installHint('whaticon')}\n`
+        )
         process.exit(1)
       }
       throw e
@@ -34,7 +36,7 @@ async function ensureIndex() {
 
   const wi = await getWhaticon()
   const { ensureIndex: ensure, loadIndex } = wi as typeof import('whaticon') & {
-    ensureIndex: typeof import('whaticon/download')['ensureIndex']
+    ensureIndex: (typeof import('whaticon/download'))['ensureIndex']
   }
 
   // Dynamic import for download module

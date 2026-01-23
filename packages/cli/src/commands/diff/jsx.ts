@@ -1,6 +1,6 @@
+import { bold, green, red, cyan } from 'agentfmt'
 import { defineCommand } from 'citty'
 import { createTwoFilesPatch } from 'diff'
-import { bold, green, red, cyan } from 'agentfmt'
 import * as ts from 'typescript'
 
 import { sendCommand, handleError } from '../../client.ts'

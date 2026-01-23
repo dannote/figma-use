@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'bun:test'
+
 import { createLinter, type FigmaNode } from '../src/index.ts'
 
 describe('Linter', () => {
@@ -8,8 +9,8 @@ describe('Linter', () => {
         id: '1:1',
         name: 'Box',
         type: 'RECTANGLE',
-        fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }],
-      },
+        fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }]
+      }
     ]
 
     const linter = createLinter({ rules: ['no-hardcoded-colors'] })
@@ -29,10 +30,10 @@ describe('Linter', () => {
           {
             type: 'SOLID',
             color: { r: 1, g: 0, b: 0 },
-            boundVariables: { color: { id: 'var:123' } },
-          },
-        ],
-      },
+            boundVariables: { color: { id: 'var:123' } }
+          }
+        ]
+      }
     ]
 
     const linter = createLinter({ rules: ['no-hardcoded-colors'] })
@@ -44,7 +45,7 @@ describe('Linter', () => {
   test('detects default names', () => {
     const nodes: FigmaNode[] = [
       { id: '1:1', name: 'Frame 42', type: 'FRAME', width: 100, height: 100 },
-      { id: '1:2', name: 'header-card', type: 'FRAME', width: 100, height: 100 },
+      { id: '1:2', name: 'header-card', type: 'FRAME', width: 100, height: 100 }
     ]
 
     const linter = createLinter({ rules: ['no-default-names'] })
@@ -63,9 +64,9 @@ describe('Linter', () => {
         layoutMode: 'NONE',
         children: [
           { id: '1:2', name: 'Title', type: 'TEXT', x: 0, y: 0, width: 100, height: 20 },
-          { id: '1:3', name: 'Body', type: 'TEXT', x: 0, y: 30, width: 100, height: 50 },
-        ],
-      },
+          { id: '1:3', name: 'Body', type: 'TEXT', x: 0, y: 30, width: 100, height: 50 }
+        ]
+      }
     ]
 
     const linter = createLinter({ rules: ['prefer-auto-layout'] })
@@ -86,8 +87,8 @@ describe('Linter', () => {
         paddingTop: 16,
         paddingRight: 16,
         paddingBottom: 16,
-        paddingLeft: 16,
-      },
+        paddingLeft: 16
+      }
     ]
 
     const linter = createLinter({ rules: ['consistent-spacing'] })
@@ -111,10 +112,10 @@ describe('Linter', () => {
             type: 'TEXT',
             characters: 'Light gray text',
             fontSize: 14,
-            fills: [{ type: 'SOLID', color: { r: 0.8, g: 0.8, b: 0.8 } }], // Light gray
-          },
-        ],
-      },
+            fills: [{ type: 'SOLID', color: { r: 0.8, g: 0.8, b: 0.8 } }] // Light gray
+          }
+        ]
+      }
     ]
 
     const linter = createLinter({ rules: ['color-contrast'] })
@@ -131,8 +132,8 @@ describe('Linter', () => {
         name: 'small-button',
         type: 'COMPONENT',
         width: 32,
-        height: 32,
-      },
+        height: 32
+      }
     ]
 
     const linter = createLinter({ rules: ['touch-target-size'] })
@@ -148,8 +149,8 @@ describe('Linter', () => {
         id: '1:1',
         name: 'hidden-stuff',
         type: 'FRAME',
-        visible: false,
-      },
+        visible: false
+      }
     ]
 
     const linter = createLinter({ rules: ['no-hidden-layers'] })
@@ -167,8 +168,8 @@ describe('Linter', () => {
         x: 10.5,
         y: 20.3,
         width: 100,
-        height: 50,
-      },
+        height: 50
+      }
     ]
 
     const linter = createLinter({ rules: ['pixel-perfect'] })
@@ -186,8 +187,8 @@ describe('Linter', () => {
         type: 'FRAME',
         width: 100,
         height: 100,
-        fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }],
-      },
+        fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }]
+      }
     ]
 
     const linter = createLinter({ preset: 'recommended' })
@@ -211,10 +212,10 @@ describe('Linter', () => {
             type: 'TEXT',
             characters: 'Bad contrast',
             fontSize: 14,
-            fills: [{ type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } }],
-          },
-        ],
-      },
+            fills: [{ type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } }]
+          }
+        ]
+      }
     ]
 
     const linter = createLinter({ preset: 'recommended' })
@@ -229,10 +230,8 @@ describe('Linter', () => {
         id: '1:1',
         name: 'My Group',
         type: 'GROUP',
-        children: [
-          { id: '1:2', name: 'Child', type: 'RECTANGLE' },
-        ],
-      },
+        children: [{ id: '1:2', name: 'Child', type: 'RECTANGLE' }]
+      }
     ]
 
     const linter = createLinter({ rules: ['no-groups'] })
@@ -248,10 +247,8 @@ describe('Linter', () => {
         id: '1:1',
         name: 'Card',
         type: 'FRAME',
-        effects: [
-          { type: 'DROP_SHADOW', visible: true, radius: 10 },
-        ],
-      },
+        effects: [{ type: 'DROP_SHADOW', visible: true, radius: 10 }]
+      }
     ]
 
     const linter = createLinter({ rules: ['effect-style-required'] })
@@ -267,9 +264,9 @@ describe('Linter', () => {
         id: '1:1',
         name: 'Mixed Text',
         type: 'TEXT',
-        characters: 'Hello World with different styles',
+        characters: 'Hello World with different styles'
         // fontSize is undefined when mixed
-      },
+      }
     ]
 
     const linter = createLinter({ rules: ['no-mixed-styles'] })
@@ -286,10 +283,8 @@ describe('Linter', () => {
         name: 'Button Primary',
         type: 'FRAME',
         layoutMode: 'HORIZONTAL',
-        children: [
-          { id: '1:2', name: 'Label', type: 'TEXT', characters: 'Click me' },
-        ],
-      },
+        children: [{ id: '1:2', name: 'Label', type: 'TEXT', characters: 'Click me' }]
+      }
     ]
 
     const linter = createLinter({ rules: ['no-detached-instances'] })

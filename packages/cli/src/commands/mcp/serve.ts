@@ -77,7 +77,9 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
 
         // Coerce string args to numbers where schema expects them
         const coercedArgs: Record<string, unknown> = {}
-        const properties = tool.inputSchema.properties as Record<string, { type?: string }> | undefined
+        const properties = tool.inputSchema.properties as
+          | Record<string, { type?: string }>
+          | undefined
         if (args && properties) {
           for (const [key, value] of Object.entries(args)) {
             const propSchema = properties[key]

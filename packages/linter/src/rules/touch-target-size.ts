@@ -25,7 +25,7 @@ const INTERACTIVE_PATTERNS = [
   /dismiss/i,
   /action/i,
   /clickable/i,
-  /tappable/i,
+  /tappable/i
 ]
 
 export default defineRule({
@@ -33,7 +33,7 @@ export default defineRule({
     id: 'touch-target-size',
     category: 'accessibility',
     description: 'Interactive elements should be at least 44x44px for touch accessibility',
-    fixable: true,
+    fixable: true
   },
 
   match: ['FRAME', 'COMPONENT', 'INSTANCE', 'RECTANGLE', 'ELLIPSE'],
@@ -62,19 +62,19 @@ export default defineRule({
         action: 'resize',
         params: {
           width: Math.max(width, minSize),
-          height: Math.max(height, minSize),
-        },
-      },
+          height: Math.max(height, minSize)
+        }
+      }
     })
-  },
+  }
 })
 
 function isLikelyInteractive(name: string, type: string): boolean {
   // Components and instances are often interactive
   if (type === 'COMPONENT' || type === 'INSTANCE') {
-    return INTERACTIVE_PATTERNS.some(pattern => pattern.test(name))
+    return INTERACTIVE_PATTERNS.some((pattern) => pattern.test(name))
   }
 
   // Check name for interactive patterns
-  return INTERACTIVE_PATTERNS.some(pattern => pattern.test(name))
+  return INTERACTIVE_PATTERNS.some((pattern) => pattern.test(name))
 }

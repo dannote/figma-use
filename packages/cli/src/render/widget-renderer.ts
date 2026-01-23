@@ -5,6 +5,7 @@
 import { sendCommand } from '../client.ts'
 import { loadIconSvg } from './icon.ts'
 import { isTreeNode, type TreeNode, type ReactElement, type Props } from './tree.ts'
+
 import type { NodeRef } from '../types.ts'
 
 interface IconNode {
@@ -85,8 +86,8 @@ function serializeInlineSvg(tree: TreeNode): string {
   const { width, height, viewBox, fill, w, h } = props as Record<string, unknown>
   const attrs = [
     'xmlns="http://www.w3.org/2000/svg"',
-    (width || w) ? `width="${width || w}"` : '',
-    (height || h) ? `height="${height || h}"` : '',
+    width || w ? `width="${width || w}"` : '',
+    height || h ? `height="${height || h}"` : '',
     viewBox ? `viewBox="${viewBox}"` : '',
     fill ? `fill="${fill}"` : ''
   ]

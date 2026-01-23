@@ -33,6 +33,7 @@
  */
 
 import * as React from './mini-react.ts'
+
 import type { FC, ReactElement } from './mini-react.ts'
 
 type VariantDef = Record<string, readonly string[]>
@@ -91,9 +92,9 @@ export function defineComponentSet<V extends VariantDef>(
     symbol: sym
   } as ComponentSetDef<VariantDef>)
 
-  const VariantInstance: FC<
-    Partial<VariantProps<V>> & { style?: Record<string, unknown> }
-  > = (props) => {
+  const VariantInstance: FC<Partial<VariantProps<V>> & { style?: Record<string, unknown> }> = (
+    props
+  ) => {
     const { style, ...variantProps } = props
     return React.createElement('__component_set_instance__', {
       __componentSetSymbol: sym,

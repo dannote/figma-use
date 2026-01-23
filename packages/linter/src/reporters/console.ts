@@ -1,19 +1,24 @@
 import pc from 'picocolors'
+
 import type { LintResult, LintMessage, Severity } from '../core/types.ts'
 
 const SEVERITY_ICONS: Record<Severity, string> = {
   error: '✖',
   warning: '⚠',
   info: 'ℹ',
-  off: ' ',
+  off: ' '
 }
 
 const severityColor = (severity: Severity, text: string): string => {
   switch (severity) {
-    case 'error': return pc.red(text)
-    case 'warning': return pc.yellow(text)
-    case 'info': return pc.cyan(text)
-    default: return pc.dim(text)
+    case 'error':
+      return pc.red(text)
+    case 'warning':
+      return pc.yellow(text)
+    case 'info':
+      return pc.cyan(text)
+    default:
+      return pc.dim(text)
   }
 }
 
@@ -41,7 +46,7 @@ export function formatReport(result: LintResult, options: ConsoleReporterOptions
       return order[a.severity] - order[b.severity]
     })
 
-    const hasError = messages.some(m => m.severity === 'error')
+    const hasError = messages.some((m) => m.severity === 'error')
     const icon = hasError ? pc.red('✖') : pc.yellow('⚠')
     lines.push(`${icon} ${pc.bold(nodePath)}`)
 
@@ -75,7 +80,11 @@ export function formatReport(result: LintResult, options: ConsoleReporterOptions
     lines.push(parts.join('  '))
 
     if (result.fixableCount > 0) {
-      lines.push(pc.dim(`\nRun with --fix to auto-fix ${result.fixableCount} issue${result.fixableCount !== 1 ? 's' : ''}`))
+      lines.push(
+        pc.dim(
+          `\nRun with --fix to auto-fix ${result.fixableCount} issue${result.fixableCount !== 1 ? 's' : ''}`
+        )
+      )
     }
   } else {
     lines.push(pc.green('✔ No issues found'))

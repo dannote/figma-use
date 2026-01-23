@@ -7,6 +7,6 @@ export default defineCommand({
     colors: () => import('./colors.ts').then((m) => m.default),
     typography: () => import('./typography.ts').then((m) => m.default),
     spacing: () => import('./spacing.ts').then((m) => m.default),
-    snapshot: () => import('./snapshot.ts').then((m) => m.default),
-  },
+    snapshot: () => import('./snapshot.ts').then((m) => m.default)
+  }
 })

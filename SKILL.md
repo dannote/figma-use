@@ -43,6 +43,7 @@ Start Figma with `--remote-debugging-port=9222` and you're ready.
 ## Two Modes
 
 **Imperative** — single operations:
+
 ```bash
 figma-use create frame --width 400 --height 300 --fill "#FFF" --radius 12
 figma-use set fill <id> "#FF0000"
@@ -50,6 +51,7 @@ figma-use node move <id> --x 100 --y 200
 ```
 
 **Declarative** — render JSX trees:
+
 ```bash
 echo '<Frame p={24} gap={16} flex="col" bg="#FFF" rounded={12}>
   <Text size={24} weight="bold" color="#000">Title</Text>
@@ -62,7 +64,8 @@ stdin supports both pure JSX and full module syntax with imports:
 ```tsx
 import { Frame, Text, defineComponent } from 'figma-use/render'
 
-const Button = defineComponent('Button', 
+const Button = defineComponent(
+  'Button',
   <Frame bg="#3B82F6" p={12} rounded={6}>
     <Text color="#FFF">Click</Text>
   </Frame>
@@ -79,6 +82,7 @@ export default () => (
 **Elements:** `Frame`, `Rectangle`, `Ellipse`, `Text`, `Line`, `Star`, `Polygon`, `Vector`, `Group`, `Icon`, `Image`, `Instance`
 
 Use `<Instance>` to create component instances:
+
 ```tsx
 <Frame flex="row" gap={8}>
   <Instance component="59763:10626" />
@@ -99,6 +103,7 @@ figma-use create icon heroicons:bell-solid --component  # as Figma component
 ```
 
 In JSX:
+
 ```tsx
 <Icon name="mdi:home" size={24} color="#3B82F6" />
 ```
@@ -106,6 +111,7 @@ In JSX:
 ## Images
 
 Load images from URL:
+
 ```tsx
 <Image src="https://example.com/photo.jpg" w={200} h={150} />
 ```
@@ -127,6 +133,7 @@ figma-use export jsx <id> --match-icons --icon-threshold 0.85 --prefer-icons luc
 ```
 
 Round-trip workflow:
+
 ```bash
 # Export → edit → re-render
 figma-use export jsx <id> --pretty > component.tsx
@@ -135,6 +142,7 @@ figma-use render component.tsx --x 500 --y 0
 ```
 
 Compare two nodes as JSX:
+
 ```bash
 figma-use diff jsx <from-id> <to-id>
 ```
@@ -151,6 +159,7 @@ figma-use export storybook --no-semantic-html   # Disable semantic HTML conversi
 ```
 
 **Semantic HTML:** By default, components are converted to semantic HTML elements based on their names:
+
 - `Input/*`, `TextField/*` → `<input type="text">`
 - `Textarea/*` → `<textarea>`
 - `Checkbox/*` → `<input type="checkbox">`
@@ -161,12 +170,14 @@ figma-use export storybook --no-semantic-html   # Disable semantic HTML conversi
 Use `--no-semantic-html` to disable this and keep `<Frame>` elements.
 
 Generates `.stories.tsx` files:
+
 - **ComponentSets** → React component with props + stories with args
 - **VARIANT properties** → Union type props (`variant?: 'Primary' | 'Secondary'`)
 - **TEXT properties** → Editable string props (`label?: string`)
 - Components grouped by `/` prefix → `Button/Primary`, `Button/Secondary` → `Button.stories.tsx`
 
 Example output for Button with variant and label:
+
 ```tsx
 // Button.tsx
 export interface ButtonProps {
@@ -174,7 +185,12 @@ export interface ButtonProps {
   variant?: 'Primary' | 'Secondary'
 }
 export function Button({ label, variant }: ButtonProps) {
-  if (variant === 'Primary') return <Frame><Text>{label}</Text></Frame>
+  if (variant === 'Primary')
+    return (
+      <Frame>
+        <Text>{label}</Text>
+      </Frame>
+    )
   // ...
 }
 
@@ -194,6 +210,7 @@ figma-use set fill <id> '$Brand/Accent'
 ```
 
 In JSX:
+
 ```tsx
 <Frame bg="$Colors/Primary" />
 <Text color="var:Text/Primary">Hello</Text>
@@ -272,9 +289,12 @@ First call creates master, rest create instances:
 ```tsx
 import { defineComponent, Frame, Text } from 'figma-use/render'
 
-const Card = defineComponent('Card',
+const Card = defineComponent(
+  'Card',
   <Frame p={24} bg="#FFF" rounded={12}>
-    <Text size={18} color="#000">Card</Text>
+    <Text size={18} color="#000">
+      Card
+    </Text>
   </Frame>
 )
 
@@ -296,20 +316,24 @@ figma-use render --examples  # Full API reference
 ```tsx
 import { defineComponentSet, Frame, Text } from 'figma-use/render'
 
-const Button = defineComponentSet('Button', {
-  variant: ['Primary', 'Secondary'] as const,
-  size: ['Small', 'Large'] as const,
-}, ({ variant, size }) => (
-  <Frame
-    p={size === 'Large' ? 16 : 8}
-    bg={variant === 'Primary' ? '#3B82F6' : '#E5E7EB'}
-    rounded={8}
-  >
-    <Text color={variant === 'Primary' ? '#FFF' : '#111'}>
-      {variant} {size}
-    </Text>
-  </Frame>
-))
+const Button = defineComponentSet(
+  'Button',
+  {
+    variant: ['Primary', 'Secondary'] as const,
+    size: ['Small', 'Large'] as const
+  },
+  ({ variant, size }) => (
+    <Frame
+      p={size === 'Large' ? 16 : 8}
+      bg={variant === 'Primary' ? '#3B82F6' : '#E5E7EB'}
+      rounded={8}
+    >
+      <Text color={variant === 'Primary' ? '#FFF' : '#111'}>
+        {variant} {size}
+      </Text>
+    </Frame>
+  )
+)
 ```
 
 Creates real ComponentSet with all combinations.
@@ -334,6 +358,7 @@ figma-use diff create --from <id1> --to <id2>
 ⚠️ Context lines need space prefix: ` size: 200 50` not `size: 200 50`
 
 Apply with validation:
+
 ```bash
 figma-use diff apply patch.diff            # Fails if old values don't match
 figma-use diff apply patch.diff --dry-run  # Preview
@@ -341,6 +366,7 @@ figma-use diff apply patch.diff --force    # Skip validation
 ```
 
 Visual diff (red = changed pixels):
+
 ```bash
 figma-use diff visual --from <id1> --to <id2> --output diff.png
 ```
@@ -437,6 +463,7 @@ figma-use analyze snapshot --depth 6       # Limit depth
 ```
 
 **Use cases:**
+
 - **Component extraction** — find copy-pasted elements that should be components
 - **Design audit** — identify inconsistencies, similar-but-different elements
 - **Design system creation** — discover existing colors, typography, spacing patterns
@@ -462,6 +489,7 @@ figma-use lint --list-rules             # Show all rules
 **Presets:** `recommended`, `strict`, `accessibility`, `design-system`
 
 **17 rules:**
+
 - Design tokens: `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required`
 - Layout: `prefer-auto-layout`, `pixel-perfect`
 - Typography: `text-style-required`, `min-text-size`, `no-mixed-styles`
@@ -491,22 +519,26 @@ Variables: `var:Colors/Primary` or `$Colors/Primary`
 ## Best Practices
 
 ### Always verify visually
+
 ```bash
 figma-use export node <id> --output /tmp/check.png
 ```
 
 ### Always zoom after creating
+
 ```bash
 figma-use viewport zoom-to-fit <id>
 ```
 
 ### Position multiple renders separately
+
 ```bash
 echo '...' | figma-use render --stdin --x 0 --y 0
 echo '...' | figma-use render --stdin --x 500 --y 0    # Not at same position!
 ```
 
 ### Copy between pages
+
 ```bash
 figma-use node clone <id> [id2...] --json | jq -r '.[].id'
 figma-use node set-parent <new-id> --parent <target-page-id>
@@ -514,6 +546,7 @@ figma-use node move <new-id> --x 50 --y 50
 ```
 
 ### Replace node
+
 ```bash
 # Replace with component (creates instance)
 figma-use node replace-with <id> --target <component-id>
@@ -523,17 +556,20 @@ echo '<Icon name="lucide:x" size={16} />' | figma-use node replace-with <id> --s
 ```
 
 ### Convert to component
+
 ```bash
 figma-use node to-component <id>
 figma-use node to-component "1:2 1:3 1:4"  # Multiple
 ```
 
 ### Instance internal IDs
+
 ```bash
 figma-use set text "I123:456;789:10" "New text"  # I<instance>;<internal>
 ```
 
 ### Row layout needs width
+
 ```bash
 # ❌ Collapses to 1×1
 <Frame flex="row" gap={8}>
@@ -543,10 +579,12 @@ figma-use set text "I123:456;789:10" "New text"  # I<instance>;<internal>
 ```
 
 ### Sections
+
 ```bash
 figma-use create section --name "Buttons" --x 0 --y 0 --width 600 --height 200
 figma-use node set-parent <id> --parent <section-id>
 ```
+
 ⚠️ Deleting section deletes all children!
 
 ### Vector paths — iterative workflow
@@ -573,6 +611,7 @@ figma-use export node <id> --output /tmp/shape.png
 ```
 
 For complex illustrations, import SVG:
+
 ```bash
 figma-use import --svg "$(cat icon.svg)"
 ```

@@ -22,7 +22,10 @@ export default defineCommand({
         const jsx = await readStdin()
         if (!jsx.trim()) throw new Error('No JSX provided on stdin')
 
-        const original = (await sendCommand('get-node-info', { id: args.id })) as { x: number; y: number }
+        const original = (await sendCommand('get-node-info', { id: args.id })) as {
+          x: number
+          y: number
+        }
         const rendered = await renderFromString(jsx, { x: original.x, y: original.y })
         sourceId = rendered.id
       } else {

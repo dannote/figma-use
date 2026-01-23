@@ -1,59 +1,60 @@
 import { defineCommand } from 'citty'
-import { sendCommand } from '../client.ts'
-import { loadConfig, mergeWithDefaults } from '../config.ts'
+
 import {
   createLinter,
   formatReport,
   formatJSON,
   presets,
   type FigmaNode,
-  type FigmaVariable,
+  type FigmaVariable
 } from '../../../linter/src/index.ts'
+import { sendCommand } from '../client.ts'
+import { loadConfig, mergeWithDefaults } from '../config.ts'
 
 export default defineCommand({
   meta: {
     name: 'lint',
-    description: 'Lint Figma designs for consistency and accessibility issues',
+    description: 'Lint Figma designs for consistency and accessibility issues'
   },
   args: {
     root: {
       type: 'string',
-      description: 'Node ID to lint (default: current page)',
+      description: 'Node ID to lint (default: current page)'
     },
     page: {
       type: 'string',
-      description: 'Page name to lint (partial match supported)',
+      description: 'Page name to lint (partial match supported)'
     },
     preset: {
       type: 'string',
       description: 'Preset to use: recommended, strict, accessibility, design-system',
-      default: 'recommended',
+      default: 'recommended'
     },
     rule: {
       type: 'string',
-      description: 'Run specific rule(s) only (can be repeated)',
+      description: 'Run specific rule(s) only (can be repeated)'
     },
     fix: {
       type: 'boolean',
       description: 'Auto-fix issues where possible',
-      default: false,
+      default: false
     },
     verbose: {
       type: 'boolean',
       alias: 'v',
       description: 'Show suggestions for fixing issues',
-      default: false,
+      default: false
     },
     json: {
       type: 'boolean',
       description: 'Output as JSON',
-      default: false,
+      default: false
     },
     'list-rules': {
       type: 'boolean',
       description: 'List available rules and exit',
-      default: false,
-    },
+      default: false
+    }
   },
   async run({ args }) {
     // List rules mode
@@ -88,7 +89,7 @@ export default defineCommand({
 
     // Get node tree from Figma (returned as JSON string due to size limits)
     const treeJson = await sendCommand<string>('lint-tree', {
-      rootId,
+      rootId
     })
     const tree = JSON.parse(treeJson) as FigmaNode
 
@@ -108,7 +109,7 @@ export default defineCommand({
     const linter = createLinter({
       preset,
       rules,
-      variables,
+      variables
     })
 
     const result = linter.lint([tree])
@@ -124,5 +125,5 @@ export default defineCommand({
     if (result.errorCount > 0) {
       process.exit(1)
     }
-  },
+  }
 })

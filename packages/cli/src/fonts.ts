@@ -2,12 +2,7 @@ import { writeFileSync } from 'fs'
 import { join } from 'path'
 
 import { sendCommand } from './client.ts'
-import {
-  createRoot,
-  createFontFace,
-  createFontFaceSrc,
-  googleFontsImport
-} from './css-builder.ts'
+import { createRoot, createFontFace, createFontFaceSrc, googleFontsImport } from './css-builder.ts'
 
 export interface FontInfo {
   family: string
@@ -26,23 +21,39 @@ export async function fetchGoogleFontsList(): Promise<Set<string>> {
     return googleFontsCache
   } catch {
     return new Set([
-      'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins',
-      'Nunito', 'Raleway', 'Ubuntu', 'Noto Sans', 'PT Sans', 'Fira Sans'
+      'Inter',
+      'Roboto',
+      'Open Sans',
+      'Lato',
+      'Montserrat',
+      'Poppins',
+      'Nunito',
+      'Raleway',
+      'Ubuntu',
+      'Noto Sans',
+      'PT Sans',
+      'Fira Sans'
     ])
   }
 }
 
 export function styleToWeight(style: string): number {
   const map: Record<string, number> = {
-    Thin: 100, Hairline: 100,
-    ExtraLight: 200, UltraLight: 200,
+    Thin: 100,
+    Hairline: 100,
+    ExtraLight: 200,
+    UltraLight: 200,
     Light: 300,
-    Regular: 400, Normal: 400,
+    Regular: 400,
+    Normal: 400,
     Medium: 500,
-    SemiBold: 600, DemiBold: 600,
+    SemiBold: 600,
+    DemiBold: 600,
     Bold: 700,
-    ExtraBold: 800, UltraBold: 800,
-    Black: 900, Heavy: 900
+    ExtraBold: 800,
+    UltraBold: 800,
+    Black: 900,
+    Heavy: 900
   }
   for (const [key, weight] of Object.entries(map)) {
     if (style.includes(key)) return weight

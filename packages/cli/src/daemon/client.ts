@@ -1,5 +1,5 @@
-import { createConnection, Socket } from 'net'
 import { existsSync } from 'fs'
+import { createConnection, Socket } from 'net'
 
 const SOCKET_PATH = '/tmp/figma-use.sock'
 

@@ -1,7 +1,8 @@
-import { defineCommand } from 'citty'
 import { spawn } from 'child_process'
-import { fileURLToPath } from 'url'
+import { defineCommand } from 'citty'
 import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+
 import { startDaemon, stopDaemon, isDaemonRunning, getDaemonInfo } from '../daemon/index.ts'
 import { ok, fail } from '../format.ts'
 
@@ -11,7 +12,11 @@ export default defineCommand({
     start: defineCommand({
       meta: { description: 'Start daemon in background' },
       args: {
-        foreground: { type: 'boolean', alias: 'f', description: 'Run in foreground (don\'t daemonize)' }
+        foreground: {
+          type: 'boolean',
+          alias: 'f',
+          description: "Run in foreground (don't daemonize)"
+        }
       },
       async run({ args }) {
         if (isDaemonRunning()) {
@@ -30,14 +35,10 @@ export default defineCommand({
             ? join(cliDir, '../cli/index.js')
             : join(cliDir, '../index.ts')
 
-          const child = spawn(
-            process.execPath,
-            [indexPath, 'daemon', 'start', '-f'],
-            {
-              detached: true,
-              stdio: 'ignore'
-            }
-          )
+          const child = spawn(process.execPath, [indexPath, 'daemon', 'start', '-f'], {
+            detached: true,
+            stdio: 'ignore'
+          })
           child.unref()
 
           // Wait a bit and check if it started
@@ -90,14 +91,10 @@ export default defineCommand({
           ? join(cliDir, '../cli/index.js')
           : join(cliDir, '../index.ts')
 
-        const child = spawn(
-          process.execPath,
-          [indexPath, 'daemon', 'start', '-f'],
-          {
-            detached: true,
-            stdio: 'ignore'
-          }
-        )
+        const child = spawn(process.execPath, [indexPath, 'daemon', 'start', '-f'], {
+          detached: true,
+          stdio: 'ignore'
+        })
         child.unref()
 
         await new Promise((r) => setTimeout(r, 500))

@@ -1,4 +1,5 @@
 import { defineCommand } from 'citty'
+
 import { sendCommand } from '../../client.ts'
 
 interface ClusterNode {
@@ -63,7 +64,7 @@ export default defineCommand({
     limit: { type: 'string', description: 'Max clusters to show', default: '20' },
     'min-size': { type: 'string', description: 'Min node size in px', default: '30' },
     'min-count': { type: 'string', description: 'Min instances to form cluster', default: '2' },
-    json: { type: 'boolean', description: 'Output as JSON' },
+    json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {
     const minSize = Number(args['min-size'])
@@ -73,7 +74,7 @@ export default defineCommand({
     const result = (await sendCommand('analyze-clusters', {
       minSize,
       minCount,
-      limit,
+      limit
     })) as { clusters: Cluster[]; totalNodes: number }
 
     if (args.json) {
@@ -98,13 +99,22 @@ export default defineCommand({
           ? `${Math.round(c.avgWidth)}×${Math.round(c.avgHeight)}`
           : `${Math.round(c.avgWidth)}×${Math.round(c.avgHeight)} (±${Math.max(c.widthRange, c.heightRange)}px)`
 
-      console.log(`[${i}] ${c.nodes.length}× ${typeLower} "${firstNode.name}" pattern (${confidence}% match)`)
+      console.log(
+        `[${i}] ${c.nodes.length}× ${typeLower} "${firstNode.name}" pattern (${confidence}% match)`
+      )
       console.log(`    ${sizeStr} | ${formatSignature(c.signature)}`)
-      console.log(`    examples: ${c.nodes.slice(0, 3).map((n) => n.id).join(', ')}`)
+      console.log(
+        `    examples: ${c.nodes
+          .slice(0, 3)
+          .map((n) => n.id)
+          .join(', ')}`
+      )
       console.log()
     }
 
     const clusteredNodes = result.clusters.reduce((sum, c) => sum + c.nodes.length, 0)
-    console.log(`${result.clusters.length} clusters from ${result.totalNodes} nodes (${clusteredNodes} clustered)`)
-  },
+    console.log(
+      `${result.clusters.length} clusters from ${result.totalNodes} nodes (${clusteredNodes} clustered)`
+    )
+  }
 })

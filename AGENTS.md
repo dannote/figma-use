@@ -26,22 +26,26 @@ open -a Figma --args --remote-debugging-port=9222
 When implementing a new feature, ensure ALL of these are done before committing:
 
 ### 1. Implementation
+
 - [ ] CLI command in `packages/cli/src/commands/`
 - [ ] RPC handler in `packages/plugin/src/rpc.ts` (if needed)
 - [ ] Export from `packages/cli/src/commands/index.ts`
 
 ### 2. Tests
+
 - [ ] Add test file in `packages/cli/tests/commands/`
 - [ ] Test happy path and edge cases
 - [ ] Run `bun test` to verify all tests pass
 
 ### 3. Documentation
+
 - [ ] **CHANGELOG.md** — add entry under `## [Unreleased]` or new version section
 - [ ] **README.md** — update if it's a user-facing feature
 - [ ] **SKILL.md** — update if it changes how agents should use the tool
 - [ ] **REFERENCE.md** — update command reference if adding/changing commands
 
 ### 4. Review Before Commit
+
 ```bash
 bun test                        # All tests pass?
 bun run build                   # Build succeeds?
@@ -52,6 +56,7 @@ git diff --cached               # Review staged changes
 ## Adding Commands
 
 1. Create `packages/cli/src/commands/my-command.ts`:
+
 ```typescript
 import { defineCommand } from 'citty'
 import { sendCommand } from '../client.ts'
@@ -73,6 +78,7 @@ export default defineCommand({
 2. Export from `packages/cli/src/commands/index.ts`
 
 3. Add handler in `packages/plugin/src/rpc.ts`:
+
 ```typescript
 case 'my-command': {
   const { id } = args as { id: string }
@@ -122,6 +128,7 @@ await sendCommand('convert-to-component', { id })
 ⚠️ **NEVER commit and release in one step!**
 
 ### Pre-release Checklist
+
 - [ ] All tests pass (`bun test`)
 - [ ] Build succeeds (`bun run build`)
 - [ ] CHANGELOG.md updated with all changes
@@ -155,6 +162,7 @@ npm publish
 ```
 
 ### Commit Message Conventions
+
 - `feat:` — new feature
 - `fix:` — bug fix
 - `docs:` — documentation only
@@ -167,6 +175,7 @@ npm publish
 After running `export storybook`, verify all stories render correctly:
 
 ### Quick Check (single story)
+
 ```bash
 bunx agent-browser open "http://localhost:6006/iframe.html?viewMode=story&id=button--primary"
 bunx agent-browser eval "document.getElementById('storybook-root').innerHTML"
@@ -174,6 +183,7 @@ bunx agent-browser close
 ```
 
 ### Full Test (all stories)
+
 ```bash
 # Start Storybook first
 cd <storybook-project> && npm run storybook &
@@ -184,18 +194,18 @@ for f in stories/*.stories.tsx; do
   # Extract component name (lowercase, spaces to dashes)
   title=$(grep "title:" "$f" | sed "s/.*title: ['\"]//;s/['\"].*//" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
   [ -z "$title" ] && title=$(basename "$f" .stories.tsx | tr '[:upper:]' '[:lower:]')
-  
+
   # Extract story names and convert to kebab-case
   for story in $(grep -o "export const [A-Za-z]*:" "$f" | sed 's/export const //;s/://'); do
     id="${title}--$(echo "$story" | sed 's/\([A-Z]\)/-\1/g;s/^-//' | tr '[:upper:]' '[:lower:]')"
-    
+
     bunx agent-browser open "http://localhost:6006/iframe.html?viewMode=story&id=${id}" 2>/dev/null
     result=$(bunx agent-browser eval "
       const root = document.getElementById('storybook-root');
       const error = document.getElementById('error-message');
       error?.textContent ? 'ERROR: ' + error.textContent : (root?.innerHTML?.length > 10 ? 'OK' : 'EMPTY')
     " 2>&1)
-    
+
     [[ "$result" == *"OK"* ]] && { echo "✓ $id"; ((PASS++)); } || { echo "✗ $id: $result"; ((FAIL++)); }
   done
 done
@@ -204,6 +214,7 @@ bunx agent-browser close
 ```
 
 ### Common Issues
+
 - **"Can't find variable: React"** — missing `import React from 'react'` in generated `.tsx`
 - **Story not found** — title has spaces (use dashes in ID: `Objects Table Row` → `objects-table-row`)
 - **EMPTY render** — component returns null or has runtime error

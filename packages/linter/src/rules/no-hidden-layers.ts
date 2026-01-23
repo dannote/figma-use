@@ -1,4 +1,5 @@
 import { defineRule } from '../core/rule.ts'
+
 import type { NodeRef } from '../core/types.ts'
 
 interface Options {
@@ -15,7 +16,7 @@ export default defineRule({
     id: 'no-hidden-layers',
     category: 'structure',
     description: 'Hidden layers may indicate unused elements that should be deleted',
-    fixable: true,
+    fixable: true
   },
 
   check(node, context) {
@@ -38,8 +39,8 @@ export default defineRule({
       suggest: 'Delete if unused, or move to a component if needed for states',
       fix: {
         action: 'set-visible' as 'resize', // Type workaround
-        params: { visible: true },
-      },
+        params: { visible: true }
+      }
     })
-  },
+  }
 })

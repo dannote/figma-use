@@ -185,7 +185,9 @@ function groupComponents(components: ComponentInfo[]): Map<string, ComponentGrou
       groupKey = `name:${baseName}`
       // Check for TEXT properties on regular components
       if (comp.componentPropertyDefinitions) {
-        const textProps = parseProps(comp.componentPropertyDefinitions).filter((p) => p.type === 'text')
+        const textProps = parseProps(comp.componentPropertyDefinitions).filter(
+          (p) => p.type === 'text'
+        )
         if (textProps.length > 0) {
           props = textProps
         }
@@ -195,7 +197,9 @@ function groupComponents(components: ComponentInfo[]): Map<string, ComponentGrou
       groupKey = `id:${comp.id}`
       // Check for TEXT properties on regular components
       if (comp.componentPropertyDefinitions) {
-        const textProps = parseProps(comp.componentPropertyDefinitions).filter((p) => p.type === 'text')
+        const textProps = parseProps(comp.componentPropertyDefinitions).filter(
+          (p) => p.type === 'text'
+        )
         if (textProps.length > 0) {
           props = textProps
         }
@@ -271,7 +275,9 @@ function generateComponentAST(
       typeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
     } else {
       typeNode = ts.factory.createUnionTypeNode(
-        (p.options || []).map((o) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(o)))
+        (p.options || []).map((o) =>
+          ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(o))
+        )
       )
     }
     return ts.factory.createPropertySignature(
@@ -339,7 +345,10 @@ function generateComponentAST(
       )
 
       bodyStatements.push(
-        ts.factory.createIfStatement(condition, ts.factory.createReturnStatement(jsx as ts.Expression))
+        ts.factory.createIfStatement(
+          condition,
+          ts.factory.createReturnStatement(jsx as ts.Expression)
+        )
       )
     }
     bodyStatements.push(ts.factory.createReturnStatement(ts.factory.createNull()))
@@ -357,7 +366,11 @@ function generateComponentAST(
     undefined,
     ts.factory.createObjectBindingPattern(
       props.map((p) =>
-        ts.factory.createBindingElement(undefined, undefined, ts.factory.createIdentifier(p.camelName))
+        ts.factory.createBindingElement(
+          undefined,
+          undefined,
+          ts.factory.createIdentifier(p.camelName)
+        )
       )
     ),
     undefined,
@@ -401,7 +414,11 @@ function generateStorybookWithComponentAST(
         undefined,
         ts.factory.createNamedImports([
           ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Meta')),
-          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('StoryObj'))
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier('StoryObj')
+          )
         ])
       ),
       ts.factory.createStringLiteral(framework.storybookType)
@@ -416,7 +433,11 @@ function generateStorybookWithComponentAST(
         false,
         undefined,
         ts.factory.createNamedImports([
-          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(componentName))
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier(componentName)
+          )
         ])
       ),
       ts.factory.createStringLiteral(`./${componentName}`)
@@ -429,7 +450,10 @@ function generateStorybookWithComponentAST(
       ts.factory.createSatisfiesExpression(
         ts.factory.createObjectLiteralExpression([
           ts.factory.createPropertyAssignment('title', ts.factory.createStringLiteral(title)),
-          ts.factory.createPropertyAssignment('component', ts.factory.createIdentifier(componentName))
+          ts.factory.createPropertyAssignment(
+            'component',
+            ts.factory.createIdentifier(componentName)
+          )
         ]),
         ts.factory.createTypeReferenceNode('Meta', [
           ts.factory.createTypeQueryNode(ts.factory.createIdentifier(componentName))
@@ -510,7 +534,11 @@ function generateStorybookAST(
         undefined,
         ts.factory.createNamedImports([
           ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Meta')),
-          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('StoryObj'))
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier('StoryObj')
+          )
         ])
       ),
       ts.factory.createStringLiteral(framework.storybookType)
@@ -613,7 +641,9 @@ async function processComponent(
       prefer: options.preferIcons,
       onMatch: options.verbose
         ? (n, match) => {
-            console.error(`Matched: ${n.name} → ${match.name} (${(match.similarity * 100).toFixed(0)}%)`)
+            console.error(
+              `Matched: ${n.name} → ${match.name} (${(match.similarity * 100).toFixed(0)}%)`
+            )
           }
         : undefined
     })
@@ -645,7 +675,16 @@ async function exportGroup(
   try {
     // ComponentSet with props → generate component + stories with args
     if (isComponentSet && props && props.length > 0) {
-      return await exportComponentSet(baseName, comps, props, options, framework, formatOptions, outDir, printer)
+      return await exportComponentSet(
+        baseName,
+        comps,
+        props,
+        options,
+        framework,
+        formatOptions,
+        outDir,
+        printer
+      )
     }
 
     // Regular components with TEXT props → generate component with text props
@@ -716,7 +755,13 @@ async function exportComponentWithTextProps(
   }
 
   // Generate component file with text props
-  const componentFile = generateTextPropsComponentAST(componentName, props, result.jsx, result.usedComponents, framework)
+  const componentFile = generateTextPropsComponentAST(
+    componentName,
+    props,
+    result.jsx,
+    result.usedComponents,
+    framework
+  )
   let componentCode = printer.printFile(componentFile)
   componentCode = await formatCode(componentCode, formatOptions)
 
@@ -846,7 +891,11 @@ function generateStorybookWithTextPropsAST(
         undefined,
         ts.factory.createNamedImports([
           ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Meta')),
-          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('StoryObj'))
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier('StoryObj')
+          )
         ])
       ),
       ts.factory.createStringLiteral(framework.storybookType)
@@ -861,7 +910,11 @@ function generateStorybookWithTextPropsAST(
         false,
         undefined,
         ts.factory.createNamedImports([
-          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(componentName))
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier(componentName)
+          )
         ])
       ),
       ts.factory.createStringLiteral(`./${componentName}`)
@@ -874,7 +927,10 @@ function generateStorybookWithTextPropsAST(
       ts.factory.createSatisfiesExpression(
         ts.factory.createObjectLiteralExpression([
           ts.factory.createPropertyAssignment('title', ts.factory.createStringLiteral(title)),
-          ts.factory.createPropertyAssignment('component', ts.factory.createIdentifier(componentName))
+          ts.factory.createPropertyAssignment(
+            'component',
+            ts.factory.createIdentifier(componentName)
+          )
         ]),
         ts.factory.createTypeReferenceNode('Meta', [
           ts.factory.createTypeQueryNode(ts.factory.createIdentifier(componentName))
@@ -900,7 +956,10 @@ function generateStorybookWithTextPropsAST(
               ts.factory.createTypeQueryNode(ts.factory.createIdentifier(componentName))
             ]),
             ts.factory.createObjectLiteralExpression([
-              ts.factory.createPropertyAssignment('args', ts.factory.createObjectLiteralExpression(argsProperties))
+              ts.factory.createPropertyAssignment(
+                'args',
+                ts.factory.createObjectLiteralExpression(argsProperties)
+              )
             ])
           )
         ],
@@ -970,7 +1029,13 @@ async function exportComponentSet(
   }
 
   // Generate component file
-  const componentFile = generateComponentAST(componentName, props, variantJsxMap, usedComponents, framework)
+  const componentFile = generateComponentAST(
+    componentName,
+    props,
+    variantJsxMap,
+    usedComponents,
+    framework
+  )
   let componentCode = printer.printFile(componentFile)
   componentCode = await formatCode(componentCode, formatOptions)
 
@@ -978,7 +1043,13 @@ async function exportComponentSet(
   writeFileSync(componentPath, componentCode)
 
   // Generate stories file
-  const storiesFile = generateStorybookWithComponentAST(baseName, componentName, props, storyVariants, framework)
+  const storiesFile = generateStorybookWithComponentAST(
+    baseName,
+    componentName,
+    props,
+    storyVariants,
+    framework
+  )
   let storiesCode = printer.printFile(storiesFile)
   storiesCode = await formatCode(storiesCode, formatOptions)
 
@@ -1020,7 +1091,9 @@ export default defineCommand({
       const frameworkName = args.framework || config.storybook.framework || 'react'
       const framework = FRAMEWORKS[frameworkName as keyof typeof FRAMEWORKS]
       if (!framework) {
-        console.error(`Unknown framework: ${frameworkName}. Available: ${Object.keys(FRAMEWORKS).join(', ')}`)
+        console.error(
+          `Unknown framework: ${frameworkName}. Available: ${Object.keys(FRAMEWORKS).join(', ')}`
+        )
         process.exit(1)
       }
 
@@ -1035,7 +1108,7 @@ export default defineCommand({
         return
       }
 
-      const outDir = args.out !== './stories' ? args.out : (config.storybook.out || './stories')
+      const outDir = args.out !== './stories' ? args.out : config.storybook.out || './stories'
       if (!existsSync(outDir)) {
         mkdirSync(outDir, { recursive: true })
       }
@@ -1051,7 +1124,7 @@ export default defineCommand({
       const matchIcons = args['match-icons'] ?? config.storybook.matchIcons
       const iconThreshold = args['icon-threshold']
         ? parseFloat(args['icon-threshold'])
-        : config.storybook.iconThreshold ?? 0.85
+        : (config.storybook.iconThreshold ?? 0.85)
       const preferIcons = args['prefer-icons']
         ? args['prefer-icons'].split(',').map((s: string) => s.trim())
         : config.storybook.preferIcons
@@ -1074,7 +1147,9 @@ export default defineCommand({
         )
       )
 
-      const results = allResults.filter((r): r is ExportResult => !isError(r) && !exportedFiles.has(r.file))
+      const results = allResults.filter(
+        (r): r is ExportResult => !isError(r) && !exportedFiles.has(r.file)
+      )
       const errors = allResults.filter(isError)
 
       // Generate fonts.css

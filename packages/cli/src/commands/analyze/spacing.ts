@@ -1,5 +1,6 @@
-import { defineCommand } from 'citty'
 import { histogram, summary } from 'agentfmt'
+import { defineCommand } from 'citty'
+
 import { sendCommand } from '../../client.ts'
 
 interface SpacingValue {
@@ -13,7 +14,7 @@ export default defineCommand({
   meta: { description: 'Analyze spacing values (gap, padding)' },
   args: {
     grid: { type: 'string', description: 'Base grid size to check against', default: '8' },
-    json: { type: 'boolean', description: 'Output as JSON' },
+    json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {
     const gridSize = Number(args.grid)
@@ -34,20 +35,30 @@ export default defineCommand({
 
     if (allGaps.length > 0) {
       console.log('Gap values:\n')
-      console.log(histogram(allGaps.slice(0, 15).map((g) => ({
-        label: `${String(g.value).padStart(4)}px`,
-        value: g.count,
-        suffix: g.value % gridSize !== 0 ? '⚠' : undefined
-      })), { scale: 5 }))
+      console.log(
+        histogram(
+          allGaps.slice(0, 15).map((g) => ({
+            label: `${String(g.value).padStart(4)}px`,
+            value: g.count,
+            suffix: g.value % gridSize !== 0 ? '⚠' : undefined
+          })),
+          { scale: 5 }
+        )
+      )
     }
 
     if (allPaddings.length > 0) {
       console.log('\nPadding values:\n')
-      console.log(histogram(allPaddings.slice(0, 15).map((p) => ({
-        label: `${String(p.value).padStart(4)}px`,
-        value: p.count,
-        suffix: p.value % gridSize !== 0 ? '⚠' : undefined
-      })), { scale: 5 }))
+      console.log(
+        histogram(
+          allPaddings.slice(0, 15).map((p) => ({
+            label: `${String(p.value).padStart(4)}px`,
+            value: p.count,
+            suffix: p.value % gridSize !== 0 ? '⚠' : undefined
+          })),
+          { scale: 5 }
+        )
+      )
     }
 
     const offGridGaps = allGaps.filter((g) => g.value % gridSize !== 0 && g.value > 0)
@@ -67,5 +78,5 @@ export default defineCommand({
         console.log(`  paddings: ${vals}`)
       }
     }
-  },
+  }
 })

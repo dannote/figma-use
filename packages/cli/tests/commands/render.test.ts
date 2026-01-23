@@ -6,6 +6,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
 
 import { run, trackNode, setupTestPage, teardownTestPage } from '../helpers.ts'
+
 import type { NodeRef } from '../../src/types.ts'
 
 describe('render', () => {

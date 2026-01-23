@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll, setDefaultTimeout } from 'bun:test'
+
 import { run, setupTestPage, teardownTestPage, trackNode } from '../helpers.ts'
 
 setDefaultTimeout(30000)
@@ -136,14 +137,20 @@ describe('analyze colors', () => {
   beforeAll(async () => {
     await setupTestPage('analyze_colors')
 
-    const red = (await run('create rect --width 100 --height 100 --x 0 --y 0 --fill "#FF0000" --json')) as { id: string }
+    const red = (await run(
+      'create rect --width 100 --height 100 --x 0 --y 0 --fill "#FF0000" --json'
+    )) as { id: string }
     trackNode(red.id)
 
-    const blue = (await run('create rect --width 100 --height 100 --x 110 --y 0 --fill "#0000FF" --json')) as { id: string }
+    const blue = (await run(
+      'create rect --width 100 --height 100 --x 110 --y 0 --fill "#0000FF" --json'
+    )) as { id: string }
     trackNode(blue.id)
 
     for (let i = 0; i < 3; i++) {
-      const green = (await run(`create rect --width 50 --height 50 --x ${i * 60} --y 110 --fill "#00FF00" --json`)) as { id: string }
+      const green = (await run(
+        `create rect --width 50 --height 50 --x ${i * 60} --y 110 --fill "#00FF00" --json`
+      )) as { id: string }
       trackNode(green.id)
     }
   })

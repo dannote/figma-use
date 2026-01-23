@@ -21,11 +21,13 @@ bun test                 # Run tests (requires Figma with plugin)
 Tests require Figma desktop app with the plugin installed:
 
 1. **Start Figma with debug port** (required for profiling/coverage):
+
    ```bash
    /Applications/Figma.app/Contents/MacOS/Figma --remote-debugging-port=9222
    ```
 
 2. **Install the plugin**:
+
    ```bash
    ./bin/figma-use.js plugin --install
    ```
@@ -33,6 +35,7 @@ Tests require Figma desktop app with the plugin installed:
 3. **Open any Figma file** and run the plugin (Plugins → Development → figma-use)
 
 4. **Start the proxy** in another terminal:
+
    ```bash
    ./bin/figma-use.js proxy
    ```

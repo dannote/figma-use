@@ -36,7 +36,8 @@ interface TextProps extends Omit<BaseProps, 'children'> {
   wrap?: boolean
 }
 
-const SYSTEM_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const SYSTEM_FONT =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
 function propsToStyle(props: BaseProps): CSSProperties {
   const style: CSSProperties = {
@@ -136,10 +137,7 @@ export function Rectangle(props: BaseProps) {
 export function Ellipse(props: BaseProps) {
   const style = propsToStyle(props)
   return (
-    <div
-      style={{ ...style, borderRadius: '50%' }}
-      data-name={props.name}
-    >
+    <div style={{ ...style, borderRadius: '50%' }} data-name={props.name}>
       {props.children}
     </div>
   )
@@ -216,15 +214,7 @@ export function Icon({ name, size = 24, color = 'currentColor' }: IconProps) {
   const [prefix, iconName] = name.split(':')
   const src = `https://api.iconify.design/${prefix}/${iconName}.svg?color=${encodeURIComponent(color)}`
 
-  return (
-    <img
-      src={src}
-      width={size}
-      height={size}
-      alt={name}
-      style={{ display: 'inline-block' }}
-    />
-  )
+  return <img src={src} width={size} height={size} alt={name} style={{ display: 'inline-block' }} />
 }
 
 // Aliases

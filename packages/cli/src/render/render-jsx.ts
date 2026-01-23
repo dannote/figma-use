@@ -1,9 +1,10 @@
 import { transformSync } from 'esbuild'
-import * as React from './mini-react.ts'
 
 import { sendCommand } from '../client.ts'
 import { loadVariablesIntoRegistry, isRegistryLoaded, preloadIcons, collectIcons } from './index.ts'
+import * as React from './mini-react.ts'
 import { renderWithWidgetApi } from './widget-renderer.ts'
+
 import type { NodeRef } from '../types.ts'
 
 function buildComponent(jsx: string): React.FC {

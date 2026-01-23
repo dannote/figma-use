@@ -11,7 +11,7 @@ export default defineRule({
     id: 'consistent-radius',
     category: 'design-tokens',
     description: 'Corner radius should use values from the design system scale',
-    fixable: true,
+    fixable: true
   },
 
   match: ['RECTANGLE', 'FRAME', 'COMPONENT', 'INSTANCE'],
@@ -34,8 +34,8 @@ export default defineRule({
       suggest: `Use ${closest}px instead`,
       fix: {
         action: 'set-layout' as 'resize',
-        params: { radius: closest },
-      },
+        params: { radius: closest }
+      }
     })
-  },
+  }
 })

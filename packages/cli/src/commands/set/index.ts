@@ -16,8 +16,8 @@ import radius from './radius.ts'
 import rotation from './rotation.ts'
 import strokeAlign from './stroke-align.ts'
 import stroke from './stroke.ts'
-import text from './text.ts'
 import textResize from './text-resize.ts'
+import text from './text.ts'
 import visible from './visible.ts'
 
 export default defineCommand({

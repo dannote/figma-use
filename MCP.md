@@ -30,21 +30,21 @@ Add to your MCP client config (Claude Desktop, Cursor, etc.):
 
 All CLI commands are exposed as MCP tools with `figma_` prefix:
 
-| Tool | Description |
-|------|-------------|
-| `figma_status` | Check if Figma is connected |
-| `figma_create_frame` | Create a frame with layout |
-| `figma_create_rect` | Create a rectangle |
-| `figma_create_text` | Create text node |
-| `figma_create_icon` | Insert Iconify icon |
-| `figma_set_fill` | Set fill color |
-| `figma_set_layout` | Set auto-layout or grid |
-| `figma_node_move` | Move node |
-| `figma_node_resize` | Resize node |
-| `figma_export_node` | Export node as PNG/SVG |
-| `figma_render` | Render JSX to Figma |
-| `figma_query` | Find nodes via XPath |
-| ... | 80+ more tools |
+| Tool                 | Description                 |
+| -------------------- | --------------------------- |
+| `figma_status`       | Check if Figma is connected |
+| `figma_create_frame` | Create a frame with layout  |
+| `figma_create_rect`  | Create a rectangle          |
+| `figma_create_text`  | Create text node            |
+| `figma_create_icon`  | Insert Iconify icon         |
+| `figma_set_fill`     | Set fill color              |
+| `figma_set_layout`   | Set auto-layout or grid     |
+| `figma_node_move`    | Move node                   |
+| `figma_node_resize`  | Resize node                 |
+| `figma_export_node`  | Export node as PNG/SVG      |
+| `figma_render`       | Render JSX to Figma         |
+| `figma_query`        | Find nodes via XPath        |
+| ...                  | 80+ more tools              |
 
 ## Example Usage
 

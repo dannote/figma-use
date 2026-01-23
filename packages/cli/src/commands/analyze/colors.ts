@@ -1,5 +1,6 @@
-import { defineCommand } from 'citty'
 import { histogram, summary } from 'agentfmt'
+import { defineCommand } from 'citty'
+
 import { sendCommand } from '../../client.ts'
 
 interface ColorInfo {
@@ -21,7 +22,7 @@ function hexToRgb(hex: string): [number, number, number] {
   return [
     parseInt(clean.slice(0, 2), 16),
     parseInt(clean.slice(2, 4), 16),
-    parseInt(clean.slice(4, 6), 16),
+    parseInt(clean.slice(4, 6), 16)
   ]
 }
 
@@ -43,7 +44,7 @@ function clusterColors(colors: ColorInfo[], threshold: number): ColorCluster[] {
     const cluster: ColorCluster = {
       colors: [color],
       suggestedHex: color.hex,
-      totalCount: color.count,
+      totalCount: color.count
     }
     used.add(color.hex)
 
@@ -68,9 +69,13 @@ export default defineCommand({
   meta: { description: 'Analyze color palette usage' },
   args: {
     limit: { type: 'string', description: 'Max colors to show', default: '30' },
-    threshold: { type: 'string', description: 'Distance threshold for clustering (0-50)', default: '15' },
+    threshold: {
+      type: 'string',
+      description: 'Distance threshold for clustering (0-50)',
+      default: '15'
+    },
     'show-similar': { type: 'boolean', description: 'Show similar color clusters' },
-    json: { type: 'boolean', description: 'Output as JSON' },
+    json: { type: 'boolean', description: 'Output as JSON' }
   },
   async run({ args }) {
     const limit = Number(args.limit)
@@ -109,8 +114,12 @@ export default defineCommand({
     const fromStyles = result.colors.filter((c) => c.isStyle)
 
     console.log()
-    console.log(summary({ 'unique colors': result.colors.length }) + ` from ${result.totalNodes} nodes`)
-    console.log(`  ${fromVars.length} from variables, ${fromStyles.length} from styles, ${hardcoded.length} hardcoded`)
+    console.log(
+      summary({ 'unique colors': result.colors.length }) + ` from ${result.totalNodes} nodes`
+    )
+    console.log(
+      `  ${fromVars.length} from variables, ${fromStyles.length} from styles, ${hardcoded.length} hardcoded`
+    )
 
     if (args['show-similar']) {
       const clusters = clusterColors(hardcoded, threshold)
@@ -124,5 +133,5 @@ export default defineCommand({
         }
       }
     }
-  },
+  }
 })

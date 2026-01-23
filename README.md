@@ -112,7 +112,7 @@ figma-use create icon lucide:star --size 48 --color "#F59E0B"
 In JSX:
 
 ```tsx
-<Frame style={{ flex: "row", gap: 8 }}>
+<Frame style={{ flex: 'row', gap: 8 }}>
   <Icon icon="mdi:home" size={24} color="#3B82F6" />
   <Icon icon="lucide:star" size={32} color="#F59E0B" />
 </Frame>
@@ -137,13 +137,16 @@ figma-use export jsx 123:456 --pretty
 ```
 
 Output:
+
 ```tsx
 import { Frame, Icon, Text } from 'figma-use/render'
 export default function SaveButton() {
   return (
     <Frame name="SaveButton" w={120} h={44} bg="#1FAFBB" rounded={8} flex="row" gap={8}>
       <Icon name="lucide:save" size={18} color="#FFFFFF" />
-      <Text size={16} color="#FFFFFF">Save</Text>
+      <Text size={16} color="#FFFFFF">
+        Save
+      </Text>
     </Frame>
   )
 }
@@ -157,6 +160,7 @@ figma-use export jsx 123:456 --match-icons --prefer-icons lucide
 ```
 
 Compare two nodes as JSX diff:
+
 ```bash
 figma-use diff jsx 123:456 789:012
 ```
@@ -171,6 +175,7 @@ figma-use export storybook --out ./stories --match-icons --prefer-icons lucide
 ```
 
 Generates `.stories.tsx` for each component:
+
 - **ComponentSets** → React component with props + stories with args
 - **VARIANT properties** → Union type props (`variant: 'Primary' | 'Secondary'`)
 - **TEXT properties** → Editable string props (`label: string`)
@@ -210,14 +215,14 @@ const Button = defineComponentSet(
   'Button',
   {
     variant: ['Primary', 'Secondary'] as const,
-    size: ['Small', 'Large'] as const,
+    size: ['Small', 'Large'] as const
   },
   ({ variant, size }) => (
     <Frame
       style={{
         p: size === 'Large' ? 16 : 8,
         bg: variant === 'Primary' ? '#3B82F6' : '#E5E7EB',
-        rounded: 8,
+        rounded: 8
       }}
     >
       <Text style={{ color: variant === 'Primary' ? '#FFF' : '#111' }}>
@@ -245,8 +250,8 @@ CSS Grid for 2D layouts — calendars, dashboards, galleries:
 <Frame
   style={{
     display: 'grid',
-    cols: '1fr 1fr 1fr',  // 3 equal columns
-    rows: 'auto auto',    // 2 rows
+    cols: '1fr 1fr 1fr', // 3 equal columns
+    rows: 'auto auto', // 2 rows
     gap: 16
   }}
 >
@@ -276,7 +281,7 @@ import { defineVars, Frame, Text } from 'figma-use/render'
 
 const colors = defineVars({
   bg: { name: 'Colors/Gray/50', value: '#F8FAFC' },
-  text: { name: 'Colors/Gray/900', value: '#0F172A' },
+  text: { name: 'Colors/Gray/900', value: '#0F172A' }
 })
 
 export default () => (
@@ -317,8 +322,8 @@ Visual diff highlights changed pixels in red:
 figma-use diff visual --from 49:275096 --to 49:280802 --output diff.png
 ```
 
-| Before | After | Diff |
-|--------|-------|------|
+| Before                            | After                           | Diff                            |
+| --------------------------------- | ------------------------------- | ------------------------------- |
 | ![before](assets/diff-before.png) | ![after](assets/diff-after.png) | ![diff](assets/diff-result.png) |
 
 ### Inspection
@@ -387,6 +392,7 @@ figma-use analyze snapshot <id> -i         # Interactive elements only
 ```
 
 Example output:
+
 ```
 [0] 48× frame "Header" pattern (100% match)
     1280×56 | Frame > [Frame×2, Text]
@@ -410,12 +416,13 @@ figma-use lint -v                       # With fix suggestions
 ```
 
 Output:
+
 ```
 ✖ Header/Title (1:234)
     ✖  Contrast ratio 2.1:1 is below AA threshold (4.5:1)    color-contrast
     ⚠  Touch target 32x32 is below minimum 44x44             touch-target-size
 
-⚠ Card/Body (1:567)  
+⚠ Card/Body (1:567)
     ⚠  Hardcoded fill color #1A1A1A                          no-hardcoded-colors
     ℹ  Frame with 3 children doesn't use Auto Layout         prefer-auto-layout
 
@@ -425,16 +432,17 @@ Output:
 
 **17 rules** across 6 categories:
 
-| Category | Rules |
-|----------|-------|
-| Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required` |
-| Layout | `prefer-auto-layout`, `pixel-perfect` |
-| Typography | `text-style-required`, `min-text-size`, `no-mixed-styles` |
-| Accessibility | `color-contrast`, `touch-target-size` |
-| Structure | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
-| Components | `no-detached-instances` |
+| Category      | Rules                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required`  |
+| Layout        | `prefer-auto-layout`, `pixel-perfect`                                                      |
+| Typography    | `text-style-required`, `min-text-size`, `no-mixed-styles`                                  |
+| Accessibility | `color-contrast`, `touch-target-size`                                                      |
+| Structure     | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
+| Components    | `no-detached-instances`                                                                    |
 
 JSON output for CI/CD:
+
 ```bash
 figma-use lint --json > report.json
 ```

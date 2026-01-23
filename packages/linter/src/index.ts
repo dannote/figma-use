@@ -13,7 +13,7 @@ export type {
   FixAction,
   Paint,
   RGB,
-  Effect,
+  Effect
 } from './core/types.ts'
 export { defineRule } from './core/rule.ts'
 export {
@@ -26,7 +26,7 @@ export {
   isDefaultName,
   getNodePath,
   SPACING_SCALE,
-  FONT_SIZE_SCALE,
+  FONT_SIZE_SCALE
 } from './core/utils.ts'
 export { allRules } from './rules/index.ts'
 export { presets, recommended, strict, accessibility, designSystem } from './config/presets.ts'

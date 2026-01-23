@@ -24,8 +24,8 @@ export const recommended: Preset = {
     'no-groups': 'info',
     'effect-style-required': 'info',
     'no-mixed-styles': 'warning',
-    'no-detached-instances': 'off',
-  },
+    'no-detached-instances': 'off'
+  }
 }
 
 export const strict: Preset = {
@@ -46,8 +46,8 @@ export const strict: Preset = {
     'no-groups': 'warning',
     'effect-style-required': 'warning',
     'no-mixed-styles': 'error',
-    'no-detached-instances': 'warning',
-  },
+    'no-detached-instances': 'warning'
+  }
 }
 
 export const accessibility: Preset = {
@@ -69,8 +69,8 @@ export const accessibility: Preset = {
     'no-groups': 'off',
     'effect-style-required': 'off',
     'no-mixed-styles': 'off',
-    'no-detached-instances': 'off',
-  },
+    'no-detached-instances': 'off'
+  }
 }
 
 export const designSystem: Preset = {
@@ -91,13 +91,13 @@ export const designSystem: Preset = {
     'no-groups': 'error',
     'effect-style-required': 'error',
     'no-mixed-styles': 'error',
-    'no-detached-instances': 'error',
-  },
+    'no-detached-instances': 'error'
+  }
 }
 
 export const presets: Record<string, Preset> = {
   recommended,
   strict,
   accessibility,
-  'design-system': designSystem,
+  'design-system': designSystem
 }

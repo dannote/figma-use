@@ -1,4 +1,5 @@
 import { defineRule } from '../core/rule.ts'
+
 import type { Effect } from '../core/types.ts'
 
 export default defineRule({
@@ -6,14 +7,14 @@ export default defineRule({
     id: 'effect-style-required',
     category: 'design-tokens',
     description: 'Effects (shadows, blurs) should use shared effect styles',
-    fixable: false,
+    fixable: false
   },
 
   check(node, context) {
     if (!node.effects || node.effects.length === 0) return
 
     // Skip if all effects are invisible
-    const visibleEffects = node.effects.filter(e => e.visible !== false)
+    const visibleEffects = node.effects.filter((e) => e.visible !== false)
     if (visibleEffects.length === 0) return
 
     // TODO: Check effectStyleId when we add it to serialization
@@ -24,9 +25,9 @@ export default defineRule({
     context.report({
       node,
       message: `Effect without shared style: ${effectDescriptions}`,
-      suggest: 'Create an effect style for consistent shadows and blurs',
+      suggest: 'Create an effect style for consistent shadows and blurs'
     })
-  },
+  }
 })
 
 function describeEffect(effect: Effect): string {

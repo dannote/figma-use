@@ -185,15 +185,21 @@ describe('node', () => {
 
 test('replace-with creates instance from component', async () => {
   // Create a frame to replace
-  const frame = await run('create frame --width 50 --height 50 --x 0 --y 900 --fill "#FF0000" --json') as any
+  const frame = (await run(
+    'create frame --width 50 --height 50 --x 0 --y 900 --fill "#FF0000" --json'
+  )) as any
 
   // Create a component to use as source
-  const component = await run('create frame --width 30 --height 30 --x 100 --y 900 --fill "#00FF00" --json') as any
-  const converted = await run(`node to-component ${component.id} --json`) as any[]
+  const component = (await run(
+    'create frame --width 30 --height 30 --x 100 --y 900 --fill "#00FF00" --json'
+  )) as any
+  const converted = (await run(`node to-component ${component.id} --json`)) as any[]
   const componentId = converted[0].id
 
   // Replace frame with component (should create instance)
-  const replaced = await run(`node replace-with ${frame.id} --target ${componentId} --json`) as any
+  const replaced = (await run(
+    `node replace-with ${frame.id} --target ${componentId} --json`
+  )) as any
 
   expect(replaced.type).toBe('INSTANCE')
   expect(replaced.x).toBe(frame.x)
@@ -206,12 +212,16 @@ test('replace-with creates instance from component', async () => {
 
 test('replace-with clones regular node', async () => {
   // Create two frames
-  const frame1 = await run('create frame --width 50 --height 50 --x 0 --y 900 --fill "#FF0000" --json') as any
+  const frame1 = (await run(
+    'create frame --width 50 --height 50 --x 0 --y 900 --fill "#FF0000" --json'
+  )) as any
 
-  const frame2 = await run('create frame --width 80 --height 40 --x 200 --y 900 --fill "#00FF00" --json') as any
+  const frame2 = (await run(
+    'create frame --width 80 --height 40 --x 200 --y 900 --fill "#00FF00" --json'
+  )) as any
 
   // Replace frame1 with frame2 (should clone)
-  const replaced = await run(`node replace-with ${frame1.id} --target ${frame2.id} --json`) as any
+  const replaced = (await run(`node replace-with ${frame1.id} --target ${frame2.id} --json`)) as any
 
   expect(replaced.type).toBe('FRAME')
   expect(replaced.x).toBe(frame1.x)

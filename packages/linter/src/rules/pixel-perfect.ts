@@ -11,7 +11,7 @@ export default defineRule({
     id: 'pixel-perfect',
     category: 'layout',
     description: 'Elements should be aligned to whole pixels (no subpixel values)',
-    fixable: true,
+    fixable: true
   },
 
   check(node, context) {
@@ -22,8 +22,7 @@ export default defineRule({
 
     const issues: string[] = []
 
-    const isWholePixel = (value: number): boolean =>
-      Math.abs(value - Math.round(value)) < tolerance
+    const isWholePixel = (value: number): boolean => Math.abs(value - Math.round(value)) < tolerance
 
     if (checkPosition) {
       if (node.x !== undefined && !isWholePixel(node.x)) {
@@ -55,9 +54,9 @@ export default defineRule({
           x: node.x !== undefined ? Math.round(node.x) : undefined,
           y: node.y !== undefined ? Math.round(node.y) : undefined,
           width: node.width !== undefined ? Math.round(node.width) : undefined,
-          height: node.height !== undefined ? Math.round(node.height) : undefined,
-        },
-      },
+          height: node.height !== undefined ? Math.round(node.height) : undefined
+        }
+      }
     })
-  },
+  }
 })

@@ -4,8 +4,9 @@ export default defineRule({
   meta: {
     id: 'no-mixed-styles',
     category: 'typography',
-    description: 'Text layers should not have mixed font styles (different fonts/sizes in one layer)',
-    fixable: false,
+    description:
+      'Text layers should not have mixed font styles (different fonts/sizes in one layer)',
+    fixable: false
   },
 
   match: ['TEXT'],
@@ -22,8 +23,8 @@ export default defineRule({
       context.report({
         node,
         message: 'Text layer has mixed font styles',
-        suggest: 'Split into separate text layers or unify the text style',
+        suggest: 'Split into separate text layers or unify the text style'
       })
     }
-  },
+  }
 })

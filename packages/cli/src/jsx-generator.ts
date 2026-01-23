@@ -220,11 +220,7 @@ function getSemanticElement(name: string): SemanticElement | null {
   }
 
   // Textarea patterns
-  if (
-    lower.startsWith('textarea/') ||
-    lower === 'textarea' ||
-    lower === 'text-area'
-  ) {
+  if (lower.startsWith('textarea/') || lower === 'textarea' || lower === 'text-area') {
     return { tag: 'textarea' }
   }
 
@@ -261,7 +257,8 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
   if (node.visible === false) return null
 
   // Check for matched icon first (from whaticon), then explicit iconify name
-  const iconName = node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
+  const iconName =
+    node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
   if (iconName) {
     const attrs: ts.JsxAttribute[] = []
     attrs.push(createJsxAttribute('name', strLit(iconName)))
@@ -376,8 +373,12 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
     }
   }
   // Individual stroke weights
-  if (node.strokeTopWeight !== undefined || node.strokeBottomWeight !== undefined ||
-      node.strokeLeftWeight !== undefined || node.strokeRightWeight !== undefined) {
+  if (
+    node.strokeTopWeight !== undefined ||
+    node.strokeBottomWeight !== undefined ||
+    node.strokeLeftWeight !== undefined ||
+    node.strokeRightWeight !== undefined
+  ) {
     if (node.strokeTopWeight !== node.strokeWeight) {
       attrs.push(createJsxAttribute('strokeTop', numLit(node.strokeTopWeight!)))
     }
@@ -392,10 +393,19 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
     }
   }
   // Corner radius
-  if (node.topLeftRadius !== undefined && node.topRightRadius !== undefined &&
-      node.bottomLeftRadius !== undefined && node.bottomRightRadius !== undefined) {
+  if (
+    node.topLeftRadius !== undefined &&
+    node.topRightRadius !== undefined &&
+    node.bottomLeftRadius !== undefined &&
+    node.bottomRightRadius !== undefined
+  ) {
     // Individual radii
-    const { topLeftRadius: tl, topRightRadius: tr, bottomLeftRadius: bl, bottomRightRadius: br } = node
+    const {
+      topLeftRadius: tl,
+      topRightRadius: tr,
+      bottomLeftRadius: bl,
+      bottomRightRadius: br
+    } = node
     if (tl === tr && tr === bl && bl === br) {
       if (tl > 0) attrs.push(createJsxAttribute('rounded', numLit(tl)))
     } else {
@@ -409,7 +419,12 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
   }
   // Corner smoothing (squircle) - CSS corner-shape: squircle
   if (node.cornerSmoothing && node.cornerSmoothing > 0) {
-    attrs.push(createJsxAttribute('cornerSmoothing', ts.factory.createNumericLiteral(node.cornerSmoothing.toFixed(2))))
+    attrs.push(
+      createJsxAttribute(
+        'cornerSmoothing',
+        ts.factory.createNumericLiteral(node.cornerSmoothing.toFixed(2))
+      )
+    )
   }
   if (node.opacity !== undefined && node.opacity !== 1) {
     attrs.push(
@@ -418,7 +433,9 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
   }
   // Blend mode
   if (node.blendMode) {
-    attrs.push(createJsxAttribute('blendMode', strLit(node.blendMode.toLowerCase().replace(/_/g, '-'))))
+    attrs.push(
+      createJsxAttribute('blendMode', strLit(node.blendMode.toLowerCase().replace(/_/g, '-')))
+    )
   }
   // Rotation
   if (node.rotation) {
@@ -438,7 +455,9 @@ export function nodeToJsx(node: FigmaNode, ctx: JsxContext = {}): ts.JsxChild | 
           `${effect.radius || 0}px`,
           effect.spread ? `${effect.spread}px` : '',
           effect.color || 'rgba(0,0,0,0.25)'
-        ].filter(Boolean).join(' ')
+        ]
+          .filter(Boolean)
+          .join(' ')
         attrs.push(createJsxAttribute('shadow', strLit(shadow)))
       } else if (effect.type === 'LAYER_BLUR') {
         attrs.push(createJsxAttribute('blur', numLit(effect.radius || 0)))
@@ -582,7 +601,8 @@ function findTextChild(node: FigmaNode): string | null {
 }
 
 export function collectUsedComponents(node: FigmaNode, used: Set<string> = new Set()): Set<string> {
-  const iconName = node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
+  const iconName =
+    node.matchedIcon || (node.name && ICONIFY_PATTERN.test(node.name) ? node.name : null)
   if (iconName) {
     used.add('Icon')
     return used
@@ -605,11 +625,7 @@ export function collectUsedComponents(node: FigmaNode, used: Set<string> = new S
   return used
 }
 
-export function generateCode(
-  node: FigmaNode,
-  componentName: string,
-  ctx: JsxContext = {}
-): string {
+export function generateCode(node: FigmaNode, componentName: string, ctx: JsxContext = {}): string {
   const jsx = nodeToJsx(node, ctx)
   if (!jsx) return ''
 
@@ -632,11 +648,17 @@ export function generateCode(
 
   const importSpecifiers = Array.from(usedComponents)
     .sort()
-    .map((name) => ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name)))
+    .map((name) =>
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+    )
 
   const importDecl = ts.factory.createImportDeclaration(
     undefined,
-    ts.factory.createImportClause(false, undefined, ts.factory.createNamedImports(importSpecifiers)),
+    ts.factory.createImportClause(
+      false,
+      undefined,
+      ts.factory.createNamedImports(importSpecifiers)
+    ),
     ts.factory.createStringLiteral('figma-use/render')
   )
 
@@ -655,16 +677,17 @@ export function generateCode(
 }
 
 export function toComponentName(name: string): string {
-  let result = name
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .replace(/^[0-9]/, '_$&') || 'Component'
+  let result = name.replace(/[^a-zA-Z0-9]/g, '').replace(/^[0-9]/, '_$&') || 'Component'
   if (RESERVED.has(result)) {
     result = `${result}Component`
   }
   return result
 }
 
-export async function formatCode(code: string, options: Partial<FormatOptions> = {}): Promise<string> {
+export async function formatCode(
+  code: string,
+  options: Partial<FormatOptions> = {}
+): Promise<string> {
   try {
     const oxfmt = await import('oxfmt')
     const result = await oxfmt.format('component.tsx', code, {

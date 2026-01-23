@@ -1,10 +1,55 @@
 {
   "name": "figma-use",
   "version": "0.10.1",
+  "description": "Control Figma from the command line. Full read/write access for AI agents.",
+  "keywords": [
+    "ai",
+    "ai-agents",
+    "automation",
+    "cli",
+    "design",
+    "figma",
+    "plugin"
+  ],
+  "homepage": "https://github.com/dannote/figma-use#readme",
+  "bugs": {
+    "url": "https://github.com/dannote/figma-use/issues"
+  },
+  "license": "MIT",
   "author": "Danila Poyarkov <dev@dannote.net>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dannote/figma-use.git"
+  },
+  "bin": {
+    "figma-fast": "bin/figma-fast.js",
+    "figma-use": "bin/figma-use.js"
+  },
+  "files": [
+    "bin",
+    "CHANGELOG.md",
+    "README.md",
+    "SKILL.md",
+    "dist/cli",
+    "packages/plugin/src",
+    "packages/cli/src/color.ts",
+    "packages/cli/src/render"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/cli/index.js",
+    "./render": "./packages/cli/src/render/index.ts",
+    "./components": "./packages/cli/src/render/components.tsx"
+  },
+  "scripts": {
+    "build": "bun run build:cli",
+    "build:cli": "bun build packages/cli/src/index.ts --outdir dist/cli --target node --minify --external esbuild --external typescript --external @modelcontextprotocol/sdk --external oxfmt --external whaticon --external pngjs --external pixelmatch",
+    "test": "cd packages/cli && bun test",
+    "lint": "oxlint packages/",
+    "format": "oxfmt --write packages/",
+    "prepublishOnly": "bun run build",
+    "build:fast": "bun build packages/cli/src/fast.ts --outfile dist/fast.mjs --target node --minify"
   },
   "dependencies": {
     "agentfmt": "^0.1.3",
@@ -35,50 +80,5 @@
     "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0",
     "react": "19"
-  },
-  "exports": {
-    ".": "./dist/cli/index.js",
-    "./render": "./packages/cli/src/render/index.ts",
-    "./components": "./packages/cli/src/render/components.tsx"
-  },
-  "bin": {
-    "figma-use": "bin/figma-use.js",
-    "figma-fast": "bin/figma-fast.js"
-  },
-  "bugs": {
-    "url": "https://github.com/dannote/figma-use/issues"
-  },
-  "description": "Control Figma from the command line. Full read/write access for AI agents.",
-  "files": [
-    "bin",
-    "dist/cli",
-    "packages/cli/src/render",
-    "packages/cli/src/color.ts",
-    "packages/plugin/src",
-    "README.md",
-    "CHANGELOG.md",
-    "SKILL.md"
-  ],
-  "homepage": "https://github.com/dannote/figma-use#readme",
-  "keywords": [
-    "figma",
-    "cli",
-    "automation",
-    "design",
-    "ai",
-    "ai-agents",
-    "plugin"
-  ],
-  "license": "MIT",
-  "scripts": {
-    "build": "bun run build:cli",
-    "build:cli": "bun build packages/cli/src/index.ts --outdir dist/cli --target node --minify --external esbuild --external typescript --external @modelcontextprotocol/sdk --external oxfmt --external whaticon --external pngjs --external pixelmatch",
-    "test": "cd packages/cli && bun test",
-    "lint": "oxlint packages/",
-    "format": "oxfmt --write packages/",
-    "prepublishOnly": "bun run build",
-    "build:fast": "bun build packages/cli/src/fast.ts --outfile dist/fast.mjs --target node --minify"
-  },
-  "type": "module",
-  "sideEffects": false
+  }
 }

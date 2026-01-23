@@ -5,7 +5,7 @@ export default defineRule({
     id: 'no-empty-frames',
     category: 'structure',
     description: 'Frames should not be empty unless used as spacers',
-    fixable: false,
+    fixable: false
   },
 
   match: ['FRAME'],
@@ -23,16 +23,14 @@ export default defineRule({
     if (isLikelySpacer) return
 
     // Skip if has a visible fill (could be a colored box)
-    const hasVisibleFill = node.fills?.some(
-      f => f.visible !== false && f.type === 'SOLID'
-    )
+    const hasVisibleFill = node.fills?.some((f) => f.visible !== false && f.type === 'SOLID')
 
     if (hasVisibleFill) return
 
     context.report({
       node,
       message: 'Empty frame with no fill',
-      suggest: 'Delete if unused, or add content/fill',
+      suggest: 'Delete if unused, or add content/fill'
     })
-  },
+  }
 })

@@ -16,23 +16,23 @@ export { default as effectStyleRequired } from './effect-style-required.ts'
 export { default as noMixedStyles } from './no-mixed-styles.ts'
 export { default as noDetachedInstances } from './no-detached-instances.ts'
 
-import noHardcodedColors from './no-hardcoded-colors.ts'
-import noDefaultNames from './no-default-names.ts'
-import preferAutoLayout from './prefer-auto-layout.ts'
-import consistentSpacing from './consistent-spacing.ts'
-import consistentRadius from './consistent-radius.ts'
 import colorContrast from './color-contrast.ts'
-import touchTargetSize from './touch-target-size.ts'
-import textStyleRequired from './text-style-required.ts'
-import minTextSize from './min-text-size.ts'
-import noHiddenLayers from './no-hidden-layers.ts'
-import noDeeplyNested from './no-deeply-nested.ts'
-import noEmptyFrames from './no-empty-frames.ts'
-import pixelPerfect from './pixel-perfect.ts'
-import noGroups from './no-groups.ts'
+import consistentRadius from './consistent-radius.ts'
+import consistentSpacing from './consistent-spacing.ts'
 import effectStyleRequired from './effect-style-required.ts'
-import noMixedStyles from './no-mixed-styles.ts'
+import minTextSize from './min-text-size.ts'
+import noDeeplyNested from './no-deeply-nested.ts'
+import noDefaultNames from './no-default-names.ts'
 import noDetachedInstances from './no-detached-instances.ts'
+import noEmptyFrames from './no-empty-frames.ts'
+import noGroups from './no-groups.ts'
+import noHardcodedColors from './no-hardcoded-colors.ts'
+import noHiddenLayers from './no-hidden-layers.ts'
+import noMixedStyles from './no-mixed-styles.ts'
+import pixelPerfect from './pixel-perfect.ts'
+import preferAutoLayout from './prefer-auto-layout.ts'
+import textStyleRequired from './text-style-required.ts'
+import touchTargetSize from './touch-target-size.ts'
 
 import type { Rule } from '../core/types.ts'
 
@@ -53,5 +53,5 @@ export const allRules: Record<string, Rule> = {
   'no-groups': noGroups,
   'effect-style-required': effectStyleRequired,
   'no-mixed-styles': noMixedStyles,
-  'no-detached-instances': noDetachedInstances,
+  'no-detached-instances': noDetachedInstances
 }

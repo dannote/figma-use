@@ -6,7 +6,7 @@ export default defineRule({
     id: 'no-default-names',
     category: 'naming',
     description: 'Layers should have descriptive names, not default Figma names',
-    fixable: false,
+    fixable: false
   },
 
   check(node, context) {
@@ -26,7 +26,8 @@ export default defineRule({
     context.report({
       node,
       message: `Default layer name "${node.name}" is not descriptive`,
-      suggest: 'Rename to describe the layer\'s purpose (e.g., "header-background", "submit-button")',
+      suggest:
+        'Rename to describe the layer\'s purpose (e.g., "header-background", "submit-button")'
     })
-  },
+  }
 })

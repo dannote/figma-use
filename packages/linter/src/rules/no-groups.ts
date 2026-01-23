@@ -5,7 +5,7 @@ export default defineRule({
     id: 'no-groups',
     category: 'structure',
     description: 'Use frames instead of groups for better layout control and auto-layout support',
-    fixable: false,
+    fixable: false
   },
 
   match: ['GROUP'],
@@ -14,7 +14,7 @@ export default defineRule({
     context.report({
       node,
       message: 'Group should be converted to Frame',
-      suggest: 'Groups cannot use Auto Layout. Convert to Frame for better control.',
+      suggest: 'Groups cannot use Auto Layout. Convert to Frame for better control.'
     })
-  },
+  }
 })

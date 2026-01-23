@@ -2,13 +2,9 @@ import * as esbuild from 'esbuild'
 import * as React from 'react'
 
 import { sendCommand } from '../client.ts'
-import {
-  loadVariablesIntoRegistry,
-  isRegistryLoaded,
-  preloadIcons,
-  collectIcons
-} from './index.ts'
+import { loadVariablesIntoRegistry, isRegistryLoaded, preloadIcons, collectIcons } from './index.ts'
 import { renderWithWidgetApi } from './widget-renderer.ts'
+
 import type { NodeRef } from '../types.ts'
 
 const MOCK_RENDER_MODULE = `

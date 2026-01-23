@@ -35,13 +35,8 @@ export interface FixAction {
 }
 
 export interface RuleContext {
-  report(issue: {
-    node: FigmaNode
-    message: string
-    suggest?: string
-    fix?: FixAction
-  }): void
-  
+  report(issue: { node: FigmaNode; message: string; suggest?: string; fix?: FixAction }): void
+
   getVariables(): FigmaVariable[]
   findSimilarVariable(color: RGB, type: 'COLOR'): FigmaVariable | null
   findSimilarVariable(value: number, type: 'FLOAT'): FigmaVariable | null
@@ -65,20 +60,20 @@ export interface FigmaNode {
   type: string
   parent?: NodeRef
   children?: FigmaNode[]
-  
+
   // Geometry
   width?: number
   height?: number
   x?: number
   y?: number
   rotation?: number
-  
+
   // Styles
   fills?: Paint[]
   strokes?: Paint[]
   strokeWeight?: number
   cornerRadius?: number
-  
+
   // Layout
   layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL'
   itemSpacing?: number
@@ -86,28 +81,34 @@ export interface FigmaNode {
   paddingRight?: number
   paddingBottom?: number
   paddingLeft?: number
-  
+
   // Text
   characters?: string
   fontSize?: number
   fontName?: { family: string; style: string }
   lineHeight?: { value: number; unit: 'PIXELS' | 'PERCENT' | 'AUTO' }
   textStyleId?: string
-  
+
   // Components
   componentId?: string
   mainComponent?: NodeRef
-  
+
   // Effects
   effects?: Effect[]
-  
+
   // Visibility
   visible?: boolean
   locked?: boolean
 }
 
 export interface Paint {
-  type: 'SOLID' | 'GRADIENT_LINEAR' | 'GRADIENT_RADIAL' | 'GRADIENT_ANGULAR' | 'GRADIENT_DIAMOND' | 'IMAGE'
+  type:
+    | 'SOLID'
+    | 'GRADIENT_LINEAR'
+    | 'GRADIENT_RADIAL'
+    | 'GRADIENT_ANGULAR'
+    | 'GRADIENT_DIAMOND'
+    | 'IMAGE'
   visible?: boolean
   opacity?: number
   color?: RGB

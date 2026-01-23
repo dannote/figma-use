@@ -9,7 +9,7 @@ export default defineRule({
     id: 'min-text-size',
     category: 'accessibility',
     description: 'Text should be large enough to be readable (minimum 12px)',
-    fixable: true,
+    fixable: true
   },
 
   match: ['TEXT'],
@@ -27,8 +27,8 @@ export default defineRule({
       suggest: `Increase to at least ${minSize}px for readability`,
       fix: {
         action: 'resize',
-        params: { fontSize: minSize },
-      },
+        params: { fontSize: minSize }
+      }
     })
-  },
+  }
 })

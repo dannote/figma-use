@@ -1,5 +1,6 @@
 import { defineRule } from '../core/rule.ts'
 import { rgbToHex } from '../core/utils.ts'
+
 import type { Paint } from '../core/types.ts'
 
 export default defineRule({
@@ -7,10 +8,21 @@ export default defineRule({
     id: 'no-hardcoded-colors',
     category: 'design-tokens',
     description: 'Colors should use variables instead of hardcoded values',
-    fixable: true,
+    fixable: true
   },
 
-  match: ['RECTANGLE', 'ELLIPSE', 'FRAME', 'TEXT', 'VECTOR', 'LINE', 'POLYGON', 'STAR', 'COMPONENT', 'INSTANCE'],
+  match: [
+    'RECTANGLE',
+    'ELLIPSE',
+    'FRAME',
+    'TEXT',
+    'VECTOR',
+    'LINE',
+    'POLYGON',
+    'STAR',
+    'COMPONENT',
+    'INSTANCE'
+  ],
 
   check(node, context) {
     const checkPaints = (paints: Paint[] | undefined, property: 'fill' | 'stroke') => {
@@ -32,14 +44,14 @@ export default defineRule({
           fix: similar
             ? {
                 action: 'bind-variable',
-                params: { variableId: similar.id, field: property === 'fill' ? 'fills' : 'strokes' },
+                params: { variableId: similar.id, field: property === 'fill' ? 'fills' : 'strokes' }
               }
-            : undefined,
+            : undefined
         })
       }
     }
 
     checkPaints(node.fills, 'fill')
     checkPaints(node.strokes, 'stroke')
-  },
+  }
 })

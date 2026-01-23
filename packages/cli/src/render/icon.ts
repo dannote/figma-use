@@ -3,9 +3,9 @@ import { setAPIModule } from '@iconify/core/lib/api/modules'
 import { fetchAPIModule } from '@iconify/core/lib/api/modules/fetch'
 import { iconToSVG } from '@iconify/utils'
 
+import type { ReactNode } from './mini-react.ts'
 import type { Props, ReactElement } from './tree.ts'
 import type { IconifyIcon } from '@iconify/types'
-import type { ReactNode } from './mini-react.ts'
 
 // Initialize API module
 setAPIModule('', fetchAPIModule)

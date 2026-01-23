@@ -1,5 +1,6 @@
 import { defineRule } from '../core/rule.ts'
 import { contrastRatio, rgbToHex } from '../core/utils.ts'
+
 import type { RGB, FigmaNode, Paint } from '../core/types.ts'
 
 interface Options {
@@ -9,7 +10,7 @@ interface Options {
 
 const WCAG_THRESHOLDS = {
   AA: { normal: 4.5, large: 3 },
-  AAA: { normal: 7, large: 4.5 },
+  AAA: { normal: 7, large: 4.5 }
 }
 
 export default defineRule({
@@ -18,7 +19,7 @@ export default defineRule({
     category: 'accessibility',
     severity: 'error',
     description: 'Text must have sufficient color contrast against its background (WCAG)',
-    fixable: false,
+    fixable: false
   },
 
   match: ['TEXT'],
@@ -43,10 +44,10 @@ export default defineRule({
       context.report({
         node,
         message: `Contrast ratio ${ratio.toFixed(2)}:1 is below ${level} threshold (${threshold}:1)`,
-        suggest: `Text color: ${rgbToHex(textColor)}, Background: ${rgbToHex(bgColor)}. Increase contrast.`,
+        suggest: `Text color: ${rgbToHex(textColor)}, Background: ${rgbToHex(bgColor)}. Increase contrast.`
       })
     }
-  },
+  }
 })
 
 function getTextColor(node: FigmaNode): RGB | null {
@@ -77,7 +78,7 @@ function findBackgroundColor(node: FigmaNode): RGB | null {
           return {
             r: solidFill.color.r * opacity + 1 * (1 - opacity),
             g: solidFill.color.g * opacity + 1 * (1 - opacity),
-            b: solidFill.color.b * opacity + 1 * (1 - opacity),
+            b: solidFill.color.b * opacity + 1 * (1 - opacity)
           }
         }
         return solidFill.color

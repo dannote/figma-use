@@ -10,9 +10,9 @@ export function defineRule(definition: RuleDefinition): Rule {
   return {
     meta: {
       severity: 'warning',
-      ...definition.meta,
+      ...definition.meta
     },
     match: definition.match,
-    check: definition.check,
+    check: definition.check
   }
 }

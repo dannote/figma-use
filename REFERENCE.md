@@ -11,6 +11,7 @@ figma-use init --preset strict             # Use strict lint preset
 ```
 
 Config file `.figma-use.json`:
+
 ```json
 {
   "lint": {
@@ -183,6 +184,7 @@ figma-use export storybook --no-fonts      # Skip fonts.css generation
 ```
 
 Generates:
+
 - `Component.tsx` — React/Vue component with props
 - `Component.stories.tsx` — Storybook stories with args
 - `fonts.css` — Google Fonts imports
@@ -336,14 +338,14 @@ figma-use lint --list-rules                # Show all available rules
 
 **Rules (17 total):**
 
-| Category | Rules |
-|----------|-------|
-| Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required` |
-| Layout | `prefer-auto-layout`, `pixel-perfect` |
-| Typography | `text-style-required`, `min-text-size`, `no-mixed-styles` |
-| Accessibility | `color-contrast`, `touch-target-size` |
-| Structure | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
-| Components | `no-detached-instances` |
+| Category      | Rules                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required`  |
+| Layout        | `prefer-auto-layout`, `pixel-perfect`                                                      |
+| Typography    | `text-style-required`, `min-text-size`, `no-mixed-styles`                                  |
+| Accessibility | `color-contrast`, `touch-target-size`                                                      |
+| Structure     | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
+| Components    | `no-detached-instances`                                                                    |
 
 **Presets:** `recommended`, `strict`, `accessibility`, `design-system`
 

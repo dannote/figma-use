@@ -9,20 +9,17 @@ export function rgbToHex(rgb: RGB): string {
 
 export function hexToRgb(hex: string): RGB {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  if (!result || !result[1] || !result[2] || !result[3]) throw new Error(`Invalid hex color: ${hex}`)
+  if (!result || !result[1] || !result[2] || !result[3])
+    throw new Error(`Invalid hex color: ${hex}`)
   return {
     r: parseInt(result[1], 16) / 255,
     g: parseInt(result[2], 16) / 255,
-    b: parseInt(result[3], 16) / 255,
+    b: parseInt(result[3], 16) / 255
   }
 }
 
 export function colorDistance(a: RGB, b: RGB): number {
-  return Math.sqrt(
-    Math.pow(a.r - b.r, 2) +
-    Math.pow(a.g - b.g, 2) +
-    Math.pow(a.b - b.b, 2)
-  )
+  return Math.sqrt(Math.pow(a.r - b.r, 2) + Math.pow(a.g - b.g, 2) + Math.pow(a.b - b.b, 2))
 }
 
 /**
@@ -30,7 +27,7 @@ export function colorDistance(a: RGB, b: RGB): number {
  * https://www.w3.org/WAI/GL/wiki/Relative_luminance
  */
 export function relativeLuminance(rgb: RGB): number {
-  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
+  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map((c) => {
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
   }) as [number, number, number]
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
@@ -54,13 +51,16 @@ export function contrastRatio(foreground: RGB, background: RGB): number {
 export function isMultipleOf(value: number, base: number, tolerance = 0.01): boolean {
   if (base === 0) return false
   const remainder = value % base
-  return remainder < tolerance || (base - remainder) < tolerance
+  return remainder < tolerance || base - remainder < tolerance
 }
 
 /**
  * Get node path as array of names
  */
-export function getNodePath(node: { name: string; parent?: { name: string; parent?: unknown } }): string[] {
+export function getNodePath(node: {
+  name: string
+  parent?: { name: string; parent?: unknown }
+}): string[] {
   const path: string[] = []
   let current: typeof node | undefined = node
   while (current) {
@@ -74,7 +74,9 @@ export function getNodePath(node: { name: string; parent?: { name: string; paren
  * Check if name matches default Figma naming pattern
  */
 export function isDefaultName(name: string): boolean {
-  return /^(Frame|Rectangle|Ellipse|Line|Text|Group|Vector|Polygon|Star|Section|Component|Instance|Slice)\s*\d*$/i.test(name)
+  return /^(Frame|Rectangle|Ellipse|Line|Text|Group|Vector|Polygon|Star|Section|Component|Instance|Slice)\s*\d*$/i.test(
+    name
+  )
 }
 
 /**

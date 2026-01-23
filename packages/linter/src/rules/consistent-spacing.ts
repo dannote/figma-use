@@ -13,7 +13,7 @@ export default defineRule({
     id: 'consistent-spacing',
     category: 'layout',
     description: 'Spacing values should follow the spacing scale (multiples of base unit)',
-    fixable: true,
+    fixable: true
   },
 
   match: ['FRAME', 'COMPONENT'],
@@ -46,8 +46,8 @@ export default defineRule({
         suggest: `Use ${closest}px instead`,
         fix: {
           action: 'set-layout',
-          params: { gap: closest },
-        },
+          params: { gap: closest }
+        }
       })
     }
 
@@ -55,7 +55,7 @@ export default defineRule({
       { name: 'paddingTop', value: node.paddingTop },
       { name: 'paddingRight', value: node.paddingRight },
       { name: 'paddingBottom', value: node.paddingBottom },
-      { name: 'paddingLeft', value: node.paddingLeft },
+      { name: 'paddingLeft', value: node.paddingLeft }
     ]
 
     if (checkPadding) {
@@ -66,9 +66,9 @@ export default defineRule({
         context.report({
           node,
           message: `${name} ${value}px is not in spacing scale`,
-          suggest: `Use ${closest}px instead`,
+          suggest: `Use ${closest}px instead`
         })
       }
     }
-  },
+  }
 })

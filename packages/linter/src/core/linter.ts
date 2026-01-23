@@ -1,3 +1,7 @@
+import { presets } from '../config/presets.ts'
+import { allRules } from '../rules/index.ts'
+import { getNodePath, colorDistance } from './utils.ts'
+
 import type {
   Rule,
   RuleContext,
@@ -8,11 +12,8 @@ import type {
   LintConfig,
   Severity,
   RGB,
-  FixAction,
+  FixAction
 } from './types.ts'
-import { getNodePath, colorDistance } from './utils.ts'
-import { allRules } from '../rules/index.ts'
-import { presets } from '../config/presets.ts'
 
 export interface LinterOptions {
   config?: LintConfig
@@ -23,7 +24,8 @@ export interface LinterOptions {
 
 export class Linter {
   private rules: Map<string, Rule> = new Map()
-  private ruleConfigs: Map<string, { severity: Severity; options?: Record<string, unknown> }> = new Map()
+  private ruleConfigs: Map<string, { severity: Severity; options?: Record<string, unknown> }> =
+    new Map()
   private variables: FigmaVariable[] = []
   private messages: LintMessage[] = []
 
@@ -34,7 +36,10 @@ export class Linter {
 
   private loadRules(options: LinterOptions) {
     // Start with preset if specified
-    let baseConfig: Record<string, Severity | { severity: Severity; options?: Record<string, unknown> }> = {}
+    let baseConfig: Record<
+      string,
+      Severity | { severity: Severity; options?: Record<string, unknown> }
+    > = {}
 
     if (options.preset) {
       const preset = presets[options.preset]
@@ -93,10 +98,10 @@ export class Linter {
 
     return {
       messages: this.messages,
-      errorCount: this.messages.filter(m => m.severity === 'error').length,
-      warningCount: this.messages.filter(m => m.severity === 'warning').length,
-      infoCount: this.messages.filter(m => m.severity === 'info').length,
-      fixableCount: this.messages.filter(m => m.fix).length,
+      errorCount: this.messages.filter((m) => m.severity === 'error').length,
+      warningCount: this.messages.filter((m) => m.severity === 'warning').length,
+      infoCount: this.messages.filter((m) => m.severity === 'info').length,
+      fixableCount: this.messages.filter((m) => m.fix).length
     }
   }
 
@@ -140,7 +145,7 @@ export class Linter {
           nodeName: issue.node.name,
           nodePath: getNodePath(issue.node),
           suggest: issue.suggest,
-          fix: issue.fix,
+          fix: issue.fix
         })
       },
 
@@ -174,7 +179,7 @@ export class Linter {
         return null
       },
 
-      getConfig: <T>() => config.options as T,
+      getConfig: <T>() => config.options as T
     }
   }
 }

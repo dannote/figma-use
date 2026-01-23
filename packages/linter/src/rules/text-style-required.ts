@@ -1,4 +1,5 @@
 import { defineRule } from '../core/rule.ts'
+
 import type { NodeRef } from '../core/types.ts'
 
 interface Options {
@@ -15,7 +16,7 @@ export default defineRule({
     id: 'text-style-required',
     category: 'typography',
     description: 'Text layers should use shared text styles for consistency',
-    fixable: false,
+    fixable: false
   },
 
   match: ['TEXT'],
@@ -42,7 +43,7 @@ export default defineRule({
     context.report({
       node,
       message: 'Text layer without text style',
-      suggest: `Apply a text style to "${node.characters.slice(0, 30)}${node.characters.length > 30 ? '...' : ''}"`,
+      suggest: `Apply a text style to "${node.characters.slice(0, 30)}${node.characters.length > 30 ? '...' : ''}"`
     })
-  },
+  }
 })

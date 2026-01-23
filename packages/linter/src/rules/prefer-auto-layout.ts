@@ -9,7 +9,7 @@ export default defineRule({
     id: 'prefer-auto-layout',
     category: 'layout',
     description: 'Frames with multiple children should use Auto Layout for responsive design',
-    fixable: false,
+    fixable: false
   },
 
   match: ['FRAME', 'COMPONENT'],
@@ -28,9 +28,9 @@ export default defineRule({
     context.report({
       node,
       message: `Frame with ${node.children.length} children doesn't use Auto Layout`,
-      suggest: 'Add Auto Layout (VERTICAL or HORIZONTAL) for better responsiveness',
+      suggest: 'Add Auto Layout (VERTICAL or HORIZONTAL) for better responsiveness'
     })
-  },
+  }
 })
 
 function checkForOverlaps(

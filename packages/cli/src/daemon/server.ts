@@ -1,7 +1,8 @@
-import { createServer, Server, Socket } from 'net'
 import { existsSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
-import { sendCommandDirect } from '../client.ts'
+import { createServer, Server, Socket } from 'net'
+
 import { closeCDP } from '../cdp.ts'
+import { sendCommandDirect } from '../client.ts'
 
 const SOCKET_PATH = '/tmp/figma-use.sock'
 const PID_FILE = '/tmp/figma-use.pid'

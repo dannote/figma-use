@@ -36,14 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `FIXED` → `w={200}` / `h={100}`
 
 - **Semantic HTML in export** — automatically convert to semantic HTML elements
+
   ```bash
   figma-use export jsx 1:23              # Input → <input>, Button → <button>
   figma-use export storybook             # Same for storybook
   figma-use export jsx --no-semantic-html # Disable conversion
   ```
+
   Detection based on component names: `Input/*`, `Button/*`, `Checkbox/*`, etc.
 
 - **`node replace-with`** — replace node with another node or JSX from stdin
+
   ```bash
   figma-use node replace-with <id> --target <component-id>  # Creates instance
   echo '<Frame .../>' | figma-use node replace-with <id> --stdin
@@ -63,29 +66,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   If target is a component, creates an instance. Otherwise clones the node.
 
 - **`node ancestors`** — get parent chain from node to page root
+
   ```bash
   figma-use node ancestors <id>           # Up to 10 ancestors
   figma-use node ancestors <id> --depth 5 # Limit depth
   ```
 
 - **`node bindings`** — get variable bindings for fills and strokes
+
   ```bash
   figma-use node bindings <id>            # Show bound variables
   ```
 
 - **`page bounds`** — get bounding box of all objects on current page
+
   ```bash
   figma-use page bounds                   # Returns minX, maxX, suggestedX, etc.
   ```
+
   Useful for finding free space to place new components.
 
 - **`variable find`** — search variables by name pattern
+
   ```bash
   figma-use variable find "Text/Neutral"  # Substring match
   figma-use variable find "Color" --type COLOR --limit 10
   ```
 
 - **`<instance>` in render** — create component instances in JSX render
+
   ```tsx
   <frame>
     <instance component="59763:10626" />
@@ -95,21 +104,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`analyze` commands** — design analysis tools for discovery and audit
 
   **`analyze clusters`** — find repeated patterns (potential components)
+
   ```bash
   figma-use analyze clusters                # Find all clusters
   figma-use analyze clusters --limit 10     # Show top 10
   figma-use analyze clusters --min-count 5  # Min 5 instances
   ```
+
   Uses fuzzy matching with size buckets. Shows confidence score.
 
   **`analyze colors`** — color palette usage
+
   ```bash
   figma-use analyze colors                  # Colors by frequency
   figma-use analyze colors --show-similar   # Find similar colors to merge
   ```
+
   Shows variable names (`$Colors/Neutral/200`). Same hex with different variables shown separately.
 
   **`analyze typography`** — font usage map
+
   ```bash
   figma-use analyze typography              # All font combinations
   figma-use analyze typography --group-by size   # Group by size
@@ -117,6 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
   **`analyze spacing`** — gap and padding values
+
   ```bash
   figma-use analyze spacing                 # All spacing values
   figma-use analyze spacing --grid 8        # Warn if not divisible by 8
@@ -125,10 +140,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **V8 compile cache** — 25% faster startup on repeated runs (Node.js 22+)
 
 - **`lint` command** (experimental) — design linter with 17 rules for consistency, accessibility, and best practices
+
   ```bash
   figma-use lint                          # Recommended preset
   figma-use lint --page "Components"      # Lint specific page by name
-  figma-use lint --preset strict          # Stricter rules  
+  figma-use lint --preset strict          # Stricter rules
   figma-use lint --preset accessibility   # A11y rules only
   figma-use lint --rule color-contrast    # Specific rule
   figma-use lint -v                       # Verbose with suggestions
@@ -137,15 +153,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
   **Rules by category:**
-  
-  | Category | Rules |
-  |----------|-------|
-  | Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required` |
-  | Layout | `prefer-auto-layout`, `pixel-perfect` |
-  | Typography | `text-style-required`, `min-text-size`, `no-mixed-styles` |
-  | Accessibility | `color-contrast`, `touch-target-size` |
-  | Structure | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
-  | Components | `no-detached-instances` |
+
+  | Category      | Rules                                                                                      |
+  | ------------- | ------------------------------------------------------------------------------------------ |
+  | Design Tokens | `no-hardcoded-colors`, `consistent-spacing`, `consistent-radius`, `effect-style-required`  |
+  | Layout        | `prefer-auto-layout`, `pixel-perfect`                                                      |
+  | Typography    | `text-style-required`, `min-text-size`, `no-mixed-styles`                                  |
+  | Accessibility | `color-contrast`, `touch-target-size`                                                      |
+  | Structure     | `no-default-names`, `no-hidden-layers`, `no-deeply-nested`, `no-empty-frames`, `no-groups` |
+  | Components    | `no-detached-instances`                                                                    |
 
   **Presets:** `recommended`, `strict`, `accessibility`, `design-system`
 
@@ -156,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Console and JSON reporters
 
 - **`set text-resize` command** — control text auto-resize mode
+
   ```bash
   figma-use set text-resize <id> height          # Wrap text to width
   figma-use set text-resize <id> width-and-height # Auto-size both dimensions
@@ -164,12 +181,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
 - **TEXT component properties in Storybook export** — editable text props
+
   ```tsx
   // Figma component with TEXT property "label" becomes:
   export function Button({ label, variant }: ButtonProps) {
-    return <Frame><Text>{label}</Text></Frame>
+    return (
+      <Frame>
+        <Text>{label}</Text>
+      </Frame>
+    )
   }
-  
+
   // Stories get editable args:
   export const Primary: StoryObj<typeof Button> = {
     args: { label: 'Click me', variant: 'Primary' }
@@ -179,6 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`textAutoResize` in node tree** — shows text resize mode for TEXT nodes
 
 - **`init` command** — create `.figma-use.json` config file
+
   ```bash
   figma-use init                    # Create with defaults
   figma-use init --force            # Overwrite existing
@@ -227,6 +250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Show install hint when `oxfmt` is missing for `--pretty` flag
+
   ```
   oxfmt is required for --pretty. Install it:
 
@@ -238,11 +262,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`export jsx` command** — export Figma nodes as JSX components
+
   ```bash
   figma-use export jsx <node-id>           # Minified output
   figma-use export jsx <node-id> --pretty  # Formatted with oxfmt
   ```
-  
+
   Features:
   - Generates TypeScript AST (not string concatenation)
   - Recognizes Iconify icons by name pattern → `<Icon name="lucide:save" />`
@@ -250,15 +275,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Format options: `--semi`, `--single-quote`, `--tabs`, `--tab-width`, `--trailing-comma`
 
 - **`diff jsx` command** — compare nodes as formatted JSX
+
   ```bash
   figma-use diff jsx <from-id> <to-id>
   ```
+
   Shows colorized unified diff of JSX representations.
 
 - **`<Icon>` element in JSX** — render Iconify icons
+
   ```tsx
   <Icon name="lucide:heart" size={24} color="#EF4444" />
   ```
+
   150k+ icons from Iconify, loaded on demand.
 
 - **`<Section>` element** — create Figma sections (distinct from frames)
@@ -283,15 +312,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`<Image>` element** — load images from URL in JSX
+
   ```tsx
   <Image src="https://example.com/photo.jpg" w={200} h={150} />
   ```
 
 - **Import support in stdin** — use familiar module syntax
+
   ```tsx
   import { Frame, Text, defineComponent } from 'figma-use/render'
-  
-  export default () => <Frame><Text>Hello</Text></Frame>
+
+  export default () => (
+    <Frame>
+      <Text>Hello</Text>
+    </Frame>
+  )
   ```
 
 ## [0.9.1] - 2026-01-21
@@ -305,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING: Direct CDP communication** — no more proxy server or plugin required!
+
   ```bash
   # Old way (removed)
   figma-use proxy &
@@ -314,7 +350,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   open -a Figma --args --remote-debugging-port=9222
   figma-use status  # Ready!
   ```
-  
+
 - **Simplified architecture** — CLI talks directly to Figma via Chrome DevTools Protocol
   - Removed `packages/proxy/` (WebSocket server)
   - Removed `packages/cli/src/multiplayer/` (Kiwi protocol)
@@ -326,6 +362,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Runtime-agnostic** — CLI now works with both Node.js and Bun
 
 - **Package renamed** — `@dannote/figma-use` → `figma-use`
+
   ```bash
   npx figma-use status
   bunx figma-use status
@@ -341,6 +378,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`node delete` and `node clone` support multiple IDs** — operate on several nodes at once
+
   ```bash
   figma-use node delete 1:23 1:24 1:25
   figma-use node clone 1:23 1:24 1:25
@@ -380,15 +418,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`query` command** — XPath selectors for finding nodes (powered by fontoxpath)
+
   ```bash
   figma-use query "//FRAME"                              # All frames
-  figma-use query "//FRAME[@width < 300]"                # Frames narrower than 300px  
+  figma-use query "//FRAME[@width < 300]"                # Frames narrower than 300px
   figma-use query "//COMPONENT[starts-with(@name, 'Button')]"  # Name starts with
   figma-use query "//FRAME[contains(@name, 'Card')]"     # Name contains
   figma-use query "//SECTION/FRAME"                      # Direct children
   figma-use query "//SECTION//TEXT"                      # All descendants
   figma-use query "//*[@cornerRadius > 0]"               # Any node with radius
   ```
+
   Full XPath 3.1 support: axes, predicates, functions, arithmetic
 
 - **Multi-file support** — proxy now supports multiple simultaneous plugin connections
@@ -396,7 +436,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `file list` — show all connected files
   - `file select <name>` — switch active file (partial match supported)
   - `status` shows all connected files with active marker
-  
 - **Connector commands** — work with connector lines
   - `connector list` — list connectors on current page
   - `connector get <id>` — get connector details (endpoints, stroke, line type)
@@ -434,32 +473,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`page current`** — show current page name and ID
+
   ```bash
   figma-use page current         # Page 1 (0:1)
   figma-use page current --json  # {"id": "0:1", "name": "Page 1"}
   ```
 
 - **`create icon`** — add icons from Iconify (150k+ icons from 100+ sets)
+
   ```bash
   figma-use create icon mdi:home
   figma-use create icon lucide:star --size 48 --color "#FFD700"
   figma-use create icon heroicons:bell-solid --component  # as Figma component
   ```
+
   Supports: mdi, lucide, heroicons, tabler, fa-solid, fa-regular, ri, ph, carbon, fluent, ion, bi, and more.
 
 - **Variable references in CLI color options** — use `var:Name` or `$Name` syntax:
+
   ```bash
   figma-use create rect --x 0 --y 0 --width 100 --height 100 --fill 'var:Colors/Primary'
   figma-use create icon mdi:home --color '$Brand/Accent'
   ```
 
 - **`<Icon>` primitive for JSX render** — 150k+ Iconify icons:
+
   ```jsx
-  <Frame style={{ flexDirection: "row", gap: 8 }}>
+  <Frame style={{ flexDirection: 'row', gap: 8 }}>
     <Icon icon="mdi:home" size={24} color="#3B82F6" />
     <Icon icon="lucide:star" size={32} color="#F59E0B" />
   </Frame>
   ```
+
   Icons are auto-preloaded before render.
 
 - **Tailwind-like style shorthands** for JSX render:
@@ -468,11 +513,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Padding: `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`
   - Layout: `flex` (`"row"` | `"col"`), `justify`, `items`
   - Text: `size`, `font`, `weight` → `fontSize`, `fontFamily`, `fontWeight`
-  
+
   ```jsx
   // Before (178 chars)
   <Frame style={{paddingLeft: 16, paddingRight: 16, backgroundColor: "#3B82F6", borderRadius: 6, flexDirection: "row"}}>
-  
+
   // After (73 chars)
   <Frame style={{px: 16, bg: "#3B82F6", rounded: 6, flex: "row"}}>
   ```
@@ -522,16 +567,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `diff create --from <id> --to <id>` — compare two node trees and generate patch
   - `diff apply` — apply a patch to Figma nodes (validates old values!)
   - `diff show` — show diff between current state and new properties
+
   ```bash
   # Compare two frames (e.g., before/after, A/B variants)
   figma-use diff create --from 123:456 --to 789:012
-  
+
   # Apply patch (validates old values match)
   figma-use diff apply --stdin < patch.diff
-  
+
   # Dry run
   figma-use diff apply --stdin --dry-run < patch.diff
   ```
+
 - Uses `diff` library for unified diff parsing and validation
 
 ### Fixed
@@ -585,7 +632,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `comment list|add|delete` — manage file comments
-- `version list` — view file version history  
+- `version list` — view file version history
 - `file info` — get file key and name
 - `me` — get current user info
 - `font list` — list available fonts with optional family filter
@@ -645,6 +692,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`render --examples`** — full API reference for JSX rendering
 - Main CLI help now mentions JSX rendering and points to `render --examples`
 - **`defineComponent` for reusable components**
+
   ```tsx
   const Button = defineComponent('Button',
     <Frame style={{ padding: 12, backgroundColor: '#3B82F6' }}>
@@ -657,14 +705,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
 - **`defineComponentSet` for component variants**
+
   ```tsx
   const Button = defineComponentSet('Button', {
     variant: ['Primary', 'Secondary'] as const,
     size: ['Small', 'Large'] as const,
   }, ({ variant, size }) => (
-    <Frame style={{ 
+    <Frame style={{
       padding: size === 'Large' ? 16 : 8,
-      backgroundColor: variant === 'Primary' ? '#3B82F6' : '#E5E7EB' 
+      backgroundColor: variant === 'Primary' ? '#3B82F6' : '#E5E7EB'
     }}>
       <Text>{variant} {size}</Text>
     </Frame>
@@ -721,7 +770,7 @@ the same batch. See `component-set.tsx` for detailed explanation.
 
 - **Variable binding via multiplayer protocol** — bind fill colors to Figma variables without plugin API
   - `encodePaintWithVariableBinding()` — encode Paint with color variable binding
-  - `encodeNodeChangeWithVariables()` — encode NodeChange with variable-bound paints  
+  - `encodeNodeChangeWithVariables()` — encode NodeChange with variable-bound paints
   - `parseVariableId()` — parse "VariableID:sessionID:localID" strings
 - New exports: `VariableBinding`, `encodePaintWithVariableBinding`, `encodeNodeChangeWithVariables`, `parseVariableId`
 - `bind-fill-variable` plugin command — bind fill color to variable

@@ -4,7 +4,6 @@ import { resolve } from 'path'
 import * as React from 'react'
 
 import { handleError, sendCommand } from '../client.ts'
-import type { NodeRef } from '../types.ts'
 import { ok, fail } from '../format.ts'
 import {
   loadVariablesIntoRegistry,
@@ -15,6 +14,8 @@ import {
   buildComponent
 } from '../render/index.ts'
 import { renderWithWidgetApi } from '../render/widget-renderer.ts'
+
+import type { NodeRef } from '../types.ts'
 
 const HELP = `
 Render JSX to Figma.

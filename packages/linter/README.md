@@ -42,52 +42,52 @@ figma-use lint --list-rules
 
 ## Presets
 
-| Preset | Description |
-|--------|-------------|
-| `recommended` | Balanced defaults for most projects |
-| `strict` | Stricter rules for production-ready designs |
-| `accessibility` | Focus on a11y rules only |
+| Preset          | Description                                    |
+| --------------- | ---------------------------------------------- |
+| `recommended`   | Balanced defaults for most projects            |
+| `strict`        | Stricter rules for production-ready designs    |
+| `accessibility` | Focus on a11y rules only                       |
 | `design-system` | Maximum strictness for design system libraries |
 
 ## Rules
 
 ### Design Tokens
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| `no-hardcoded-colors` | Colors should use variables | ✅ |
-| `consistent-spacing` | Spacing values should follow the scale (8pt grid) | ✅ |
-| `consistent-radius` | Corner radius should use design system values | ✅ |
+| Rule                  | Description                                       | Fixable |
+| --------------------- | ------------------------------------------------- | ------- |
+| `no-hardcoded-colors` | Colors should use variables                       | ✅      |
+| `consistent-spacing`  | Spacing values should follow the scale (8pt grid) | ✅      |
+| `consistent-radius`   | Corner radius should use design system values     | ✅      |
 
 ### Layout
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| `prefer-auto-layout` | Frames with children should use Auto Layout | |
-| `pixel-perfect` | No subpixel values (x, y, width, height) | ✅ |
+| Rule                 | Description                                 | Fixable |
+| -------------------- | ------------------------------------------- | ------- |
+| `prefer-auto-layout` | Frames with children should use Auto Layout |         |
+| `pixel-perfect`      | No subpixel values (x, y, width, height)    | ✅      |
 
 ### Typography
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| `text-style-required` | Text should use shared text styles | |
-| `min-text-size` | Text must be at least 12px | ✅ |
+| Rule                  | Description                        | Fixable |
+| --------------------- | ---------------------------------- | ------- |
+| `text-style-required` | Text should use shared text styles |         |
+| `min-text-size`       | Text must be at least 12px         | ✅      |
 
 ### Accessibility
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| `color-contrast` | Text contrast ≥ 4.5:1 (AA) or 7:1 (AAA) | |
-| `touch-target-size` | Interactive elements ≥ 44x44px | ✅ |
+| Rule                | Description                             | Fixable |
+| ------------------- | --------------------------------------- | ------- |
+| `color-contrast`    | Text contrast ≥ 4.5:1 (AA) or 7:1 (AAA) |         |
+| `touch-target-size` | Interactive elements ≥ 44x44px          | ✅      |
 
 ### Naming & Structure
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| `no-default-names` | No "Frame 1", "Rectangle 5" etc. | |
-| `no-hidden-layers` | Hidden layers may be unused | ✅ |
-| `no-deeply-nested` | Max 6 levels of nesting | |
-| `no-empty-frames` | Frames should have content or fill | |
+| Rule               | Description                        | Fixable |
+| ------------------ | ---------------------------------- | ------- |
+| `no-default-names` | No "Frame 1", "Rectangle 5" etc.   |         |
+| `no-hidden-layers` | Hidden layers may be unused        | ✅      |
+| `no-deeply-nested` | Max 6 levels of nesting            |         |
+| `no-empty-frames`  | Frames should have content or fill |         |
 
 ## Configuration
 
@@ -103,19 +103,19 @@ rules:
     options:
       base: 8
       allowedValues: [0, 4, 8, 12, 16, 24, 32, 48, 64]
-  
+
   color-contrast:
     severity: error
     options:
-      level: AA  # or AAA
-  
+      level: AA # or AAA
+
   touch-target-size:
     severity: warning
     options:
       minSize: 44
 
 ignore:
-  - "**/Drafts/**"
+  - '**/Drafts/**'
 ```
 
 ## Programmatic API
@@ -125,7 +125,7 @@ import { createLinter, formatReport } from '@anthropic-tools/figma-linter'
 
 const linter = createLinter({
   preset: 'recommended',
-  variables: figmaVariables, // For suggesting variable fixes
+  variables: figmaVariables // For suggesting variable fixes
 })
 
 const result = linter.lint(figmaNodes)
@@ -145,7 +145,7 @@ export default defineRule({
     id: 'my-custom-rule',
     category: 'design-tokens',
     description: 'My custom design rule',
-    fixable: false,
+    fixable: false
   },
 
   match: ['FRAME', 'COMPONENT'],
@@ -155,10 +155,10 @@ export default defineRule({
       context.report({
         node,
         message: 'Something is wrong',
-        suggest: 'How to fix it',
+        suggest: 'How to fix it'
       })
     }
-  },
+  }
 })
 ```
 

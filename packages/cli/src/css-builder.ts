@@ -23,16 +23,11 @@ export function createFontFace(options: FontFaceOptions): AtRule {
   return fontFace
 }
 
-export function createFontFaceSrc(
-  paths: Array<{ url: string; format: string }>
-): string {
+export function createFontFaceSrc(paths: Array<{ url: string; format: string }>): string {
   return paths.map((p) => `url('${p.url}') format('${p.format}')`).join(', ')
 }
 
-export function createRule(
-  selector: string,
-  declarations: Record<string, string | number>
-): Rule {
+export function createRule(selector: string, declarations: Record<string, string | number>): Rule {
   const rule = postcss.rule({ selector })
   for (const [prop, value] of Object.entries(declarations)) {
     rule.append(new Declaration({ prop, value: String(value) }))

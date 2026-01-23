@@ -18,8 +18,5 @@
     "noUnusedParameters": false,
     "jsx": "react-jsx"
   },
-  "exclude": [
-    "examples",
-    "packages/plugin"
-  ]
+  "exclude": ["examples", "packages/plugin"]
 }

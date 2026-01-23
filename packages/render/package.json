@@ -2,36 +2,36 @@
   "name": "@figma-use/react",
   "version": "0.1.0",
   "description": "React components for Figma designs - browser-compatible",
+  "keywords": [
+    "design-system",
+    "figma",
+    "react",
+    "storybook"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build"
-  },
-  "peerDependencies": {
-    "react": ">=17.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
     "typescript": "^5.7.0"
   },
-  "keywords": [
-    "figma",
-    "react",
-    "storybook",
-    "design-system"
-  ],
-  "license": "MIT"
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  }
 }

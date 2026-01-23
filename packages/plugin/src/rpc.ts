@@ -445,11 +445,15 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
         // Only essential properties for tree view (skip invisible fills/strokes)
         if ('fills' in n && Array.isArray(n.fills)) {
-          const solid = n.fills.find((f: Paint) => f.type === 'SOLID' && f.visible !== false) as SolidPaint | undefined
+          const solid = n.fills.find((f: Paint) => f.type === 'SOLID' && f.visible !== false) as
+            | SolidPaint
+            | undefined
           if (solid) base.fills = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
         }
         if ('strokes' in n && Array.isArray(n.strokes) && n.strokes.length > 0) {
-          const solid = n.strokes.find((s: Paint) => s.type === 'SOLID' && s.visible !== false) as SolidPaint | undefined
+          const solid = n.strokes.find((s: Paint) => s.type === 'SOLID' && s.visible !== false) as
+            | SolidPaint
+            | undefined
           if (solid) base.strokes = [{ type: 'SOLID', color: rgbToHex(solid.color) }]
         }
         if ('strokeWeight' in n && typeof n.strokeWeight === 'number' && n.strokeWeight > 0) {
@@ -463,23 +467,34 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('strokeTopWeight' in n) {
           const sw = n.strokeWeight as number
           if (n.strokeTopWeight !== sw) base.strokeTopWeight = n.strokeTopWeight
-          if ((n as FrameNode).strokeBottomWeight !== sw) base.strokeBottomWeight = (n as FrameNode).strokeBottomWeight
-          if ((n as FrameNode).strokeLeftWeight !== sw) base.strokeLeftWeight = (n as FrameNode).strokeLeftWeight
-          if ((n as FrameNode).strokeRightWeight !== sw) base.strokeRightWeight = (n as FrameNode).strokeRightWeight
+          if ((n as FrameNode).strokeBottomWeight !== sw)
+            base.strokeBottomWeight = (n as FrameNode).strokeBottomWeight
+          if ((n as FrameNode).strokeLeftWeight !== sw)
+            base.strokeLeftWeight = (n as FrameNode).strokeLeftWeight
+          if ((n as FrameNode).strokeRightWeight !== sw)
+            base.strokeRightWeight = (n as FrameNode).strokeRightWeight
         }
         if ('cornerRadius' in n && typeof n.cornerRadius === 'number' && n.cornerRadius > 0) {
           base.cornerRadius = n.cornerRadius
         }
         // Corner smoothing (iOS squircle style)
-        if ('cornerSmoothing' in n && typeof n.cornerSmoothing === 'number' && n.cornerSmoothing > 0) {
+        if (
+          'cornerSmoothing' in n &&
+          typeof n.cornerSmoothing === 'number' &&
+          n.cornerSmoothing > 0
+        ) {
           base.cornerSmoothing = n.cornerSmoothing
         }
         // Individual corner radii (if different from cornerRadius)
         if ('topLeftRadius' in n) {
           const cr = n.cornerRadius as number
           const frame = n as FrameNode
-          if (frame.topLeftRadius !== cr || frame.topRightRadius !== cr || 
-              frame.bottomLeftRadius !== cr || frame.bottomRightRadius !== cr) {
+          if (
+            frame.topLeftRadius !== cr ||
+            frame.topRightRadius !== cr ||
+            frame.bottomLeftRadius !== cr ||
+            frame.bottomRightRadius !== cr
+          ) {
             base.topLeftRadius = frame.topLeftRadius
             base.topRightRadius = frame.topRightRadius
             base.bottomLeftRadius = frame.bottomLeftRadius
@@ -570,15 +585,21 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
             base.fontStyle = t.fontName.style
             // Map font style to weight
             const styleToWeight: Record<string, number> = {
-              Thin: 100, Hairline: 100,
-              ExtraLight: 200, UltraLight: 200,
+              Thin: 100,
+              Hairline: 100,
+              ExtraLight: 200,
+              UltraLight: 200,
               Light: 300,
-              Regular: 400, Normal: 400,
+              Regular: 400,
+              Normal: 400,
               Medium: 500,
-              SemiBold: 600, DemiBold: 600,
+              SemiBold: 600,
+              DemiBold: 600,
               Bold: 700,
-              ExtraBold: 800, UltraBold: 800,
-              Black: 900, Heavy: 900
+              ExtraBold: 800,
+              UltraBold: 800,
+              Black: 900,
+              Heavy: 900
             }
             const weight = styleToWeight[t.fontName.style] || 400
             if (weight !== 400) base.fontWeight = weight
@@ -599,7 +620,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     case 'get-fonts': {
       const fonts = new Map<string, Set<string>>()
-      
+
       const collectFonts = (node: SceneNode) => {
         if (node.type === 'TEXT') {
           const textNode = node as TextNode
@@ -617,11 +638,11 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           }
         }
       }
-      
+
       for (const node of figma.currentPage.children) {
         collectFonts(node)
       }
-      
+
       return Array.from(fonts.entries()).map(([family, styles]) => ({
         family,
         styles: Array.from(styles).sort()
@@ -1403,7 +1424,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-text-auto-resize': {
-      const { id, mode } = args as { id: string; mode: 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'TRUNCATE' }
+      const { id, mode } = args as {
+        id: string
+        mode: 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'TRUNCATE'
+      }
       const node = (await figma.getNodeByIdAsync(id)) as TextNode | null
       if (!node || node.type !== 'TEXT') throw new Error('Text node not found')
       const fontName = node.fontName as FontName
@@ -2230,7 +2254,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           if (field in node) {
             const value = (node as unknown as Record<string, unknown>)[field]
             // Round geometry values for cleaner output
-            if ((field === 'x' || field === 'y' || field === 'width' || field === 'height') && typeof value === 'number') {
+            if (
+              (field === 'x' || field === 'y' || field === 'width' || field === 'height') &&
+              typeof value === 'number'
+            ) {
               result[field] = Math.round(value)
             } else {
               result[field] = value
@@ -2475,10 +2502,28 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         // Collect props that need post-processing (not supported by Widget API)
         const postProps: Record<string, unknown> = {}
         const postKeys = [
-          '__roundedTL', '__roundedTR', '__roundedBL', '__roundedBR', '__cornerSmoothing',
-          '__minW', '__maxW', '__minH', '__maxH', '__position', '__grow', '__stretch',
-          '__strokeAlign', '__strokeTop', '__strokeBottom', '__strokeLeft', '__strokeRight',
-          '__rotate', '__overflow', '__shadow', '__blur', '__blendMode'
+          '__roundedTL',
+          '__roundedTR',
+          '__roundedBL',
+          '__roundedBR',
+          '__cornerSmoothing',
+          '__minW',
+          '__maxW',
+          '__minH',
+          '__maxH',
+          '__position',
+          '__grow',
+          '__stretch',
+          '__strokeAlign',
+          '__strokeTop',
+          '__strokeBottom',
+          '__strokeLeft',
+          '__strokeRight',
+          '__rotate',
+          '__overflow',
+          '__shadow',
+          '__blur',
+          '__blendMode'
         ]
         for (const key of postKeys) {
           if (processed[key] !== undefined) {
@@ -2488,7 +2533,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           }
         }
         if (Object.keys(postProps).length > 0) {
-          postProcessNodes.push({ path: [...path], ...postProps } as typeof postProcessNodes[0])
+          postProcessNodes.push({ path: [...path], ...postProps } as (typeof postProcessNodes)[0])
         }
 
         const builtChildren = (children || [])
@@ -2566,7 +2611,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
         // Stroke align
         if ('strokeAlign' in target && pp.strokeAlign) {
-          ;(target as FrameNode).strokeAlign = pp.strokeAlign.toUpperCase() as 'INSIDE' | 'OUTSIDE' | 'CENTER'
+          ;(target as FrameNode).strokeAlign = pp.strokeAlign.toUpperCase() as
+            | 'INSIDE'
+            | 'OUTSIDE'
+            | 'CENTER'
         }
         // Individual stroke weights
         if ('strokeTopWeight' in target) {
@@ -2593,7 +2641,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if ('effects' in target) {
           const effects: Effect[] = []
           if (pp.shadow) {
-            const parts = pp.shadow.match(/(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s*(-?\d+(?:\.\d+)?px)?\s*(.+)?/)
+            const parts = pp.shadow.match(
+              /(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s+(-?\d+(?:\.\d+)?px)\s*(-?\d+(?:\.\d+)?px)?\s*(.+)?/
+            )
             if (parts) {
               const x = parseFloat(parts[1])
               const y = parseFloat(parts[2])
@@ -2601,7 +2651,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
               const spread = parts[4] ? parseFloat(parts[4]) : 0
               const colorStr = parts[5]?.trim() || 'rgba(0,0,0,0.25)'
               // Parse color
-              let r = 0, g = 0, b = 0, a = 0.25
+              let r = 0,
+                g = 0,
+                b = 0,
+                a = 0.25
               const rgbaMatch = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
               if (rgbaMatch) {
                 r = parseInt(rgbaMatch[1]) / 255
@@ -3322,14 +3375,14 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       const { name } = args as { name: string }
       const pages = figma.root.children
       const lowerName = name.toLowerCase()
-      
+
       // Exact match first
-      let page = pages.find(p => p.name === name)
+      let page = pages.find((p) => p.name === name)
       // Then partial match
       if (!page) {
-        page = pages.find(p => p.name.toLowerCase().includes(lowerName))
+        page = pages.find((p) => p.name.toLowerCase().includes(lowerName))
       }
-      
+
       return page?.id ?? null
     }
 
@@ -3428,7 +3481,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           result.characters = textNode.characters
           result.fontSize = typeof textNode.fontSize === 'number' ? textNode.fontSize : undefined
           result.fontName = typeof textNode.fontName === 'object' ? textNode.fontName : undefined
-          result.lineHeight = typeof textNode.lineHeight === 'object' ? textNode.lineHeight : undefined
+          result.lineHeight =
+            typeof textNode.lineHeight === 'object' ? textNode.lineHeight : undefined
           result.textStyleId = textNode.textStyleId || undefined
         }
 
@@ -3468,22 +3522,30 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     case 'variable-list': {
       const variables = await figma.variables.getLocalVariablesAsync()
-      return JSON.stringify(variables.map((v) => ({
-        id: v.id,
-        name: v.name,
-        resolvedType: v.resolvedType,
-        valuesByMode: v.valuesByMode
-      })))
+      return JSON.stringify(
+        variables.map((v) => ({
+          id: v.id,
+          name: v.name,
+          resolvedType: v.resolvedType,
+          valuesByMode: v.valuesByMode
+        }))
+      )
     }
 
     case 'analyze-clusters': {
-      const { minSize = 30, minCount = 2, limit = 20 } = args as {
+      const {
+        minSize = 30,
+        minCount = 2,
+        limit = 20
+      } = args as {
         minSize?: number
         minCount?: number
         limit?: number
       }
 
-      const SIZE_BUCKETS = [16, 24, 32, 40, 48, 64, 80, 100, 120, 150, 200, 250, 300, 400, 500, 800, 1000, 1280, 1920]
+      const SIZE_BUCKETS = [
+        16, 24, 32, 40, 48, 64, 80, 100, 120, 150, 200, 250, 300, 400, 500, 800, 1000, 1280, 1920
+      ]
 
       function toBucket(val: number): number {
         return SIZE_BUCKETS.reduce((prev, curr) =>
@@ -3508,18 +3570,23 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           .map(([t, n]) => `${t}:${n}`)
           .join(',')
 
-        return childSig ? `${node.type}:${wBucket}x${hBucket}|${childSig}` : `${node.type}:${wBucket}x${hBucket}`
+        return childSig
+          ? `${node.type}:${wBucket}x${hBucket}|${childSig}`
+          : `${node.type}:${wBucket}x${hBucket}`
       }
 
       const nodes = figma.currentPage.findAll()
-      const clusters = new Map<string, Array<{
-        id: string
-        name: string
-        width: number
-        height: number
-        childCount: number
-        type: string
-      }>>()
+      const clusters = new Map<
+        string,
+        Array<{
+          id: string
+          name: string
+          width: number
+          height: number
+          childCount: number
+          type: string
+        }>
+      >()
 
       for (const node of nodes) {
         // Skip instances, vectors, text, lines
@@ -3554,8 +3621,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         .sort((a, b) => b[1].length - a[1].length)
         .slice(0, limit)
         .map(([signature, nodes]) => {
-          const widths = nodes.map(n => n.width)
-          const heights = nodes.map(n => n.height)
+          const widths = nodes.map((n) => n.width)
+          const heights = nodes.map((n) => n.height)
           return {
             signature,
             nodes,
@@ -3571,7 +3638,17 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     case 'analyze-colors': {
       // Key: "hex|variableName" or "hex|" for hardcoded
-      const colors = new Map<string, { hex: string; count: number; nodes: string[]; variableName: string | null; isVariable: boolean; isStyle: boolean }>()
+      const colors = new Map<
+        string,
+        {
+          hex: string
+          count: number
+          nodes: string[]
+          variableName: string | null
+          isVariable: boolean
+          isStyle: boolean
+        }
+      >()
       const variableCache = new Map<string, string>()
 
       async function getVariableName(varId: string): Promise<string | null> {
@@ -3586,9 +3663,21 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
       }
 
-      async function addColor(hex: string, varName: string | null, nodeId: string, isStyle: boolean) {
+      async function addColor(
+        hex: string,
+        varName: string | null,
+        nodeId: string,
+        isStyle: boolean
+      ) {
         const key = `${hex}|${varName || ''}`
-        const entry = colors.get(key) || { hex, count: 0, nodes: [], variableName: varName, isVariable: !!varName, isStyle: false }
+        const entry = colors.get(key) || {
+          hex,
+          count: 0,
+          nodes: [],
+          variableName: varName,
+          isVariable: !!varName,
+          isStyle: false
+        }
         entry.count++
         if (entry.nodes.length < 5) entry.nodes.push(nodeId)
         if (isStyle) entry.isStyle = true
@@ -3596,7 +3685,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }
 
       async function extractColors(node: SceneNode) {
-        const hasStyle = 'fillStyleId' in node && node.fillStyleId && typeof node.fillStyleId === 'string'
+        const hasStyle =
+          'fillStyleId' in node && node.fillStyleId && typeof node.fillStyleId === 'string'
 
         if ('fills' in node && Array.isArray(node.fills)) {
           for (const fill of node.fills) {
@@ -3632,15 +3722,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     case 'analyze-typography': {
       // Key includes styleName to separate same font with/without style
-      const styles = new Map<string, {
-        family: string
-        size: number
-        weight: string
-        lineHeight: string
-        count: number
-        nodes: string[]
-        styleName: string | null
-      }>()
+      const styles = new Map<
+        string,
+        {
+          family: string
+          size: number
+          weight: string
+          lineHeight: string
+          count: number
+          nodes: string[]
+          styleName: string | null
+        }
+      >()
 
       const styleCache = new Map<string, string>()
 
@@ -3656,7 +3749,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
       }
 
-      const nodes = figma.currentPage.findAll(n => n.type === 'TEXT') as TextNode[]
+      const nodes = figma.currentPage.findAll((n) => n.type === 'TEXT') as TextNode[]
 
       for (const node of nodes) {
         const font = node.fontName
@@ -3666,11 +3759,17 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         const weight = font.style
         const size = typeof node.fontSize === 'number' ? node.fontSize : 0
         const lh = node.lineHeight
-        const lineHeight = lh === figma.mixed ? 'mixed' :
-          lh.unit === 'AUTO' ? 'auto' :
-          lh.unit === 'PERCENT' ? `${lh.value}%` : `${lh.value}px`
+        const lineHeight =
+          lh === figma.mixed
+            ? 'mixed'
+            : lh.unit === 'AUTO'
+              ? 'auto'
+              : lh.unit === 'PERCENT'
+                ? `${lh.value}%`
+                : `${lh.value}px`
 
-        const styleId = node.textStyleId && typeof node.textStyleId === 'string' ? node.textStyleId : null
+        const styleId =
+          node.textStyleId && typeof node.textStyleId === 'string' ? node.textStyleId : null
         const styleName = styleId ? await getStyleName(styleId) : null
 
         const key = `${family}|${size}|${weight}|${lineHeight}|${styleName || ''}`
@@ -3749,7 +3848,12 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'snapshot': {
-      const { id, interactive, maxDepth = -1, compact = true } = args as {
+      const {
+        id,
+        interactive,
+        maxDepth = -1,
+        compact = true
+      } = args as {
         id?: string
         interactive?: boolean
         maxDepth?: number
@@ -3760,12 +3864,29 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       // Priority: explicit component name > structural heuristics > generic
 
       const INTERACTIVE_ROLES = new Set([
-        'button', 'link', 'textbox', 'searchbox', 'checkbox', 'radio', 'switch',
-        'combobox', 'listbox', 'slider', 'spinbutton', 'tab', 'menuitem', 'option', 'treeitem'
+        'button',
+        'link',
+        'textbox',
+        'searchbox',
+        'checkbox',
+        'radio',
+        'switch',
+        'combobox',
+        'listbox',
+        'slider',
+        'spinbutton',
+        'tab',
+        'menuitem',
+        'option',
+        'treeitem'
       ])
 
       // Pattern-based role detection from component/frame names
-      const NAME_PATTERNS: Array<{ pattern: RegExp; role: string; props?: Record<string, unknown> }> = [
+      const NAME_PATTERNS: Array<{
+        pattern: RegExp
+        role: string
+        props?: Record<string, unknown>
+      }> = [
         // Interactive - buttons
         { pattern: /^button$/i, role: 'button' },
         { pattern: /^btn[-_\s]/i, role: 'button' },
@@ -3858,7 +3979,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         // Labels
         { pattern: /^label$/i, role: 'label' },
         { pattern: /^caption$/i, role: 'caption' },
-        { pattern: /^placeholder$/i, role: 'presentation' },
+        { pattern: /^placeholder$/i, role: 'presentation' }
       ]
 
       // Text patterns that suggest a link
@@ -3867,7 +3988,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         /^www\./i,
         /\.(com|ru|org|net|io|dev)$/i,
         /^@\w+/, // mentions
-        /^#\w+/, // hashtags
+        /^#\w+/ // hashtags
       ]
 
       // Extract base name from component path like "UI/Buttons/Primary, State=Default"
@@ -3876,7 +3997,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       }
 
       // Detect role from node name patterns
-      function detectRoleFromName(name: string): { role: string; props?: Record<string, unknown> } | null {
+      function detectRoleFromName(
+        name: string
+      ): { role: string; props?: Record<string, unknown> } | null {
         const baseName = getBaseName(name)
         for (const { pattern, role, props } of NAME_PATTERNS) {
           if (pattern.test(baseName)) {
@@ -3897,8 +4020,17 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
             const propName = key.toLowerCase()
             const propValue = typeof value === 'object' && 'value' in value ? value.value : value
 
-            if (propName.includes('state') || propName.includes('checked') || propName.includes('selected')) {
-              if (propValue === 'Checked' || propValue === 'Selected' || propValue === 'On' || propValue === true) {
+            if (
+              propName.includes('state') ||
+              propName.includes('checked') ||
+              propName.includes('selected')
+            ) {
+              if (
+                propValue === 'Checked' ||
+                propValue === 'Selected' ||
+                propValue === 'On' ||
+                propValue === true
+              ) {
                 props.checked = true
               }
             }
@@ -3963,7 +4095,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       // Chrome relies on <button>, role="button", cursor:pointer — we use visual patterns
       function looksLikeButton(node: SceneNode): boolean {
         if (!('children' in node)) return false
-        if (node.type !== 'FRAME' && node.type !== 'INSTANCE' && node.type !== 'COMPONENT') return false
+        if (node.type !== 'FRAME' && node.type !== 'INSTANCE' && node.type !== 'COMPONENT')
+          return false
 
         const frame = node as FrameNode
 
@@ -3982,7 +4115,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if (text.length < 4 || text.length > 25) return false // buttons typically 4-25 chars (skip initials like "АД")
 
         // Must look styled like a button: fill + rounded corners + auto-layout with padding
-        const hasFill = Array.isArray(frame.fills) && frame.fills.some((f: Paint) => f.visible !== false)
+        const hasFill =
+          Array.isArray(frame.fills) && frame.fills.some((f: Paint) => f.visible !== false)
         if (!hasFill) return false
 
         const hasRadius = 'cornerRadius' in frame && (frame.cornerRadius as number) >= 4
@@ -4010,7 +4144,17 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
         // Should have placeholder-like text or be relatively empty
         const text = collectText(node, 50)
-        const placeholderWords = ['введите', 'enter', 'search', 'поиск', 'email', 'пароль', 'password', 'name', 'имя']
+        const placeholderWords = [
+          'введите',
+          'enter',
+          'search',
+          'поиск',
+          'email',
+          'пароль',
+          'password',
+          'name',
+          'имя'
+        ]
         if (placeholderWords.some((w) => text.toLowerCase().includes(w))) return true
 
         return false
@@ -4087,7 +4231,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         if (!allSameType) return null
 
         // Check similar heights (within 20% tolerance)
-        const heights = children.map((c) => ('height' in c ? (c as SceneNode & { height: number }).height : 0))
+        const heights = children.map((c) =>
+          'height' in c ? (c as SceneNode & { height: number }).height : 0
+        )
         const avgHeight = heights.reduce((a, b) => a + b, 0) / heights.length
         if (avgHeight === 0) return null
         const similarHeights = heights.every((h) => Math.abs(h - avgHeight) / avgHeight < 0.2)
@@ -4106,7 +4252,14 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
         }
 
         // Elements named with decorative patterns
-        const decorativePatterns = [/^divider$/i, /^spacer$/i, /^line$/i, /^decoration$/i, /^bg$/i, /^background$/i]
+        const decorativePatterns = [
+          /^divider$/i,
+          /^spacer$/i,
+          /^line$/i,
+          /^decoration$/i,
+          /^bg$/i,
+          /^background$/i
+        ]
         if (decorativePatterns.some((p) => p.test(node.name))) return true
 
         return false
@@ -4154,7 +4307,11 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
               const textNode = cell as TextNode
               // Check for bold font weight
               if (typeof textNode.fontWeight === 'number' && textNode.fontWeight >= 600) return true
-              if (typeof textNode.fontName === 'object' && textNode.fontName.style?.toLowerCase().includes('bold')) return true
+              if (
+                typeof textNode.fontName === 'object' &&
+                textNode.fontName.style?.toLowerCase().includes('bold')
+              )
+                return true
             }
             return false
           })
@@ -4164,7 +4321,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
           isTable: true,
           rowCount: children.length,
           colCount: firstRowCells,
-          hasHeader,
+          hasHeader
         }
       }
 
@@ -4182,196 +4339,209 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
       function buildAXTree(node: SceneNode, depth: number): AXNode | null {
         try {
-        if (maxDepth !== -1 && depth > maxDepth) return null
-        if ('visible' in node && !node.visible) return null
-        // Safety: skip nodes without valid string ID
-        if (!node.id || typeof node.id !== 'string') return null
+          if (maxDepth !== -1 && depth > maxDepth) return null
+          if ('visible' in node && !node.visible) return null
+          // Safety: skip nodes without valid string ID
+          if (!node.id || typeof node.id !== 'string') return null
 
-        // Text nodes -> StaticText
-        if (node.type === 'TEXT') {
-          const textNode = node as TextNode
-          const chars = textNode.characters.trim()
-          if (!chars) return null
-          return {
-            role: 'StaticText',
-            name: chars.length > 100 ? chars.slice(0, 100) + '…' : chars,
-            id: node.id,
-          }
-        }
-
-        // Determine role
-        let role = 'generic'
-        let props: Record<string, unknown> = {}
-        let accessibleName: string | undefined
-
-        // 1. Check explicit role from component/frame name
-        const nameDetected = detectRoleFromName(node.name)
-        if (nameDetected) {
-          role = nameDetected.role
-          if (nameDetected.props) props = { ...props, ...nameDetected.props }
-        }
-
-        // 2. For instances, also check main component name
-        if (node.type === 'INSTANCE') {
-          const mainComp = (node as InstanceNode).mainComponent
-          if (mainComp) {
-            const compDetected = detectRoleFromName(mainComp.name)
-            if (compDetected) {
-              role = compDetected.role
-              if (compDetected.props) props = { ...props, ...compDetected.props }
+          // Text nodes -> StaticText
+          if (node.type === 'TEXT') {
+            const textNode = node as TextNode
+            const chars = textNode.characters.trim()
+            if (!chars) return null
+            return {
+              role: 'StaticText',
+              name: chars.length > 100 ? chars.slice(0, 100) + '…' : chars,
+              id: node.id
             }
-            accessibleName = getBaseName(mainComp.name)
-          }
-        }
-
-        // 3. Structural heuristics if still generic
-        if (role === 'generic') {
-          // Check for decorative elements first - skip them
-          if (isDecorative(node)) {
-            return null
           }
 
-          // Check for separator
-          if (looksLikeSeparator(node)) {
-            role = 'separator'
+          // Determine role
+          let role = 'generic'
+          let props: Record<string, unknown> = {}
+          let accessibleName: string | undefined
+
+          // 1. Check explicit role from component/frame name
+          const nameDetected = detectRoleFromName(node.name)
+          if (nameDetected) {
+            role = nameDetected.role
+            if (nameDetected.props) props = { ...props, ...nameDetected.props }
           }
-          // Check for table structure
-          else {
-            const tableInfo = detectTableStructure(node)
-            if (tableInfo?.isTable) {
-              role = 'table'
-              props.rowCount = tableInfo.rowCount
-              props.colCount = tableInfo.colCount
+
+          // 2. For instances, also check main component name
+          if (node.type === 'INSTANCE') {
+            const mainComp = (node as InstanceNode).mainComponent
+            if (mainComp) {
+              const compDetected = detectRoleFromName(mainComp.name)
+              if (compDetected) {
+                role = compDetected.role
+                if (compDetected.props) props = { ...props, ...compDetected.props }
+              }
+              accessibleName = getBaseName(mainComp.name)
             }
-            // Check for list structure
+          }
+
+          // 3. Structural heuristics if still generic
+          if (role === 'generic') {
+            // Check for decorative elements first - skip them
+            if (isDecorative(node)) {
+              return null
+            }
+
+            // Check for separator
+            if (looksLikeSeparator(node)) {
+              role = 'separator'
+            }
+            // Check for table structure
             else {
-              const listInfo = looksLikeList(node)
-              if (listInfo?.isList) {
-                role = 'list'
-                props.itemCount = listInfo.itemCount
+              const tableInfo = detectTableStructure(node)
+              if (tableInfo?.isTable) {
+                role = 'table'
+                props.rowCount = tableInfo.rowCount
+                props.colCount = tableInfo.colCount
               }
-              // Check for button
-              else if (looksLikeButton(node)) {
-                role = 'button'
-                accessibleName = collectText(node, 50)
-              }
-              // Check for input
-              else if (looksLikeInput(node)) {
-                role = 'textbox'
-                accessibleName = collectText(node, 50) || undefined
-              }
-            }
-          }
-        }
-
-        // 3a. Special case: text nodes that look like links
-        if (node.type === 'TEXT' && looksLikeLink(node)) {
-          const textNode = node as TextNode
-          return {
-            role: 'link',
-            name: textNode.characters.trim().slice(0, 100),
-            id: node.id,
-          }
-        }
-
-        // 4. Extract variant properties (checked, disabled, expanded)
-        const variantProps = extractVariantProps(node)
-        props = { ...props, ...variantProps }
-
-        // 5. Compute accessible name if not set
-        if (!accessibleName && INTERACTIVE_ROLES.has(role)) {
-          accessibleName = collectText(node, 50) || getBaseName(node.name)
-        }
-
-        // 5a. For controls with generic name, try to find label from sibling
-        const controlRoles = new Set(['switch', 'checkbox', 'radio', 'slider', 'textbox', 'combobox'])
-        if (controlRoles.has(role) && accessibleName && /^(switch|checkbox|radio|input|toggle)$/i.test(accessibleName)) {
-          // Look at siblings for label text
-          const parent = node.parent
-          if (parent && 'children' in parent) {
-            const siblings = (parent as ChildrenMixin).children
-            const nodeIndex = siblings.indexOf(node as SceneNode)
-            // Check previous sibling for label
-            if (nodeIndex > 0) {
-              const prevSibling = siblings[nodeIndex - 1]
-              if (prevSibling.type === 'TEXT') {
-                accessibleName = (prevSibling as TextNode).characters.trim()
-              } else if ('children' in prevSibling) {
-                const siblingText = collectText(prevSibling as SceneNode, 80)
-                if (siblingText && siblingText.length > 1) {
-                  accessibleName = siblingText
+              // Check for list structure
+              else {
+                const listInfo = looksLikeList(node)
+                if (listInfo?.isList) {
+                  role = 'list'
+                  props.itemCount = listInfo.itemCount
+                }
+                // Check for button
+                else if (looksLikeButton(node)) {
+                  role = 'button'
+                  accessibleName = collectText(node, 50)
+                }
+                // Check for input
+                else if (looksLikeInput(node)) {
+                  role = 'textbox'
+                  accessibleName = collectText(node, 50) || undefined
                 }
               }
             }
           }
-        }
 
-        // 6. Add heading level
-        if (role === 'heading' && !props.level) {
-          // Try to infer from first text child
+          // 3a. Special case: text nodes that look like links
+          if (node.type === 'TEXT' && looksLikeLink(node)) {
+            const textNode = node as TextNode
+            return {
+              role: 'link',
+              name: textNode.characters.trim().slice(0, 100),
+              id: node.id
+            }
+          }
+
+          // 4. Extract variant properties (checked, disabled, expanded)
+          const variantProps = extractVariantProps(node)
+          props = { ...props, ...variantProps }
+
+          // 5. Compute accessible name if not set
+          if (!accessibleName && INTERACTIVE_ROLES.has(role)) {
+            accessibleName = collectText(node, 50) || getBaseName(node.name)
+          }
+
+          // 5a. For controls with generic name, try to find label from sibling
+          const controlRoles = new Set([
+            'switch',
+            'checkbox',
+            'radio',
+            'slider',
+            'textbox',
+            'combobox'
+          ])
+          if (
+            controlRoles.has(role) &&
+            accessibleName &&
+            /^(switch|checkbox|radio|input|toggle)$/i.test(accessibleName)
+          ) {
+            // Look at siblings for label text
+            const parent = node.parent
+            if (parent && 'children' in parent) {
+              const siblings = (parent as ChildrenMixin).children
+              const nodeIndex = siblings.indexOf(node as SceneNode)
+              // Check previous sibling for label
+              if (nodeIndex > 0) {
+                const prevSibling = siblings[nodeIndex - 1]
+                if (prevSibling.type === 'TEXT') {
+                  accessibleName = (prevSibling as TextNode).characters.trim()
+                } else if ('children' in prevSibling) {
+                  const siblingText = collectText(prevSibling as SceneNode, 80)
+                  if (siblingText && siblingText.length > 1) {
+                    accessibleName = siblingText
+                  }
+                }
+              }
+            }
+          }
+
+          // 6. Add heading level
+          if (role === 'heading' && !props.level) {
+            // Try to infer from first text child
+            if ('children' in node) {
+              const textChild = (node as ChildrenMixin).children.find((c) => c.type === 'TEXT')
+              if (textChild) {
+                props.level = inferHeadingLevel(textChild as SceneNode)
+              }
+            }
+          }
+
+          // Build children
+          let children: AXNode[] | undefined
           if ('children' in node) {
-            const textChild = (node as ChildrenMixin).children.find((c) => c.type === 'TEXT')
-            if (textChild) {
-              props.level = inferHeadingLevel(textChild as SceneNode)
+            const childNodes = (node as ChildrenMixin).children
+              .map((child) => buildAXTree(child as SceneNode, depth + 1))
+              .filter((n): n is AXNode => n !== null)
+            if (childNodes.length > 0) {
+              children = childNodes
             }
           }
-        }
 
-        // Build children
-        let children: AXNode[] | undefined
-        if ('children' in node) {
-          const childNodes = (node as ChildrenMixin).children
-            .map((child) => buildAXTree(child as SceneNode, depth + 1))
-            .filter((n): n is AXNode => n !== null)
-          if (childNodes.length > 0) {
-            children = childNodes
-          }
-        }
+          // === Compact mode: simplify tree ===
+          if (compact) {
+            // Skip generic wrappers with single child
+            if (role === 'generic' && children?.length === 1 && !props.checked && !props.disabled) {
+              return children[0]
+            }
 
-        // === Compact mode: simplify tree ===
-        if (compact) {
-          // Skip generic wrappers with single child
-          if (role === 'generic' && children?.length === 1 && !props.checked && !props.disabled) {
-            return children[0]
-          }
-
-          // Flatten StaticText children into parent's name for buttons/links
-          if (INTERACTIVE_ROLES.has(role) && !accessibleName && children) {
-            const textChildren = children.filter((c) => c.role === 'StaticText')
-            if (textChildren.length > 0) {
-              accessibleName = textChildren.map((c) => c.name).join(' ')
-              children = children.filter((c) => c.role !== 'StaticText')
-              if (children.length === 0) children = undefined
+            // Flatten StaticText children into parent's name for buttons/links
+            if (INTERACTIVE_ROLES.has(role) && !accessibleName && children) {
+              const textChildren = children.filter((c) => c.role === 'StaticText')
+              if (textChildren.length > 0) {
+                accessibleName = textChildren.map((c) => c.name).join(' ')
+                children = children.filter((c) => c.role !== 'StaticText')
+                if (children.length === 0) children = undefined
+              }
             }
           }
-        }
 
-        const isInteractive = INTERACTIVE_ROLES.has(role)
+          const isInteractive = INTERACTIVE_ROLES.has(role)
 
-        // Interactive filter mode
-        if (interactive && !isInteractive) {
-          const hasInteractiveDescendant = children?.some((c) => c.ref || c.children?.some((cc) => cc.ref))
-          if (!hasInteractiveDescendant) {
-            if (!children || children.length === 0) return null
-            if (children.length === 1) return children[0]
+          // Interactive filter mode
+          if (interactive && !isInteractive) {
+            const hasInteractiveDescendant = children?.some(
+              (c) => c.ref || c.children?.some((cc) => cc.ref)
+            )
+            if (!hasInteractiveDescendant) {
+              if (!children || children.length === 0) return null
+              if (children.length === 1) return children[0]
+            }
           }
-        }
 
-        // Assign ref to interactive elements
-        let ref: string | undefined
-        if (isInteractive) {
-          ref = `e${++refCounter}`
-          refs[ref] = { id: node.id, role, name: accessibleName }
-        }
+          // Assign ref to interactive elements
+          let ref: string | undefined
+          if (isInteractive) {
+            ref = `e${++refCounter}`
+            refs[ref] = { id: node.id, role, name: accessibleName }
+          }
 
-        return {
-          role,
-          name: accessibleName,
-          id: node.id,
-          ref,
-          props: Object.keys(props).length > 0 ? props : undefined,
-          children,
-        }
+          return {
+            role,
+            name: accessibleName,
+            id: node.id,
+            ref,
+            props: Object.keys(props).length > 0 ? props : undefined,
+            children
+          }
         } catch (e) {
           // Skip nodes that cause errors (e.g., symbols, removed nodes)
           return null
@@ -4509,23 +4679,34 @@ function serializeNode(node: BaseNode): object {
   if ('strokeTopWeight' in node) {
     const sw = node.strokeWeight as number
     if (node.strokeTopWeight !== sw) base.strokeTopWeight = node.strokeTopWeight
-    if ((node as FrameNode).strokeBottomWeight !== sw) base.strokeBottomWeight = (node as FrameNode).strokeBottomWeight
-    if ((node as FrameNode).strokeLeftWeight !== sw) base.strokeLeftWeight = (node as FrameNode).strokeLeftWeight
-    if ((node as FrameNode).strokeRightWeight !== sw) base.strokeRightWeight = (node as FrameNode).strokeRightWeight
+    if ((node as FrameNode).strokeBottomWeight !== sw)
+      base.strokeBottomWeight = (node as FrameNode).strokeBottomWeight
+    if ((node as FrameNode).strokeLeftWeight !== sw)
+      base.strokeLeftWeight = (node as FrameNode).strokeLeftWeight
+    if ((node as FrameNode).strokeRightWeight !== sw)
+      base.strokeRightWeight = (node as FrameNode).strokeRightWeight
   }
   if ('cornerRadius' in node && typeof node.cornerRadius === 'number' && node.cornerRadius > 0) {
     base.cornerRadius = node.cornerRadius
   }
   // Corner smoothing
-  if ('cornerSmoothing' in node && typeof node.cornerSmoothing === 'number' && node.cornerSmoothing > 0) {
+  if (
+    'cornerSmoothing' in node &&
+    typeof node.cornerSmoothing === 'number' &&
+    node.cornerSmoothing > 0
+  ) {
     base.cornerSmoothing = node.cornerSmoothing
   }
   // Individual corner radii
   if ('topLeftRadius' in node) {
     const cr = node.cornerRadius as number
     const frame = node as FrameNode
-    if (frame.topLeftRadius !== cr || frame.topRightRadius !== cr || 
-        frame.bottomLeftRadius !== cr || frame.bottomRightRadius !== cr) {
+    if (
+      frame.topLeftRadius !== cr ||
+      frame.topRightRadius !== cr ||
+      frame.bottomLeftRadius !== cr ||
+      frame.bottomRightRadius !== cr
+    ) {
       base.topLeftRadius = frame.topLeftRadius
       base.topRightRadius = frame.topRightRadius
       base.bottomLeftRadius = frame.bottomLeftRadius
