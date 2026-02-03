@@ -1,4 +1,4 @@
-// Use native WebSocket (Node 21+, Bun) - no external dependency
+import { figmaLaunchHint } from './format.ts'
 
 interface CDPTarget {
   webSocketDebuggerUrl: string
@@ -35,8 +35,7 @@ async function getCDPTarget(): Promise<CDPTarget> {
 
   if (!figmaTarget) {
     throw new Error(
-      'No Figma file open in browser.\n' +
-        'Start Figma with: open -a Figma --args --remote-debugging-port=9222'
+      'No Figma file open in browser.\n' + `Start Figma with: ${figmaLaunchHint()}`
     )
   }
 

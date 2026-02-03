@@ -1,7 +1,7 @@
 import { spawn } from 'child_process'
 import { defineCommand } from 'citty'
 
-import { ok, fail } from '../format.ts'
+import { ok, fail, figmaLaunchHint } from '../format.ts'
 
 import type { ChromeDevToolsTarget } from '../types.ts'
 
@@ -26,9 +26,7 @@ export default defineCommand({
       .catch(() => null)
     if (!targets) {
       console.error(fail(`Cannot connect to DevTools on port ${port}`))
-      console.error(
-        `Start Figma with: /Applications/Figma.app/Contents/MacOS/Figma --remote-debugging-port=${port}`
-      )
+      console.error(`Start Figma with: ${figmaLaunchHint(port)}`)
       process.exit(1)
     }
 

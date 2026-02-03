@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty'
 
 import { getStatus, getFileKey } from '../client.ts'
+import { figmaLaunchHint } from '../format.ts'
 
 export default defineCommand({
   meta: { description: 'Check connection status' },
@@ -32,7 +33,7 @@ export default defineCommand({
       if (result.fileKey) console.log(`  Key: ${result.fileKey}`)
     } else {
       console.log('✗ Not connected to Figma')
-      console.log('  Start Figma with: open -a Figma --args --remote-debugging-port=9222')
+      console.log(`  Start Figma with: ${figmaLaunchHint()}`)
       process.exit(1)
     }
   }
