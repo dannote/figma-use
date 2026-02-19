@@ -213,6 +213,43 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
                   ? Number(coercedArgs['bottom-right'])
                   : undefined
             })
+          } else if (tool.pluginCommand === 'set-auto-layout') {
+            let padding: { top: number; right: number; bottom: number; left: number } | undefined
+            if (typeof coercedArgs.padding === 'string') {
+              const parts = coercedArgs.padding.split(',').map((p) => Number(p))
+              if (parts.length === 1) {
+                const p = parts[0] || 0
+                padding = { top: p, right: p, bottom: p, left: p }
+              } else if (parts.length === 4) {
+                padding = {
+                  top: parts[0] || 0,
+                  right: parts[1] || 0,
+                  bottom: parts[2] || 0,
+                  left: parts[3] || 0
+                }
+              }
+            }
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              mode:
+                typeof coercedArgs.mode === 'string'
+                  ? coercedArgs.mode.toUpperCase()
+                  : undefined,
+              itemSpacing:
+                coercedArgs.gap !== undefined ? Number(coercedArgs.gap) : undefined,
+              padding,
+              primaryAlign: coercedArgs.align,
+              counterAlign: coercedArgs['counter-align'],
+              wrap: coercedArgs.wrap,
+              gridColumnGap:
+                coercedArgs['col-gap'] !== undefined
+                  ? Number(coercedArgs['col-gap'])
+                  : undefined,
+              gridRowGap:
+                coercedArgs['row-gap'] !== undefined
+                  ? Number(coercedArgs['row-gap'])
+                  : undefined
+            })
           } else if (tool.pluginCommand === 'set-text-auto-resize') {
             result = await sendCommand(tool.pluginCommand, {
               ...coercedArgs,
