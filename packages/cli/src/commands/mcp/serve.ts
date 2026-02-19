@@ -31,6 +31,16 @@ function splitIds(value: unknown): string[] {
     .filter(Boolean)
 }
 
+function mapTextResizeMode(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const lower = value.toLowerCase()
+  if (lower === 'none') return 'NONE'
+  if (lower === 'height') return 'HEIGHT'
+  if (lower === 'width-and-height') return 'WIDTH_AND_HEIGHT'
+  if (lower === 'truncate') return 'TRUNCATE'
+  return value.toUpperCase()
+}
+
 async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
   const { id, method, params } = req
 
@@ -151,6 +161,25 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
                 }
                 return result
               `
+            })
+          } else if (tool.pluginCommand === 'set-variable-value') {
+            result = await sendCommand(tool.pluginCommand, {
+              ...coercedArgs,
+              modeId: coercedArgs.mode,
+              mode: undefined
+            })
+          } else if (tool.pluginCommand === 'bind-variable') {
+            result = await sendCommand(tool.pluginCommand, {
+              ...coercedArgs,
+              nodeId: coercedArgs.node,
+              variableId: coercedArgs.variable,
+              node: undefined,
+              variable: undefined
+            })
+          } else if (tool.pluginCommand === 'set-text-auto-resize') {
+            result = await sendCommand(tool.pluginCommand, {
+              ...coercedArgs,
+              mode: mapTextResizeMode(coercedArgs.mode)
             })
           } else if (
             tool.pluginCommand === 'zoom-to-fit' ||
