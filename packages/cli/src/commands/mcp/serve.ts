@@ -124,6 +124,26 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
               y: y ? Number(y) : undefined,
               parent
             })
+          } else if (name === 'figma_page_current') {
+            result = await sendCommand('eval', {
+              code: 'return { id: figma.currentPage.id, name: figma.currentPage.name }'
+            })
+          } else if (name === 'figma_node_to-component') {
+            const ids = typeof coercedArgs.ids === 'string' ? coercedArgs.ids.split(/[\s,]+/).filter(Boolean) : []
+            result = await sendCommand('eval', {
+              code: `
+                const ids = ${JSON.stringify(ids)}
+                const result = []
+                for (const id of ids) {
+                  const node = await figma.getNodeByIdAsync(id)
+                  if (node && 'createComponentFromNode' in figma) {
+                    const comp = figma.createComponentFromNode(node)
+                    result.push({ id: comp.id, name: comp.name })
+                  }
+                }
+                return result
+              `
+            })
           } else {
             result = await sendCommand(tool.pluginCommand, coercedArgs)
           }
