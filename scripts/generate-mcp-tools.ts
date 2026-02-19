@@ -70,7 +70,7 @@ function parseCommandFile(content: string, name: string): ToolDef | null {
           if (propName === 'args' && ts.isObjectLiteralExpression(prop.initializer)) {
             for (const argProp of prop.initializer.properties) {
               if (!ts.isPropertyAssignment(argProp)) continue
-              const argName = argProp.name.getText(sourceFile)
+              const argName = argProp.name.getText(sourceFile).replace(/^['\"]|['\"]$/g, '')
               if (argName === 'json') continue
 
               if (ts.isObjectLiteralExpression(argProp.initializer)) {
