@@ -176,6 +176,21 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
               node: undefined,
               variable: undefined
             })
+          } else if (tool.pluginCommand === 'set-visible') {
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              visible: String(coercedArgs.value) === 'true'
+            })
+          } else if (tool.pluginCommand === 'set-locked') {
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              locked: String(coercedArgs.value) === 'true'
+            })
+          } else if (tool.pluginCommand === 'set-opacity') {
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              opacity: Number(coercedArgs.value)
+            })
           } else if (tool.pluginCommand === 'set-text-auto-resize') {
             result = await sendCommand(tool.pluginCommand, {
               ...coercedArgs,
