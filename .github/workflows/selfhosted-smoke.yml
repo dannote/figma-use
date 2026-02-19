@@ -1,0 +1,91 @@
+name: Self-hosted Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  smoke-status:
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run build:mcp-tools
+      - run: killall Figma || true
+      - run: open -a Figma --args --remote-debugging-port=9222
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:9222/json >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun run packages/cli/src/index.ts mcp serve --port 38451 > /tmp/figma-use-mcp.log 2>&1 &
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:38451/mcp -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun test packages/mcp/tests/smoke/status.smoke.test.ts
+
+  smoke-page-current:
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run build:mcp-tools
+      - run: killall Figma || true
+      - run: open -a Figma --args --remote-debugging-port=9222
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:9222/json >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun run packages/cli/src/index.ts mcp serve --port 38451 > /tmp/figma-use-mcp.log 2>&1 &
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:38451/mcp -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun test packages/mcp/tests/smoke/page-current.smoke.test.ts
+
+  smoke-variable-create:
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run build:mcp-tools
+      - run: killall Figma || true
+      - run: open -a Figma --args --remote-debugging-port=9222
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:9222/json >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun run packages/cli/src/index.ts mcp serve --port 38451 > /tmp/figma-use-mcp.log 2>&1 &
+      - run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:38451/mcp -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - run: bun test packages/mcp/tests/smoke/variable-create.smoke.test.ts
