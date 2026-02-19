@@ -39,6 +39,13 @@ export async function ensureMcpReady(): Promise<void> {
   }
 }
 
+export async function toolExists(name: string): Promise<boolean> {
+  const response = await mcpRequest('tools/list')
+  if (response.error || !response.result) return false
+  const result = response.result as { tools?: Array<{ name: string }> }
+  return !!result.tools?.some((t) => t.name === name)
+}
+
 export function parseToolText(response: MCPResponse): unknown {
   expect(response.error).toBeUndefined()
   expect(response.result).toBeDefined()

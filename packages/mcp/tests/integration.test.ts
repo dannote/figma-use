@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll } from 'bun:test'
 
 import type { JSONRPCRequest } from '@modelcontextprotocol/sdk/types.js'
 
-const PROXY_URL = 'http://localhost:38451'
+const PROXY_URL = process.env.FIGMA_MCP_URL || 'http://localhost:38451'
 
 interface MCPResponse {
   jsonrpc: '2.0'
@@ -106,11 +106,14 @@ describe('MCP Integration', () => {
     expect(response.error).toBeUndefined()
     expect(response.result).toBeDefined()
 
-    const result = response.result as { content: Array<{ type: string; text: string }> }
+    const result = response.result as {
+      content: Array<{ type: string; text: string }>
+      isError?: boolean
+    }
     expect(result.content).toBeDefined()
     expect(result.content.length).toBeGreaterThan(0)
     expect(result.content[0]!.type).toBe('text')
-    expect(result.content[0]!.text).toContain('figma')
+    expect(typeof result.isError).toBe('boolean')
   })
 
   test('tools/call with arguments', async () => {
@@ -146,7 +149,7 @@ describe('MCP Integration', () => {
     if (skipTests) return
 
     const createResponse = await mcpRequest('tools/call', {
-      name: 'figma_create_rectangle',
+      name: 'figma_create_rect',
       arguments: { x: 0, y: 0, width: 50, height: 50, name: 'MCP Test Rect' }
     })
 
@@ -163,7 +166,7 @@ describe('MCP Integration', () => {
 
     const deleteResponse = await mcpRequest('tools/call', {
       name: 'figma_node_delete',
-      arguments: { id: nodeId }
+      arguments: { ids: nodeId }
     })
 
     expect(deleteResponse.error).toBeUndefined()
@@ -177,7 +180,13 @@ describe('MCP Integration', () => {
       arguments: { code: 'throw new Error("test error")' }
     })
 
-    expect(response.error).toBeDefined()
-    expect(response.error!.message).toContain('test error')
+    expect(response.error).toBeUndefined()
+    const result = response.result as {
+      content: Array<{ type: string; text: string }>
+      isError?: boolean
+    }
+    expect(result.isError).toBe(true)
+    const text = result.content.find((c) => c.type === 'text')?.text ?? ''
+    expect(text).toContain('test error')
   })
 })

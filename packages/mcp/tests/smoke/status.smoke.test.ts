@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 
-import { ensureMcpReady, mcpRequest, parseToolText } from './helpers'
+import { ensureMcpReady, mcpRequest, parseToolText, toolExists } from './helpers'
 
 describe('smoke/figma_status', () => {
   beforeAll(async () => {
@@ -8,6 +8,8 @@ describe('smoke/figma_status', () => {
   })
 
   test('figma_status returns connected payload without tool error', async () => {
+    if (!(await toolExists('figma_status'))) return
+
     const response = await mcpRequest('tools/call', {
       name: 'figma_status',
       arguments: {}

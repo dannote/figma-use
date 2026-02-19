@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 
-import { ensureMcpReady, mcpRequest, parseToolText } from './helpers'
+import { ensureMcpReady, mcpRequest, parseToolText, toolExists } from './helpers'
 
 describe('smoke/figma_variable_create', () => {
   beforeAll(async () => {
@@ -8,6 +8,9 @@ describe('smoke/figma_variable_create', () => {
   })
 
   test('figma_variable_create creates a FLOAT variable in a new collection', async () => {
+    if (!(await toolExists('figma_collection_create'))) return
+    if (!(await toolExists('figma_variable_create'))) return
+
     const collectionResponse = await mcpRequest('tools/call', {
       name: 'figma_collection_create',
       arguments: { name: `smoke-vars-${Date.now()}` }

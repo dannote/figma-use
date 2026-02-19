@@ -1,8 +1,15 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
 import { execSync } from 'child_process'
 import { existsSync, unlinkSync } from 'fs'
+import { dirname, resolve } from 'path'
+import { fileURLToPath } from 'url'
 
 import { run, trackNode, setupTestPage, teardownTestPage } from '../helpers.ts'
+
+const testFilePath = fileURLToPath(import.meta.url)
+const testDir = dirname(testFilePath)
+const repoRoot = resolve(testDir, '../../../../')
+const cliEntry = resolve(repoRoot, 'dist/cli/index.js')
 
 describe('export', () => {
   let nodeId: string
@@ -101,8 +108,8 @@ describe('export jsx', () => {
     // Render JSX back (via shell pipe)
     const rendered = JSON.parse(
       execSync(
-        `cd /Users/dannote/Development/figma-use/packages/cli && echo '${jsx.replace(/'/g, "'\\''")}' | bun ../../dist/cli/index.js render --stdin --x 800 --y 0 --json`,
-        { encoding: 'utf-8' }
+        `bun ${cliEntry} render --stdin --x 800 --y 0 --json`,
+        { encoding: 'utf-8', input: jsx }
       )
     )
     trackNode(rendered.id)
@@ -121,8 +128,8 @@ describe('export jsx', () => {
     // Render an icon first
     const icon = JSON.parse(
       execSync(
-        `cd /Users/dannote/Development/figma-use/packages/cli && echo '<Icon name="lucide:star" size={24} color="#F59E0B" />' | bun ../../dist/cli/index.js render --stdin --x 1000 --y 0 --json`,
-        { encoding: 'utf-8' }
+        `bun ${cliEntry} render --stdin --x 1000 --y 0 --json`,
+        { encoding: 'utf-8', input: '<Icon name="lucide:star" size={24} color="#F59E0B" />' }
       )
     )
     trackNode(icon.id)
