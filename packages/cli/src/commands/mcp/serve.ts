@@ -23,6 +23,14 @@ interface JSONRPCResponse {
 const MCP_VERSION = '2024-11-05'
 const mcpSessions = new Map<string, { initialized: boolean }>()
 
+function splitIds(value: unknown): string[] {
+  if (typeof value !== 'string') return []
+  return value
+    .split(/[\s,]+/)
+    .map((v) => v.trim())
+    .filter(Boolean)
+}
+
 async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
   const { id, method, params } = req
 
@@ -143,6 +151,19 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
                 }
                 return result
               `
+            })
+          } else if (
+            tool.pluginCommand === 'zoom-to-fit' ||
+            tool.pluginCommand === 'group-nodes' ||
+            tool.pluginCommand === 'flatten-nodes' ||
+            tool.pluginCommand === 'boolean-operation' ||
+            tool.pluginCommand === 'select-nodes' ||
+            tool.pluginCommand === 'clone-node' ||
+            tool.pluginCommand === 'delete-node'
+          ) {
+            result = await sendCommand(tool.pluginCommand, {
+              ...coercedArgs,
+              ids: splitIds(coercedArgs.ids)
             })
           } else {
             result = await sendCommand(tool.pluginCommand, coercedArgs)
