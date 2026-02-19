@@ -1,6 +1,8 @@
 import { expect } from 'bun:test'
 
-const MCP_URL = process.env.FIGMA_MCP_URL || 'http://localhost:38451/mcp'
+function getMcpUrl() {
+  return process.env.FIGMA_MCP_URL || 'http://localhost:38451/mcp'
+}
 
 export type MCPResponse = {
   jsonrpc: '2.0'
@@ -20,7 +22,7 @@ export async function mcpRequest(method: string, params?: unknown): Promise<MCPR
     params: (params || {}) as Record<string, unknown>
   }
 
-  const res = await fetch(MCP_URL, {
+  const res = await fetch(getMcpUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
