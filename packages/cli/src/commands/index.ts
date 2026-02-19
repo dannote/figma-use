@@ -8,6 +8,7 @@ export { default as lint } from './lint.ts'
 export { default as arrange } from './arrange.ts'
 
 export { default as init } from './init.ts'
+export { default as patch } from './patch.ts'
 export { default as daemon } from './daemon.ts'
 export { default as query } from './query/index.ts'
 export { default as import } from './import.ts'

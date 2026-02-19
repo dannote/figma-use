@@ -63,11 +63,13 @@ Start Figma with remote debugging enabled:
 open -a Figma --args --remote-debugging-port=9222
 
 # Windows
-"C:\Users\%USERNAME%\AppData\Local\Figma\Figma.exe" --remote-debugging-port=9222
+"%LOCALAPPDATA%\Figma\Figma.exe" --remote-debugging-port=9222
 
 # Linux
 figma --remote-debugging-port=9222
 ```
+
+> **⚠️ Figma 126+ blocks remote debugging.** Run `figma-use patch` once to fix it, then restart Figma. This patches `app.asar` and re-signs the app. On first launch after patching, macOS will ask for keychain access to "Figma Safe Storage" — click **Always Allow** to avoid repeated prompts. Re-run after each Figma update.
 
 Check connection:
 

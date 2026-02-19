@@ -1,4 +1,5 @@
 import { figmaLaunchHint } from './format.ts'
+import { isFigmaPatched } from './patch-figma.ts'
 
 interface CDPTarget {
   webSocketDebuggerUrl: string
@@ -23,7 +24,23 @@ const pendingRequests = new Map<number, PendingRequest>()
 async function getCDPTarget(): Promise<CDPTarget> {
   if (cachedTarget) return cachedTarget
 
-  const resp = await fetch('http://localhost:9222/json')
+  let resp: Response
+  try {
+    resp = await fetch('http://localhost:9222/json')
+  } catch {
+    const patched = isFigmaPatched()
+    if (patched === false) {
+      throw new Error(
+        'Figma blocks remote debugging in this version.\n' +
+          'Run `figma-use patch` to fix, then restart Figma.'
+      )
+    }
+    throw new Error(
+      'Cannot connect to Figma on port 9222.\n' +
+        `Start Figma with: ${figmaLaunchHint()}`
+    )
+  }
+
   const targets = (await resp.json()) as CDPTarget[]
 
   const figmaTarget =

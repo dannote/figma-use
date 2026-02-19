@@ -2,6 +2,12 @@
 
 Complete list of all figma-use commands. For conceptual overview see [README.md](./README.md).
 
+## Patch (Figma 126+)
+
+```bash
+figma-use patch                            # Patch Figma to allow --remote-debugging-port
+```
+
 ## Init & Config
 
 ```bash

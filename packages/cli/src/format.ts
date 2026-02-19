@@ -101,7 +101,7 @@ export function installHint(pkg: string): string {
 
 export function figmaLaunchHint(port = 9222): string {
   if (process.platform === 'win32')
-    return `"C:\\Users\\%USERNAME%\\AppData\\Local\\Figma\\Figma.exe" --remote-debugging-port=${port}`
+    return `"%LOCALAPPDATA%\\Figma\\Figma.exe" --remote-debugging-port=${port}`
   if (process.platform === 'linux') return `figma --remote-debugging-port=${port}`
   return `open -a Figma --args --remote-debugging-port=${port}`
 }
