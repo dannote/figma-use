@@ -191,6 +191,28 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
               id: coercedArgs.id,
               opacity: Number(coercedArgs.value)
             })
+          } else if (tool.pluginCommand === 'set-corner-radius') {
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              cornerRadius:
+                coercedArgs.radius !== undefined ? Number(coercedArgs.radius) : undefined,
+              topLeftRadius:
+                coercedArgs['top-left'] !== undefined
+                  ? Number(coercedArgs['top-left'])
+                  : undefined,
+              topRightRadius:
+                coercedArgs['top-right'] !== undefined
+                  ? Number(coercedArgs['top-right'])
+                  : undefined,
+              bottomLeftRadius:
+                coercedArgs['bottom-left'] !== undefined
+                  ? Number(coercedArgs['bottom-left'])
+                  : undefined,
+              bottomRightRadius:
+                coercedArgs['bottom-right'] !== undefined
+                  ? Number(coercedArgs['bottom-right'])
+                  : undefined
+            })
           } else if (tool.pluginCommand === 'set-text-auto-resize') {
             result = await sendCommand(tool.pluginCommand, {
               ...coercedArgs,
