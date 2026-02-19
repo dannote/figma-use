@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty'
 import { createServer } from 'http'
 import { z } from 'zod'
+import { readFileSync } from 'fs'
 
 import { getTools, getToolByName } from '../../../../mcp/src/index.ts'
 import { sendCommand, getStatus, getFileKey } from '../../client.ts'
@@ -249,6 +250,16 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
                 coercedArgs['row-gap'] !== undefined
                   ? Number(coercedArgs['row-gap'])
                   : undefined
+            })
+          } else if (tool.pluginCommand === 'set-image-fill') {
+            const imageData =
+              typeof coercedArgs.file === 'string'
+                ? readFileSync(coercedArgs.file).toString('base64')
+                : undefined
+            result = await sendCommand(tool.pluginCommand, {
+              id: coercedArgs.id,
+              imageData,
+              scaleMode: coercedArgs.mode
             })
           } else if (tool.pluginCommand === 'set-text-auto-resize') {
             result = await sendCommand(tool.pluginCommand, {
