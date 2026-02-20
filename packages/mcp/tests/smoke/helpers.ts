@@ -4,6 +4,10 @@ function getMcpUrl() {
   return process.env.FIGMA_MCP_URL || 'http://localhost:38451/mcp'
 }
 
+export function isSmokeEnabled(): boolean {
+  return process.env.RUN_FIGMA_SMOKE === '1'
+}
+
 export type MCPResponse = {
   jsonrpc: '2.0'
   id: number

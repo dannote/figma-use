@@ -50,6 +50,13 @@ let skipTests = false
 
 describe('MCP Integration', () => {
   beforeAll(async () => {
+    const enabled = process.env.RUN_MCP_INTEGRATION === '1'
+    if (!enabled) {
+      skipTests = true
+      console.log('⚠️  RUN_MCP_INTEGRATION is not enabled, skipping integration tests')
+      return
+    }
+
     skipTests = !(await isProxyRunning())
     if (skipTests) {
       console.log('⚠️  MCP server not running, skipping integration tests')

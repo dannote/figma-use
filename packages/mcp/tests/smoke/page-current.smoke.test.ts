@@ -1,13 +1,15 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 
-import { ensureMcpReady, mcpRequest, parseToolText, toolExists } from './helpers'
+import { ensureMcpReady, isSmokeEnabled, mcpRequest, parseToolText, toolExists } from './helpers'
 
 describe('smoke/figma_page_current', () => {
   beforeAll(async () => {
+    if (!isSmokeEnabled()) return
     await ensureMcpReady()
   })
 
   test('figma_page_current returns current page object', async () => {
+    if (!isSmokeEnabled()) return
     if (!(await toolExists('figma_page_current'))) return
 
     const response = await mcpRequest('tools/call', {

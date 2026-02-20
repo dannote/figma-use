@@ -1,13 +1,15 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 
-import { ensureMcpReady, mcpRequest, parseToolText, toolExists } from './helpers'
+import { ensureMcpReady, isSmokeEnabled, mcpRequest, parseToolText, toolExists } from './helpers'
 
 describe('smoke/figma_variable_create', () => {
   beforeAll(async () => {
+    if (!isSmokeEnabled()) return
     await ensureMcpReady()
   })
 
   test('figma_variable_create creates a FLOAT variable in a new collection', async () => {
+    if (!isSmokeEnabled()) return
     if (!(await toolExists('figma_collection_create'))) return
     if (!(await toolExists('figma_variable_create'))) return
 

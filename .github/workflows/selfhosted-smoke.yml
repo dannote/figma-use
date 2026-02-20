@@ -7,7 +7,11 @@ on:
 
 jobs:
   smoke-status:
+    if: ${{ vars.ENABLE_FIGMA_SMOKE == '1' }}
     runs-on: [self-hosted, macOS]
+    env:
+      RUN_FIGMA_SMOKE: '1'
+      FIGMA_MCP_URL: http://localhost:38451/mcp
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -35,7 +39,11 @@ jobs:
       - run: bun test packages/mcp/tests/smoke/status.smoke.test.ts
 
   smoke-page-current:
+    if: ${{ vars.ENABLE_FIGMA_SMOKE == '1' }}
     runs-on: [self-hosted, macOS]
+    env:
+      RUN_FIGMA_SMOKE: '1'
+      FIGMA_MCP_URL: http://localhost:38451/mcp
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -63,7 +71,11 @@ jobs:
       - run: bun test packages/mcp/tests/smoke/page-current.smoke.test.ts
 
   smoke-variable-create:
+    if: ${{ vars.ENABLE_FIGMA_SMOKE == '1' }}
     runs-on: [self-hosted, macOS]
+    env:
+      RUN_FIGMA_SMOKE: '1'
+      FIGMA_MCP_URL: http://localhost:38451/mcp
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
