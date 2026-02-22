@@ -9,9 +9,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const result = await sendCommand<{ id: string; name: string }>('eval', {
-        code: 'return { id: figma.currentPage.id, name: figma.currentPage.name }'
-      })
+      const result = await sendCommand<{ id: string; name: string }>('get-current-page')
       if (args.json) {
         console.log(JSON.stringify(result, null, 2))
       } else {

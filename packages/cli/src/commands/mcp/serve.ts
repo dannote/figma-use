@@ -2,6 +2,7 @@ import { defineCommand } from 'citty'
 import { createServer } from 'http'
 import { z } from 'zod'
 
+import { version } from '../../../../../package.json'
 import { getTools, getToolByName } from '../../../../mcp/src/index.ts'
 import { sendCommand, getStatus, getFileKey } from '../../client.ts'
 import { renderJsx } from '../../render/index.ts'
@@ -36,7 +37,7 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
           id,
           result: {
             protocolVersion: MCP_VERSION,
-            serverInfo: { name: 'figma-use', version: '0.8.0' },
+            serverInfo: { name: 'figma-use', version },
             capabilities: { tools: {} },
             instructions:
               'Figma MCP Server. Node IDs: "sessionID:localID". Colors: hex #RRGGBB or var:Name.',
@@ -65,7 +66,7 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
           name: string
           arguments?: Record<string, unknown>
         }
-        const tool = getToolByName(name)
+        const tool = await getToolByName(name)
 
         if (!tool) {
           return {

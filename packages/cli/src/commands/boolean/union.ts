@@ -11,7 +11,7 @@ export default defineCommand({
   async run({ args }) {
     try {
       const ids = (args.ids as string).split(/[\s,]+/)
-      const result = await sendCommand('boolean-operation', { ids, operation: 'UNION' })
+      const result = await sendCommand('boolean-union', { ids })
       printResult(result, args.json)
     } catch (e) {
       handleError(e)

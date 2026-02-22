@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2026-02-22
+
+### Fixed
+
+- **MCP tools broken due to arg name mismatches** — RPC handlers now accept CLI arg names directly (e.g., `value` for `set-visible`/`set-locked`/`set-opacity`, `mode` for `set-variable-value`, `node`/`variable` for `bind-variable`, `gap`/`padding`/`align` for `set-auto-layout`, `radius`/`top-left`/`bottom-right` for `set-corner-radius`). String-to-array coercion for `ids` args in `select-nodes`, `group-nodes`, `flatten-nodes`, `boolean-*`, `zoom-to-fit`, `delete-node`, `clone-node`, `combine-as-variants`.
+- **MCP `getToolByName` returns undefined on first call** — tools cache wasn't populated before `tools/call` if `tools/list` wasn't called first
+- **MCP `generate-mcp-tools.ts` includes quotes in property names** — kebab-case args like `'top-left'` now have quotes stripped
+- **Boolean operations and `page/current` used inline eval** — replaced with proper `boolean-union`/`boolean-subtract`/`boolean-intersect`/`boolean-exclude`, `get-current-page`, and `to-component` RPC commands
+
 ## [0.13.0] - 2026-02-22
 
 ### Added

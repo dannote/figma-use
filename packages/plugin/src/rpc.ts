@@ -25,6 +25,12 @@ import {
 
 console.log('[Figma Bridge] Plugin main loaded at', new Date().toISOString())
 
+function toIdArray(ids: string | string[] | undefined): string[] {
+  if (!ids) return []
+  if (Array.isArray(ids)) return ids
+  return ids.split(/[\s,]+/).filter(Boolean)
+}
+
 // Fast node creation for batch operations - skips full serialization
 async function createNodeFast(
   command: string,
@@ -672,7 +678,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'combine-as-variants': {
-      const { ids, name } = args as { ids: string[]; name?: string }
+      const { name } = args as { ids: string | string[]; name?: string }
+      const ids = toIdArray((args as { ids: string | string[] }).ids)
       const nodes: ComponentNode[] = []
       for (const id of ids) {
         const node = await figma.getNodeByIdAsync(id)
@@ -1069,9 +1076,24 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return serializeNode(component)
     }
 
+    case 'to-component': {
+      const { ids } = args as { ids: string | string[] }
+      const nodeIds = typeof ids === 'string' ? ids.split(/[\s,]+/).filter(Boolean) : ids
+      const result = []
+      for (const nodeId of nodeIds) {
+        const node = await figma.getNodeByIdAsync(nodeId)
+        if (node) {
+          const comp = figma.createComponentFromNode(node as SceneNode)
+          result.push(serializeNode(comp))
+        }
+      }
+      return result
+    }
+
     case 'clone-node': {
-      const { ids, id } = args as { ids?: string[]; id?: string }
-      const nodeIds = ids ?? (id ? [id] : [])
+      const { id } = args as { ids?: string | string[]; id?: string }
+      const nodeIds = toIdArray((args as { ids?: string | string[] }).ids)
+      if (nodeIds.length === 0 && id) nodeIds.push(id)
       if (nodeIds.length === 0) throw new Error('No node IDs provided')
 
       const clones = []
@@ -1243,21 +1265,13 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-corner-radius': {
-      const {
-        id,
-        cornerRadius,
-        topLeftRadius,
-        topRightRadius,
-        bottomLeftRadius,
-        bottomRightRadius
-      } = args as {
-        id: string
-        cornerRadius: number
-        topLeftRadius?: number
-        topRightRadius?: number
-        bottomLeftRadius?: number
-        bottomRightRadius?: number
-      }
+      const a = args as Record<string, unknown>
+      const id = a.id as string
+      const cornerRadius = (a.cornerRadius ?? a.radius ?? 0) as number
+      const topLeftRadius = (a.topLeftRadius ?? a['top-left']) as number | undefined
+      const topRightRadius = (a.topRightRadius ?? a['top-right']) as number | undefined
+      const bottomLeftRadius = (a.bottomLeftRadius ?? a['bottom-left']) as number | undefined
+      const bottomRightRadius = (a.bottomRightRadius ?? a['bottom-right']) as number | undefined
       const node = (await figma.getNodeByIdAsync(id)) as RectangleNode | null
       if (!node || !('cornerRadius' in node)) throw new Error('Node not found')
       node.cornerRadius = cornerRadius
@@ -1269,10 +1283,10 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-opacity': {
-      const { id, opacity } = args as { id: string; opacity: number }
+      const { id, opacity, value } = args as { id: string; opacity?: number; value?: string | number }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node || !('opacity' in node)) throw new Error('Node not found')
-      node.opacity = opacity
+      node.opacity = opacity ?? Number(value)
       return serializeNode(node)
     }
 
@@ -1335,18 +1349,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-visible': {
-      const { id, visible } = args as { id: string; visible: boolean }
+      const { id, visible, value } = args as { id: string; visible?: boolean; value?: string }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node) throw new Error('Node not found')
-      node.visible = visible
+      node.visible = visible ?? String(value) === 'true'
       return serializeNode(node)
     }
 
     case 'set-locked': {
-      const { id, locked } = args as { id: string; locked: boolean }
+      const { id, locked, value } = args as { id: string; locked?: boolean; value?: string }
       const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
       if (!node) throw new Error('Node not found')
-      node.locked = locked
+      node.locked = locked ?? String(value) === 'true'
       return serializeNode(node)
     }
 
@@ -1527,7 +1541,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'select-nodes': {
-      const { ids } = args as { ids: string[] }
+      const ids = toIdArray((args as { ids: string | string[] }).ids)
       const nodes = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)))
       const validNodes = nodes.filter((n): n is SceneNode => n !== null && 'id' in n)
       figma.currentPage.selection = validNodes
@@ -1558,36 +1572,34 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-auto-layout': {
-      const {
-        id,
-        mode,
-        wrap,
-        itemSpacing,
-        counterSpacing,
-        padding,
-        primaryAlign,
-        counterAlign,
-        sizingH,
-        sizingV,
-        gridColumnSizes,
-        gridRowSizes,
-        gridColumnGap,
-        gridRowGap
-      } = args as {
-        id: string
-        mode?: 'HORIZONTAL' | 'VERTICAL' | 'GRID' | 'NONE'
-        wrap?: boolean
-        itemSpacing?: number
-        counterSpacing?: number
-        padding?: { top: number; right: number; bottom: number; left: number }
-        primaryAlign?: 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN'
-        counterAlign?: 'MIN' | 'CENTER' | 'MAX' | 'BASELINE'
-        sizingH?: 'FIXED' | 'HUG' | 'FILL'
-        sizingV?: 'FIXED' | 'HUG' | 'FILL'
-        gridColumnSizes?: Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value?: number }>
-        gridRowSizes?: Array<{ type: 'FIXED' | 'FLEX' | 'HUG'; value?: number }>
-        gridColumnGap?: number
-        gridRowGap?: number
+      const a = args as Record<string, unknown>
+      const id = a.id as string
+      const mode = (typeof a.mode === 'string' ? a.mode.toUpperCase() : undefined) as
+        | 'HORIZONTAL' | 'VERTICAL' | 'GRID' | 'NONE' | undefined
+      const wrap = a.wrap as boolean | undefined
+      const itemSpacing = (a.itemSpacing ?? (a.gap !== undefined ? Number(a.gap) : undefined)) as number | undefined
+      const counterSpacing = a.counterSpacing as number | undefined
+      const primaryAlign = (a.primaryAlign ?? a.align) as string | undefined
+      const counterAlign = (a.counterAlign ?? a['counter-align']) as string | undefined
+      const sizingH = a.sizingH as string | undefined
+      const sizingV = a.sizingV as string | undefined
+      const gridColumnSizes = a.gridColumnSizes as Array<{ type: string; value?: number }> | undefined
+      const gridRowSizes = a.gridRowSizes as Array<{ type: string; value?: number }> | undefined
+      const gridColumnGap = (a.gridColumnGap ?? (a['col-gap'] !== undefined ? Number(a['col-gap']) : undefined)) as number | undefined
+      const gridRowGap = (a.gridRowGap ?? (a['row-gap'] !== undefined ? Number(a['row-gap']) : undefined)) as number | undefined
+      // Accept padding as number, string ("16" or "8,16,8,16"), or object
+      let padding = a.padding as { top: number; right: number; bottom: number; left: number } | undefined
+      if (typeof a.padding === 'number') {
+        const p = a.padding
+        padding = { top: p, right: p, bottom: p, left: p }
+      } else if (typeof a.padding === 'string') {
+        const parts = a.padding.split(',').map(Number)
+        if (parts.length === 1) {
+          const p = parts[0] || 0
+          padding = { top: p, right: p, bottom: p, left: p }
+        } else if (parts.length === 4) {
+          padding = { top: parts[0] || 0, right: parts[1] || 0, bottom: parts[2] || 0, left: parts[3] || 0 }
+        }
       }
       const node = (await figma.getNodeByIdAsync(id)) as FrameNode | null
       if (!node || !('layoutMode' in node)) throw new Error('Frame not found')
@@ -1780,7 +1792,8 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'group-nodes': {
-      const { ids, name } = args as { ids: string[]; name?: string }
+      const { name } = args as { ids: string | string[]; name?: string }
+      const ids = toIdArray((args as { ids: string | string[] }).ids)
       const nodes = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)))
       const validNodes = nodes.filter((n): n is SceneNode => n !== null && 'parent' in n)
       if (validNodes.length === 0) throw new Error('No valid nodes found')
@@ -1800,7 +1813,7 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'flatten-nodes': {
-      const { ids } = args as { ids: string[] }
+      const ids = toIdArray((args as { ids: string | string[] }).ids)
       const nodes = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)))
       const validNodes = nodes.filter((n): n is SceneNode => n !== null && 'parent' in n)
       if (validNodes.length === 0) throw new Error('No valid nodes found')
@@ -1809,11 +1822,18 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     // ==================== BOOLEAN OPERATIONS ====================
+    case 'boolean-union':
+    case 'boolean-subtract':
+    case 'boolean-intersect':
+    case 'boolean-exclude':
     case 'boolean-operation': {
-      const { ids, operation } = args as {
-        ids: string[]
-        operation: 'UNION' | 'SUBTRACT' | 'INTERSECT' | 'EXCLUDE'
+      const opMap: Record<string, string> = {
+        'boolean-union': 'UNION', 'boolean-subtract': 'SUBTRACT',
+        'boolean-intersect': 'INTERSECT', 'boolean-exclude': 'EXCLUDE'
       }
+      const operation = ((args as Record<string, unknown>).operation || opMap[command]) as
+        'UNION' | 'SUBTRACT' | 'INTERSECT' | 'EXCLUDE'
+      const ids = toIdArray((args as { ids: string | string[] }).ids)
       const nodes = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)))
       const validNodes = nodes.filter((n): n is SceneNode => n !== null && 'parent' in n)
       if (validNodes.length < 2) throw new Error('Need at least 2 nodes')
@@ -1940,9 +1960,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'zoom-to-fit': {
-      const { ids } = args as { ids?: string[] }
+      const ids = toIdArray((args as { ids?: string | string[] }).ids)
       let nodes: SceneNode[]
-      if (ids && ids.length > 0) {
+      if (ids.length > 0) {
         const fetched = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)))
         nodes = fetched.filter((n): n is SceneNode => n !== null && 'absoluteBoundingBox' in n)
       } else {
@@ -2113,8 +2133,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
 
     // ==================== DELETE ====================
     case 'delete-node': {
-      const { ids, id } = args as { ids?: string[]; id?: string }
-      const nodeIds = ids ?? (id ? [id] : [])
+      const { id } = args as { ids?: string | string[]; id?: string }
+      const nodeIds = toIdArray((args as { ids?: string | string[] }).ids)
+      if (nodeIds.length === 0 && id) nodeIds.push(id)
       if (nodeIds.length === 0) throw new Error('No node IDs provided')
 
       let deleted = 0
@@ -3021,10 +3042,12 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'set-variable-value': {
-      const { id, modeId, value } = args as { id: string; modeId: string; value: string }
+      const { id, modeId, mode, value } = args as { id: string; modeId?: string; mode?: string; value: string }
+      const resolvedModeId = modeId || mode
+      if (!resolvedModeId) throw new Error('Mode ID required')
       const variable = await figma.variables.getVariableByIdAsync(id)
       if (!variable) throw new Error('Variable not found')
-      variable.setValueForMode(modeId, parseVariableValue(value, variable.resolvedType))
+      variable.setValueForMode(resolvedModeId, parseVariableValue(value, variable.resolvedType))
       return serializeVariable(variable)
     }
 
@@ -3037,11 +3060,15 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'bind-variable': {
-      const { nodeId, field, variableId } = args as {
-        nodeId: string
+      const a = args as {
+        nodeId?: string; node?: string
         field: string
-        variableId: string
+        variableId?: string; variable?: string
       }
+      const nodeId = a.nodeId || a.node
+      const variableId = a.variableId || a.variable
+      if (!nodeId) throw new Error('Node ID required')
+      if (!variableId) throw new Error('Variable ID required')
       const node = (await figma.getNodeByIdAsync(nodeId)) as SceneNode | null
       if (!node) throw new Error('Node not found')
       const variable = await figma.variables.getVariableByIdAsync(variableId)

@@ -13,22 +13,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const ids = args.ids.split(/[\s,]+/).filter(Boolean)
-
-      const result = await sendCommand<NodeRef[]>('eval', {
-        code: `
-          const ids = ${JSON.stringify(ids)}
-          const result = []
-          for (const id of ids) {
-            const node = await figma.getNodeByIdAsync(id)
-            if (node && 'createComponentFromNode' in figma) {
-              const comp = figma.createComponentFromNode(node)
-              result.push({ id: comp.id, name: comp.name })
-            }
-          }
-          return result
-        `
-      })
+      const result = await sendCommand<NodeRef[]>('to-component', { ids: args.ids })
 
       if (args.json) {
         console.log(JSON.stringify(result, null, 2))

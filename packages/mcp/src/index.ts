@@ -35,6 +35,7 @@ export async function getTools(): Promise<ToolDef[]> {
   )
 }
 
-export function getToolByName(name: string): ToolDef | undefined {
-  return cachedTools?.find((t) => t.name === name)
+export async function getToolByName(name: string): Promise<ToolDef | undefined> {
+  const tools = await getTools()
+  return tools.find((t) => t.name === name)
 }
