@@ -3,7 +3,7 @@ import { createServer } from 'http'
 import { z } from 'zod'
 
 import { getTools, getToolByName } from '../../../../mcp/src/index.ts'
-import { sendCommand } from '../../client.ts'
+import { sendCommand, getStatus, getFileKey } from '../../client.ts'
 import { renderJsx } from '../../render/index.ts'
 
 interface JSONRPCRequest {
@@ -98,7 +98,20 @@ async function handleMcpRequest(req: JSONRPCRequest): Promise<JSONRPCResponse> {
           let result: unknown
 
           if (tool.pluginCommand === '__status__') {
-            result = await sendCommand('status')
+            const statusResult = {
+              connected: false,
+              fileName: null as string | null,
+              fileKey: null as string | null
+            }
+            try {
+              const status = await getStatus()
+              statusResult.connected = status.connected
+              statusResult.fileName = status.fileName || null
+              statusResult.fileKey = await getFileKey().catch(() => null)
+            } catch {
+              // CDP not available
+            }
+            result = statusResult
           } else if (tool.pluginCommand === '__render__') {
             const { jsx, x, y, parent } = coercedArgs as {
               jsx: string
