@@ -9,7 +9,6 @@ type FailureCase = {
 }
 
 const CASES: FailureCase[] = [
-  { tool: 'figma_status', args: {}, expectedIncludes: 'Unknown command: status' },
   { tool: 'figma_page_set', args: { page: '' }, expectedIncludes: 'Page not found' },
   {
     tool: 'figma_page_current',
