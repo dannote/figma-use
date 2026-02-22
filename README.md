@@ -70,6 +70,12 @@ figma --remote-debugging-port=9222
 ```
 
 > **⚠️ Figma 126+ blocks remote debugging.** Run `figma-use patch` once to fix it, then restart Figma. This patches `app.asar` and re-signs the app. On first launch after patching, macOS will ask for keychain access to "Figma Safe Storage" — click **Always Allow** to avoid repeated prompts. Re-run after each Figma update.
+>
+> **Can't patch?** Use pipe transport instead — no patching or admin access needed:
+> ```bash
+> figma-use daemon start --pipe
+> ```
+> This launches Figma with `--remote-debugging-pipe` and keeps the connection alive. All subsequent `figma-use` commands work automatically via the daemon. Set `FIGMA_BIN` if Figma is in a non-standard location.
 
 Check connection:
 

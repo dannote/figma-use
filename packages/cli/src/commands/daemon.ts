@@ -16,6 +16,12 @@ export default defineCommand({
           type: 'boolean',
           alias: 'f',
           description: "Run in foreground (don't daemonize)"
+        },
+        pipe: {
+          type: 'boolean',
+          description:
+            'Launch Figma with --remote-debugging-pipe instead of connecting to port 9222. ' +
+            'No patching required — works on Figma 126.1.2+ without admin access.'
         }
       },
       async run({ args }) {
@@ -26,27 +32,31 @@ export default defineCommand({
         }
 
         if (args.foreground) {
-          startDaemon()
+          startDaemon({ pipe: args.pipe })
         } else {
-          // Spawn detached process
           const currentFile = fileURLToPath(import.meta.url)
           const cliDir = dirname(currentFile)
           const indexPath = cliDir.includes('dist/cli')
             ? join(cliDir, '../cli/index.js')
             : join(cliDir, '../index.ts')
 
-          const child = spawn(process.execPath, [indexPath, 'daemon', 'start', '-f'], {
+          const daemonArgs = [indexPath, 'daemon', 'start', '-f']
+          if (args.pipe) daemonArgs.push('--pipe')
+
+          const child = spawn(process.execPath, daemonArgs, {
             detached: true,
             stdio: 'ignore'
           })
           child.unref()
 
-          // Wait a bit and check if it started
-          await new Promise((r) => setTimeout(r, 500))
+          // Pipe mode needs more time to launch Figma
+          const waitTime = args.pipe ? 5000 : 500
+          await new Promise((r) => setTimeout(r, waitTime))
 
           if (isDaemonRunning()) {
             const info = getDaemonInfo()
             console.log(ok(`Daemon started (PID ${info?.pid})`))
+            if (args.pipe) console.log('  Figma launched with debug pipe')
           } else {
             console.error(fail('Failed to start daemon'))
             process.exit(1)
@@ -81,7 +91,13 @@ export default defineCommand({
 
     restart: defineCommand({
       meta: { description: 'Restart daemon' },
-      async run() {
+      args: {
+        pipe: {
+          type: 'boolean',
+          description: 'Launch Figma with --remote-debugging-pipe'
+        }
+      },
+      async run({ args }) {
         stopDaemon()
         await new Promise((r) => setTimeout(r, 100))
 
@@ -91,13 +107,17 @@ export default defineCommand({
           ? join(cliDir, '../cli/index.js')
           : join(cliDir, '../index.ts')
 
-        const child = spawn(process.execPath, [indexPath, 'daemon', 'start', '-f'], {
+        const daemonArgs = [indexPath, 'daemon', 'start', '-f']
+        if (args.pipe) daemonArgs.push('--pipe')
+
+        const child = spawn(process.execPath, daemonArgs, {
           detached: true,
           stdio: 'ignore'
         })
         child.unref()
 
-        await new Promise((r) => setTimeout(r, 500))
+        const waitTime = args.pipe ? 5000 : 500
+        await new Promise((r) => setTimeout(r, waitTime))
 
         if (isDaemonRunning()) {
           const info = getDaemonInfo()

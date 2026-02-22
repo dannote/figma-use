@@ -105,3 +105,10 @@ export function figmaLaunchHint(port = 9222): string {
   if (process.platform === 'linux') return `figma --remote-debugging-port=${port}`
   return `open -a Figma --args --remote-debugging-port=${port}`
 }
+
+export function figmaBinaryPath(): string | null {
+  if (process.platform === 'darwin') return '/Applications/Figma.app/Contents/MacOS/Figma'
+  if (process.platform === 'win32') return `${process.env.LOCALAPPDATA}\\Figma\\Figma.exe`
+  if (process.platform === 'linux') return '/usr/bin/figma'
+  return null
+}

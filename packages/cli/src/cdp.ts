@@ -1,5 +1,27 @@
 import { figmaLaunchHint } from './format.ts'
+import {
+  pipeEval,
+  getPipeFileKey,
+  closePipe,
+  ensurePipeConnected
+} from './cdp-pipe.ts'
 import { isFigmaPatched } from './patch-figma.ts'
+
+let pipeMode: boolean | null = null
+
+export function usePipeTransport(): void {
+  pipeMode = true
+}
+
+function isPipeMode(): boolean {
+  if (pipeMode !== null) return pipeMode
+  if (process.env.FIGMA_PIPE === '1') {
+    pipeMode = true
+    return true
+  }
+  pipeMode = false
+  return false
+}
 
 interface CDPTarget {
   webSocketDebuggerUrl: string
@@ -117,6 +139,8 @@ function scheduleClose(): void {
 }
 
 export async function cdpEval<T>(code: string, timeout = 30000): Promise<T> {
+  if (isPipeMode()) return pipeEval<T>(code, timeout)
+
   if (idleTimer) {
     clearTimeout(idleTimer)
     idleTimer = null
@@ -159,11 +183,21 @@ export function getFileKeyFromUrl(url: string): string {
 }
 
 export async function getFileKey(): Promise<string> {
+  if (isPipeMode()) {
+    await ensurePipeConnected()
+    const key = getPipeFileKey()
+    if (!key) throw new Error('Could not extract file key from Figma')
+    return key
+  }
   const target = await getCDPTarget()
   return getFileKeyFromUrl(target.url)
 }
 
 export function closeCDP(): void {
+  if (isPipeMode()) {
+    closePipe()
+    return
+  }
   if (cachedWs) {
     cachedWs.close()
     cachedWs = null

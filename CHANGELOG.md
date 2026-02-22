@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Pipe transport (`daemon start --pipe`)** — connect to Figma via `--remote-debugging-pipe` instead of `--remote-debugging-port`. No binary patching or admin access required. Works on Figma 126.1.2+ where remote debugging port is stripped. Set `FIGMA_PIPE=1` or `FIGMA_BIN=/path/to/figma` for custom setups. (#6)
+
 ### Fixed
 
 - **MCP `figma_status` returns "Unknown command: status"** — use CLI-side status check instead of sending a nonexistent plugin command (#9)

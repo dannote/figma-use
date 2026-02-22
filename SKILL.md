@@ -39,6 +39,8 @@ figma --remote-debugging-port=9222
 ```
 
 > Figma 126+ blocks remote debugging. Run `figma-use patch` once to fix, then restart Figma. Click **Always Allow** on the keychain prompt. Re-run after Figma updates.
+>
+> **Can't patch?** Use `figma-use daemon start --pipe` — launches Figma with debug pipe, no patching needed.
 
 Start Figma with `--remote-debugging-port=9222` and you're ready.
 

@@ -1,7 +1,7 @@
 import { existsSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
 import { createServer, Server, Socket } from 'net'
 
-import { closeCDP } from '../cdp.ts'
+import { closeCDP, usePipeTransport } from '../cdp.ts'
 import { sendCommandDirect } from '../client.ts'
 
 const SOCKET_PATH = '/tmp/figma-use.sock'
@@ -59,7 +59,12 @@ function handleConnection(socket: Socket): void {
   })
 }
 
-export async function startDaemon(): Promise<void> {
+export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
+  if (options?.pipe) {
+    usePipeTransport()
+    console.log('Launching Figma with debug pipe...')
+  }
+
   // Clean up existing socket
   if (existsSync(SOCKET_PATH)) {
     unlinkSync(SOCKET_PATH)
