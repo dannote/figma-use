@@ -425,6 +425,22 @@ figma-use font list --family "Inter"
 figma-use font list --family "Roboto" --json
 ```
 
+## Daemon
+
+Keeps CDP connection warm for faster sequential commands (~25% speedup). Also required for pipe transport.
+
+```bash
+figma-use daemon start                     # Start daemon in background
+figma-use daemon start --pipe              # Launch Figma with debug pipe (no patching needed)
+figma-use daemon start -f                  # Run in foreground
+figma-use daemon stop                      # Stop daemon (kills Figma in pipe mode)
+figma-use daemon status                    # Check daemon status
+figma-use daemon restart                   # Restart daemon
+figma-use daemon restart --pipe            # Restart with pipe transport
+```
+
+When daemon is running, all commands automatically use it. Falls back to direct CDP if daemon is unavailable.
+
 ## System
 
 ```bash

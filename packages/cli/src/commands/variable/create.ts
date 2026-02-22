@@ -6,7 +6,7 @@ export default defineCommand({
   meta: { description: 'Create a variable' },
   args: {
     name: { type: 'positional', description: 'Variable name', required: true },
-    collectionId: { type: 'string', description: 'Collection ID', required: true },
+    collection: { type: 'string', description: 'Collection ID', required: true },
     type: { type: 'string', description: 'Type: COLOR, FLOAT, STRING, BOOLEAN', required: true },
     value: { type: 'string', description: 'Initial value' },
     json: { type: 'boolean', description: 'Output as JSON' }
@@ -14,8 +14,8 @@ export default defineCommand({
   async run({ args }) {
     try {
       const result = await sendCommand('create-variable', {
+        collection: args.collection,
         name: args.name,
-        collectionId: args.collectionId,
         type: args.type,
         value: args.value
       })

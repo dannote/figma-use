@@ -437,6 +437,12 @@ figma-use export screenshot --output viewport.png
 figma-use page list
 figma-use page set "Page Name"
 figma-use viewport zoom-to-fit <id>
+
+# Daemon (faster sequential commands)
+figma-use daemon start                     # Background daemon
+figma-use daemon start --pipe              # Launch Figma with debug pipe (no patching)
+figma-use daemon stop
+figma-use daemon status
 ```
 
 Full reference: [REFERENCE.md](https://github.com/dannote/figma-use/blob/master/REFERENCE.md)

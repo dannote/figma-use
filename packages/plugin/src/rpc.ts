@@ -3000,9 +3000,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
     }
 
     case 'create-variable': {
-      const { name, collectionId, type, value } = args as {
+      const { name, collection: collectionId, type, value } = args as {
         name: string
-        collectionId: string
+        collection: string
         type: string
         value?: string
       }

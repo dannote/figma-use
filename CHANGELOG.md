@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **MCP `figma_status` returns "Unknown command: status"** — use CLI-side status check instead of sending a nonexistent plugin command (#9)
-- **MCP `figma_variable_create` fails with "Collection not found"** — arg name mismatch (`collection` vs `collectionId`) between MCP tool schema and RPC handler (#8)
+- **MCP `figma_variable_create` fails with "Collection not found"** — RPC handler expected `collectionId` but MCP passed `collection`; aligned RPC to accept `collection` (#8)
 
 ## [0.12.1] - 2026-02-19
 

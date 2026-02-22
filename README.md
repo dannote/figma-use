@@ -535,6 +535,26 @@ figma-use communicates directly with Figma via Chrome DevTools Protocol (CDP). J
 
 Commands are executed via `Runtime.evaluate` in Figma's JavaScript context, with full access to the Plugin API.
 
+### Daemon
+
+Optional daemon keeps the CDP connection warm for faster sequential commands:
+
+```bash
+figma-use daemon start    # Background daemon (~25% faster commands)
+figma-use daemon stop     # Stop daemon
+figma-use daemon status   # Check if running
+```
+
+### Pipe Transport
+
+For Figma 126+ without admin access to patch, the daemon can launch Figma with `--remote-debugging-pipe` instead:
+
+```bash
+figma-use daemon start --pipe   # Launches Figma, connects via stdio pipes
+```
+
+Set `FIGMA_BIN` for custom binary locations. The daemon holds the pipe connection — all commands route through it automatically.
+
 ## License
 
 MIT
