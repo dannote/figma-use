@@ -1,5 +1,7 @@
 # figma-use
 
+> **See also: [OpenPencil](https://github.com/open-pencil/open-pencil)** — open-source design editor built on figma-use's Kiwi codec, vector format, and JSX renderer. Reads and writes .fig files natively, with built-in AI chat and P2P collaboration. No Figma required.
+
 CLI for Figma. Control it from the terminal — with commands or JSX.
 
 ```bash
