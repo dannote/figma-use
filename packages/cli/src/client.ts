@@ -12,6 +12,7 @@ let rpcInjected = false
 let currentRpcHash: string | null = null
 let useDaemon: boolean | null = null
 let esbuildModule: typeof import('esbuild') | null = null
+let figmaApiBootstrapped = false
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -81,7 +82,61 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   return { code, hash }
 }
 
+const FIGMA_API_BOOTSTRAP = `
+(function() {
+  if (typeof figma !== 'undefined' && typeof figma.createFrame === 'function') return 'already available';
+
+  if (!window.__webpackRequire__) {
+    window.webpackChunk_figma_web_bundler.push([
+      ['__figma_use_' + Date.now()], {},
+      r => window.__webpackRequire__ = r
+    ]);
+  }
+
+  const r = window.__webpackRequire__;
+  let defineVm;
+  for (const id in r.m) {
+    if (r.m[id].toString().includes('apiMode:e,pluginID')) {
+      const hit = Object.values(r(id)).find(
+        v => typeof v === 'function' && v.toString().includes('apiMode')
+      );
+      if (hit) { defineVm = hit; break; }
+    }
+  }
+
+  if (!defineVm) throw new Error('Could not find defineVmFunction in Figma internals');
+
+  const {vm} = defineVm({
+    apiMode: 'PLUGIN',
+    pluginID: 'figma-use-bridge',
+    enableNativeJsx: false,
+    disableWebpageSync: false,
+    sceneGraph: null
+  });
+
+  window.figma = vm.scope.figma;
+  return 'bootstrapped';
+})()
+`
+
+async function ensureFigmaApi(): Promise<void> {
+  if (figmaApiBootstrapped) {
+    // Verify it's still there (page may have reloaded)
+    const check = await cdpEval<boolean>('typeof figma !== "undefined" && typeof figma.createFrame === "function"')
+    if (check) return
+  }
+
+  const result = await cdpEval<string>(FIGMA_API_BOOTSTRAP)
+  if (result !== 'bootstrapped' && result !== 'already available') {
+    throw new Error('Failed to bootstrap Figma plugin API: ' + result)
+  }
+  figmaApiBootstrapped = true
+}
+
 async function ensureRpcInjected(): Promise<void> {
+  // Bootstrap the figma plugin API in the page context first
+  await ensureFigmaApi()
+
   const { code, hash } = await buildRpcBundle()
 
   // Check if RPC is already injected with same version
