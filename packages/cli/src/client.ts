@@ -12,6 +12,7 @@ let rpcInjected = false
 let currentRpcHash: string | null = null
 let useDaemon: boolean | null = null
 let esbuildModule: typeof import('esbuild') | null = null
+let figmaApiBootstrapped = false
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -65,7 +66,8 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
     write: false,
     format: 'iife',
     target: 'es2020',
-    minify: true
+    minifySyntax: true,
+    minifyWhitespace: true
   })
 
   const code = result.outputFiles![0]!.text
@@ -81,7 +83,63 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   return { code, hash }
 }
 
+const FIGMA_API_BOOTSTRAP = `
+(function() {
+  if (window.__figmaPluginApi && typeof window.__figmaPluginApi.createFrame === 'function') return 'already available';
+
+  if (!window.__webpackRequire__) {
+    window.webpackChunk_figma_web_bundler.push([
+      ['__figma_use_' + Date.now()], {},
+      r => window.__webpackRequire__ = r
+    ]);
+  }
+
+  const r = window.__webpackRequire__;
+  let defineVm;
+  for (const id in r.m) {
+    if (r.m[id].toString().includes('apiMode:e,pluginID')) {
+      const hit = Object.values(r(id)).find(
+        v => typeof v === 'function' && v.toString().includes('apiMode')
+      );
+      if (hit) { defineVm = hit; break; }
+    }
+  }
+
+  if (!defineVm) throw new Error('Could not find defineVmFunction in Figma internals');
+
+  // The wrapper may return figma directly or {vm: {scope: {figma}}}
+  const result = defineVm({
+    enableNativeJsx: false,
+    sceneGraph: null
+  });
+
+  // Store on a custom property - window.figma is a non-configurable
+  // getter/setter controlled by Figma that discards assignments
+  window.__figmaPluginApi = (result && result.vm && result.vm.scope)
+    ? result.vm.scope.figma
+    : result;
+  return 'bootstrapped';
+})()
+`
+
+async function ensureFigmaApi(): Promise<void> {
+  if (figmaApiBootstrapped) {
+    // Verify it's still there (page may have reloaded)
+    const check = await cdpEval<boolean>('window.__figmaPluginApi && typeof window.__figmaPluginApi.createFrame === "function"')
+    if (check) return
+  }
+
+  const result = await cdpEval<string>(FIGMA_API_BOOTSTRAP)
+  if (result !== 'bootstrapped' && result !== 'already available') {
+    throw new Error('Failed to bootstrap Figma plugin API: ' + result)
+  }
+  figmaApiBootstrapped = true
+}
+
 async function ensureRpcInjected(): Promise<void> {
+  // Bootstrap the figma plugin API in the page context first
+  await ensureFigmaApi()
+
   const { code, hash } = await buildRpcBundle()
 
   // Check if RPC is already injected with same version
@@ -90,8 +148,9 @@ async function ensureRpcInjected(): Promise<void> {
     if (remoteHash === hash) return
   }
 
-  // Inject fresh RPC
-  await cdpEval(code)
+  // Wrap RPC bundle so local `figma` parameter shadows the broken window.figma getter
+  const wrappedCode = `;(function(figma) {\n${code}\n})(window.__figmaPluginApi);`
+  await cdpEval(wrappedCode)
   await cdpEval(`window.__figmaRpcHash = ${JSON.stringify(hash)}`)
 
   const ready = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
