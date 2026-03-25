@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 
 import { cdpEval } from './cdp.ts'
 import { isDaemonAvailable, callDaemon } from './daemon/index.ts'
+import { injectRpcBundleWithFallback, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
 
 export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
@@ -13,6 +14,7 @@ let currentRpcHash: string | null = null
 let useDaemon: boolean | null = null
 let esbuildModule: typeof import('esbuild') | null = null
 let figmaApiBootstrapped = false
+let rpcInjectionStrategy: RpcInjectionStrategy | null = null
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -35,6 +37,8 @@ import { existsSync, readFileSync, writeFileSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 
 const RPC_CACHE_PATH = join(tmpdir(), 'figma-use-rpc-cache.json')
+const FIGMA_API_READY_CHECK =
+  '(() => { const api = window.__figmaPluginApi; return !!api && typeof api.getNodeByIdAsync === "function" && typeof api.loadFontAsync === "function"; })()'
 
 async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   const pluginDir = getPluginDir()
@@ -85,7 +89,7 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
 
 const FIGMA_API_BOOTSTRAP = `
 (function() {
-  if (window.__figmaPluginApi && typeof window.__figmaPluginApi.createFrame === 'function') return 'already available';
+  if (window.__figmaPluginApi && typeof window.__figmaPluginApi.getNodeByIdAsync === 'function' && typeof window.__figmaPluginApi.loadFontAsync === 'function') return 'already available';
 
   if (!window.__webpackRequire__) {
     window.webpackChunk_figma_web_bundler.push([
@@ -125,7 +129,7 @@ const FIGMA_API_BOOTSTRAP = `
 async function ensureFigmaApi(): Promise<void> {
   if (figmaApiBootstrapped) {
     // Verify it's still there (page may have reloaded)
-    const check = await cdpEval<boolean>('window.__figmaPluginApi && typeof window.__figmaPluginApi.createFrame === "function"')
+    const check = await cdpEval<boolean>(FIGMA_API_READY_CHECK)
     if (check) return
   }
 
@@ -137,9 +141,6 @@ async function ensureFigmaApi(): Promise<void> {
 }
 
 async function ensureRpcInjected(): Promise<void> {
-  // Bootstrap the figma plugin API in the page context first
-  await ensureFigmaApi()
-
   const { code, hash } = await buildRpcBundle()
 
   // Check if RPC is already injected with same version
@@ -148,16 +149,13 @@ async function ensureRpcInjected(): Promise<void> {
     if (remoteHash === hash) return
   }
 
-  // Wrap RPC bundle so local `figma` parameter shadows the broken window.figma getter
-  const wrappedCode = `;(function(figma) {\n${code}\n})(window.__figmaPluginApi);`
-  await cdpEval(wrappedCode)
-  await cdpEval(`window.__figmaRpcHash = ${JSON.stringify(hash)}`)
-
-  const ready = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
-  if (!ready) {
-    throw new Error('Failed to inject RPC into Figma')
-  }
-
+  rpcInjectionStrategy = await injectRpcBundleWithFallback({
+    code,
+    hash,
+    preferredStrategy: rpcInjectionStrategy,
+    evaluate: cdpEval,
+    ensureFigmaApi
+  })
   rpcInjected = true
   currentRpcHash = hash
 }
