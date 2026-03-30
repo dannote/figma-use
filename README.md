@@ -79,6 +79,10 @@ figma-use status
 
 That's it. No plugins to install.
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/dannote-figma-use).
+
 ## Two Modes
 
 Imperative — one command at a time:
