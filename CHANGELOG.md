@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3] - 2026-04-25
+
+### Fixed
+
+- **Figma 126+ bootstrap on cold editor tabs** — pass the full plugin VM options required by Figma internals and prefer loaded `/design/` editor targets before legacy `/file/` URLs.
+
 ## [0.13.2] - 2026-04-25
 
 ### Fixed

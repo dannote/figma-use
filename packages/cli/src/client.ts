@@ -113,7 +113,10 @@ const FIGMA_API_BOOTSTRAP = `
 
   // The wrapper may return figma directly or {vm: {scope: {figma}}}
   const result = defineVm({
+    apiMode: 'PLUGIN',
+    pluginID: 'figma-use-bridge',
     enableNativeJsx: false,
+    disableWebpageSync: false,
     sceneGraph: null
   });
 

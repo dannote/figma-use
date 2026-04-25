@@ -66,11 +66,9 @@ async function getCDPTarget(): Promise<CDPTarget> {
   const targets = (await resp.json()) as CDPTarget[]
 
   const figmaTarget =
-    targets.find(
-      (t) =>
-        t.type === 'page' &&
-        (t.url.includes('figma.com/design') || t.url.includes('figma.com/file'))
-    ) || targets.find((t) => t.type === 'page' && t.url.includes('figma.com/board'))
+    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/design')) ||
+    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/file')) ||
+    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/board'))
 
   if (!figmaTarget) {
     throw new Error(
