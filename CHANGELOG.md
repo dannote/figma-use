@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Safer Figma 126+ bootstrap fallback** — isolate the webpack-internal plugin API bootstrap behind a compatibility fallback. RPC injection now probes the legacy path first, falls back to the Figma 126+ bootstrap only when needed, and remembers the last working strategy for subsequent injections.
+
 ## [0.13.1] - 2026-02-22
 
 ### Fixed

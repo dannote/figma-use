@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 
 import { cdpEval } from './cdp.ts'
 import { isDaemonAvailable, callDaemon } from './daemon/index.ts'
+import { injectRpcBundleWithFallback, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
 
 export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
@@ -12,6 +13,8 @@ let rpcInjected = false
 let currentRpcHash: string | null = null
 let useDaemon: boolean | null = null
 let esbuildModule: typeof import('esbuild') | null = null
+let figmaApiBootstrapped = false
+let rpcInjectionStrategy: RpcInjectionStrategy | null = null
 
 function getPluginDir(): string {
   // Works both in dev (src/) and bundled (dist/)
@@ -34,6 +37,8 @@ import { existsSync, readFileSync, writeFileSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 
 const RPC_CACHE_PATH = join(tmpdir(), 'figma-use-rpc-cache.json')
+const FIGMA_API_READY_CHECK =
+  '(() => { const api = window.__figmaPluginApi; return !!api && typeof api.getNodeByIdAsync === "function" && typeof api.loadFontAsync === "function"; })()'
 
 async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   const pluginDir = getPluginDir()
@@ -65,7 +70,8 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
     write: false,
     format: 'iife',
     target: 'es2020',
-    minify: true
+    minifySyntax: true,
+    minifyWhitespace: true
   })
 
   const code = result.outputFiles![0]!.text
@@ -81,6 +87,59 @@ async function buildRpcBundle(): Promise<{ code: string; hash: string }> {
   return { code, hash }
 }
 
+const FIGMA_API_BOOTSTRAP = `
+(function() {
+  if (window.__figmaPluginApi && typeof window.__figmaPluginApi.getNodeByIdAsync === 'function' && typeof window.__figmaPluginApi.loadFontAsync === 'function') return 'already available';
+
+  if (!window.__webpackRequire__) {
+    window.webpackChunk_figma_web_bundler.push([
+      ['__figma_use_' + Date.now()], {},
+      r => window.__webpackRequire__ = r
+    ]);
+  }
+
+  const r = window.__webpackRequire__;
+  let defineVm;
+  for (const id in r.m) {
+    if (r.m[id].toString().includes('apiMode:e,pluginID')) {
+      const hit = Object.values(r(id)).find(
+        v => typeof v === 'function' && v.toString().includes('apiMode')
+      );
+      if (hit) { defineVm = hit; break; }
+    }
+  }
+
+  if (!defineVm) throw new Error('Could not find defineVmFunction in Figma internals');
+
+  // The wrapper may return figma directly or {vm: {scope: {figma}}}
+  const result = defineVm({
+    enableNativeJsx: false,
+    sceneGraph: null
+  });
+
+  // Store on a custom property - window.figma is a non-configurable
+  // getter/setter controlled by Figma that discards assignments
+  window.__figmaPluginApi = (result && result.vm && result.vm.scope)
+    ? result.vm.scope.figma
+    : result;
+  return 'bootstrapped';
+})()
+`
+
+async function ensureFigmaApi(): Promise<void> {
+  if (figmaApiBootstrapped) {
+    // Verify it's still there (page may have reloaded)
+    const check = await cdpEval<boolean>(FIGMA_API_READY_CHECK)
+    if (check) return
+  }
+
+  const result = await cdpEval<string>(FIGMA_API_BOOTSTRAP)
+  if (result !== 'bootstrapped' && result !== 'already available') {
+    throw new Error('Failed to bootstrap Figma plugin API: ' + result)
+  }
+  figmaApiBootstrapped = true
+}
+
 async function ensureRpcInjected(): Promise<void> {
   const { code, hash } = await buildRpcBundle()
 
@@ -90,15 +149,13 @@ async function ensureRpcInjected(): Promise<void> {
     if (remoteHash === hash) return
   }
 
-  // Inject fresh RPC
-  await cdpEval(code)
-  await cdpEval(`window.__figmaRpcHash = ${JSON.stringify(hash)}`)
-
-  const ready = await cdpEval<boolean>('typeof window.__figmaRpc === "function"')
-  if (!ready) {
-    throw new Error('Failed to inject RPC into Figma')
-  }
-
+  rpcInjectionStrategy = await injectRpcBundleWithFallback({
+    code,
+    hash,
+    preferredStrategy: rpcInjectionStrategy,
+    evaluate: cdpEval,
+    ensureFigmaApi
+  })
   rpcInjected = true
   currentRpcHash = hash
 }
