@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-04-25
+
 ### Fixed
 
 - **Safer Figma 126+ bootstrap fallback** — isolate the webpack-internal plugin API bootstrap behind a compatibility fallback. RPC injection now probes the legacy path first, falls back to the Figma 126+ bootstrap only when needed, and remembers the last working strategy for subsequent injections.
