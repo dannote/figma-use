@@ -1,7 +1,7 @@
 import { existsSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
 import { createServer, Server, Socket } from 'net'
 
-import { closeCDP, usePipeTransport, getCdpPort } from '../cdp.ts'
+import { closeCDP, usePipeTransport, isPipeTransport, getCdpPort } from '../cdp.ts'
 import { sendCommandDirect } from '../client.ts'
 
 const SOCKET_PATH = '/tmp/figma-use.sock'
@@ -64,7 +64,7 @@ function handleConnection(socket: Socket): void {
         }
 
         socket.write(JSON.stringify(response) + '\n')
-      } catch (e) {
+      } catch {
         socket.write(JSON.stringify({ id: 'error', ok: false, error: 'Invalid JSON' }) + '\n')
       }
     }
@@ -84,6 +84,9 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
   // Clean up existing socket
   if (existsSync(SOCKET_PATH)) {
     unlinkSync(SOCKET_PATH)
+  }
+  if (existsSync(PORT_FILE)) {
+    unlinkSync(PORT_FILE)
   }
 
   // Pre-warm: build RPC and connect to Figma once

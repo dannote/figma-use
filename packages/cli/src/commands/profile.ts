@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { defineCommand } from 'citty'
 
+import { getCdpPort } from '../cdp.ts'
 import { ok, fail, figmaLaunchHint } from '../format.ts'
 
 import type { ChromeDevToolsTarget } from '../types.ts'
@@ -13,11 +14,11 @@ export default defineCommand({
       description: 'Command to profile (e.g., "get components --limit 10")',
       required: true
     },
-    port: { type: 'string', description: 'Chrome DevTools port', default: '9222' },
+    port: { type: 'string', description: 'Chrome DevTools port' },
     top: { type: 'string', description: 'Number of top functions to show', default: '20' }
   },
   async run({ args }) {
-    const port = Number(args.port)
+    const port = args.port ? Number(args.port) : getCdpPort()
     const topN = Number(args.top)
 
     // Find Figma tab

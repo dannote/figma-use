@@ -23,6 +23,10 @@ export default defineCommand({
           description:
             'Launch Figma with --remote-debugging-pipe instead of connecting to port 9222. ' +
             'No patching required — works on Figma 126.1.2+ without admin access.'
+        },
+        port: {
+          type: 'string',
+          description: 'Chrome DevTools port Figma is listening on (default 9222, or FIGMA_PORT env)'
         }
       },
       async run({ args }) {
@@ -43,7 +47,10 @@ export default defineCommand({
 
           const daemonArgs = [indexPath, 'daemon', 'start', '-f']
           if (args.pipe) daemonArgs.push('--pipe')
-          else if (getCdpPort() !== 9222) daemonArgs.push('--port', String(getCdpPort()))
+          else {
+            const port = getCdpPort()
+            if (port !== 9222) daemonArgs.push('--port', String(port))
+          }
 
           const child = spawn(process.execPath, daemonArgs, {
             detached: true,
@@ -97,6 +104,10 @@ export default defineCommand({
         pipe: {
           type: 'boolean',
           description: 'Launch Figma with --remote-debugging-pipe'
+        },
+        port: {
+          type: 'string',
+          description: 'Chrome DevTools port Figma is listening on (default 9222, or FIGMA_PORT env)'
         }
       },
       async run({ args }) {
@@ -111,7 +122,10 @@ export default defineCommand({
 
         const daemonArgs = [indexPath, 'daemon', 'start', '-f']
         if (args.pipe) daemonArgs.push('--pipe')
-        else if (getCdpPort() !== 9222) daemonArgs.push('--port', String(getCdpPort()))
+        else {
+          const port = getCdpPort()
+          if (port !== 9222) daemonArgs.push('--port', String(port))
+        }
 
         const child = spawn(process.execPath, daemonArgs, {
           detached: true,

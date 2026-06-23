@@ -21,31 +21,45 @@ export function isPipeTransport(): boolean {
 // → FIGMA_PORT env → default 9222. Read once and cached.
 const DEFAULT_CDP_PORT = 9222
 let cachedCdpPort: number | null = null
+let cdpPortOverride: string | null = null
+
+export function setCdpPortOverride(port: string): void {
+  cdpPortOverride = port
+  cachedCdpPort = null
+}
 
 export function getCdpPort(): number {
   if (cachedCdpPort !== null) return cachedCdpPort
 
   let port = DEFAULT_CDP_PORT
+  let hasPortArg = false
 
   // Prefer an explicit --port flag on the command line. Citty does not
   // propagate root args into subcommands, so we parse argv directly — this
   // works regardless of which subcommand is running.
   const argv = process.argv
+  if (cdpPortOverride !== null) {
+    port = Number(cdpPortOverride)
+    hasPortArg = true
+  }
+
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!
     if (a === '--port' && i + 1 < argv.length) {
       port = Number(argv[++i])
+      hasPortArg = true
       break
     }
     const eq = '--port='
     if (a.startsWith(eq)) {
       port = Number(a.slice(eq.length))
+      hasPortArg = true
       break
     }
   }
 
   // FIGMA_PORT env is the secondary fallback (matches FIGMA_PIPE/FIGMA_BIN).
-  if (!argv.includes('--port') && !argv.some((a) => a.startsWith('--port='))) {
+  if (!hasPortArg) {
     const envPort = process.env.FIGMA_PORT
     if (envPort) port = Number(envPort)
   }

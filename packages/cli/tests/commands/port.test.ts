@@ -9,14 +9,29 @@ const CLI_BIN = join(import.meta.dir, '../../../../dist/cli/index.js')
 // getCdpPort caches its result, so each scenario runs in a fresh subprocess
 // with a controlled argv. This also mirrors how the flag is actually parsed
 // in real CLI invocations.
-function runWithArgs(args: string[], env?: Record<string, string>): Promise<string> {
+async function runWithArgs(args: string[], env?: Record<string, string>): Promise<string> {
   const proc = Bun.spawn([process.execPath, CLI_BIN, 'status', ...args], {
     cwd: import.meta.dir,
     stdout: 'pipe',
     stderr: 'pipe',
     env: { ...process.env, ...env }
   })
-  return new Response(proc.stdout).text()
+  return await new Response(proc.stdout).text()
+}
+
+async function runCli(args: string[], env?: Record<string, string>): Promise<string> {
+  const proc = Bun.spawn([process.execPath, CLI_BIN, ...args], {
+    cwd: import.meta.dir,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: { ...process.env, ...env }
+  })
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text()
+  ])
+  await proc.exited
+  return stdout + stderr
 }
 
 describe('custom CDP port', () => {
@@ -28,6 +43,16 @@ describe('custom CDP port', () => {
   test('--port=<N> form works', async () => {
     const out = await runWithArgs(['--port=8444'])
     expect(out).toContain('remote-debugging-port=8444')
+  })
+
+  test('root-level --port <N> before command works', async () => {
+    const out = await runCli(['--port', '9556', 'status'])
+    expect(out).toContain('remote-debugging-port=9556')
+  })
+
+  test('root-level --port=<N> before command works', async () => {
+    const out = await runCli(['--port=9557', 'status'])
+    expect(out).toContain('remote-debugging-port=9557')
   })
 
   test('FIGMA_PORT env is used when no flag is given', async () => {

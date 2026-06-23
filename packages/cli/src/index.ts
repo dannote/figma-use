@@ -1,8 +1,25 @@
 import { defineCommand, runMain } from 'citty'
 
 import { version } from '../../../package.json'
-import { closeCDP } from './cdp.ts'
+import { closeCDP, setCdpPortOverride } from './cdp.ts'
 import * as commands from './commands/index.ts'
+
+function normalizeGlobalPortArg(): void {
+  const args = process.argv.slice(2)
+  const portIndex = args.findIndex((arg) => arg === '--port' || arg.startsWith('--port='))
+  if (portIndex === -1) return
+
+  const firstCommandIndex = args.findIndex((arg) => !arg.startsWith('-'))
+  if (firstCommandIndex !== -1 && portIndex > firstCommandIndex) return
+
+  const raw = args[portIndex]!
+  const value = raw === '--port' ? args[portIndex + 1] : raw.slice('--port='.length)
+  if (value === undefined) return
+
+  setCdpPortOverride(value)
+  const deleteCount = raw === '--port' ? 2 : 1
+  process.argv.splice(portIndex + 2, deleteCount)
+}
 
 const main = defineCommand({
   meta: {
@@ -22,4 +39,5 @@ const main = defineCommand({
 
 process.on('beforeExit', () => closeCDP())
 
+normalizeGlobalPortArg()
 runMain(main)
