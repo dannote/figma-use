@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 
 import { startDaemon, stopDaemon, isDaemonRunning, getDaemonInfo } from '../daemon/index.ts'
 import { ok, fail } from '../format.ts'
+import { getCdpPort } from '../cdp.ts'
 
 export default defineCommand({
   meta: { name: 'daemon', description: 'Manage figma-use daemon for faster command execution' },
@@ -42,6 +43,7 @@ export default defineCommand({
 
           const daemonArgs = [indexPath, 'daemon', 'start', '-f']
           if (args.pipe) daemonArgs.push('--pipe')
+          else if (getCdpPort() !== 9222) daemonArgs.push('--port', String(getCdpPort()))
 
           const child = spawn(process.execPath, daemonArgs, {
             detached: true,
@@ -109,6 +111,7 @@ export default defineCommand({
 
         const daemonArgs = [indexPath, 'daemon', 'start', '-f']
         if (args.pipe) daemonArgs.push('--pipe')
+        else if (getCdpPort() !== 9222) daemonArgs.push('--port', String(getCdpPort()))
 
         const child = spawn(process.execPath, daemonArgs, {
           detached: true,

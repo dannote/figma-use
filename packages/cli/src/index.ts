@@ -11,6 +11,12 @@ const main = defineCommand({
       'Control Figma from the command line. Supports JSX rendering with components and variants — see `figma-use render --examples`',
     version
   },
+  args: {
+    port: {
+      type: 'string',
+      description: 'Chrome DevTools port Figma is listening on (default 9222, or FIGMA_PORT env)'
+    }
+  },
   subCommands: commands
 })
 

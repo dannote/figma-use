@@ -432,6 +432,7 @@ Keeps CDP connection warm for faster sequential commands (~25% speedup). Also re
 ```bash
 figma-use daemon start                     # Start daemon in background
 figma-use daemon start --pipe              # Launch Figma with debug pipe (no patching needed)
+figma-use daemon start --port 9333         # Daemon connects to a non-default CDP port
 figma-use daemon start -f                  # Run in foreground
 figma-use daemon stop                      # Stop daemon (kills Figma in pipe mode)
 figma-use daemon status                    # Check daemon status
@@ -440,6 +441,8 @@ figma-use daemon restart --pipe            # Restart with pipe transport
 ```
 
 When daemon is running, all commands automatically use it. Falls back to direct CDP if daemon is unavailable.
+
+If you started the daemon on a custom port, pass `--port <N>` to commands too (or set `FIGMA_PORT`). A mismatch is reported with a restart hint.
 
 ## System
 

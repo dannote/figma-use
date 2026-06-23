@@ -13,6 +13,53 @@ export function usePipeTransport(): void {
   pipeMode = true
 }
 
+export function isPipeTransport(): boolean {
+  return isPipeMode()
+}
+
+// CDP port resolution: --port flag (parsed from argv for any subcommand)
+// → FIGMA_PORT env → default 9222. Read once and cached.
+const DEFAULT_CDP_PORT = 9222
+let cachedCdpPort: number | null = null
+
+export function getCdpPort(): number {
+  if (cachedCdpPort !== null) return cachedCdpPort
+
+  let port = DEFAULT_CDP_PORT
+
+  // Prefer an explicit --port flag on the command line. Citty does not
+  // propagate root args into subcommands, so we parse argv directly — this
+  // works regardless of which subcommand is running.
+  const argv = process.argv
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i]!
+    if (a === '--port' && i + 1 < argv.length) {
+      port = Number(argv[++i])
+      break
+    }
+    const eq = '--port='
+    if (a.startsWith(eq)) {
+      port = Number(a.slice(eq.length))
+      break
+    }
+  }
+
+  // FIGMA_PORT env is the secondary fallback (matches FIGMA_PIPE/FIGMA_BIN).
+  if (!argv.includes('--port') && !argv.some((a) => a.startsWith('--port='))) {
+    const envPort = process.env.FIGMA_PORT
+    if (envPort) port = Number(envPort)
+  }
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(
+      `Invalid CDP port: ${port}. Use a port between 1 and 65535 (--port <N> or FIGMA_PORT).`
+    )
+  }
+
+  cachedCdpPort = port
+  return port
+}
+
 function isPipeMode(): boolean {
   if (pipeMode !== null) return pipeMode
   if (process.env.FIGMA_PIPE === '1') {
@@ -46,9 +93,10 @@ const pendingRequests = new Map<number, PendingRequest>()
 async function getCDPTarget(): Promise<CDPTarget> {
   if (cachedTarget) return cachedTarget
 
+  const port = getCdpPort()
   let resp: Response
   try {
-    resp = await fetch('http://localhost:9222/json')
+    resp = await fetch(`http://localhost:${port}/json`)
   } catch {
     const patched = isFigmaPatched()
     if (patched === false) {
@@ -58,8 +106,8 @@ async function getCDPTarget(): Promise<CDPTarget> {
       )
     }
     throw new Error(
-      'Cannot connect to Figma on port 9222.\n' +
-        `Start Figma with: ${figmaLaunchHint()}`
+      `Cannot connect to Figma on port ${port}.\n` +
+        `Start Figma with: ${figmaLaunchHint(port)}`
     )
   }
 
@@ -72,7 +120,7 @@ async function getCDPTarget(): Promise<CDPTarget> {
 
   if (!figmaTarget) {
     throw new Error(
-      'No Figma file open in browser.\n' + `Start Figma with: ${figmaLaunchHint()}`
+      'No Figma file open in browser.\n' + `Start Figma with: ${figmaLaunchHint(port)}`
     )
   }
 

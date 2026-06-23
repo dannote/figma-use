@@ -44,6 +44,12 @@ figma --remote-debugging-port=9222
 
 Start Figma with `--remote-debugging-port=9222` and you're ready.
 
+> **Non-default port?** If Figma is on another port, pass `--port <N>` to any command (or set the `FIGMA_PORT` env var). Errors will show the correct port.
+> ```bash
+> open -a Figma --args --remote-debugging-port=9333
+> figma-use get components --port 9333
+> ```
+
 ## Two Modes
 
 **Imperative** — single operations:
