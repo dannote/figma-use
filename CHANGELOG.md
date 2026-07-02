@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] - 2026-07-02
+
+### Fixed
+
+- **Figma 126.6+ rspack migration** — support `rspackChunk_figma_web_bundler` fallback and more robust plugin VM detection for Electron 42 / Chrome 148. (#17)
+
 ## [0.13.3] - 2026-04-25
 
 ### Fixed
