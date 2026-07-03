@@ -527,6 +527,14 @@ Includes [SKILL.md](./SKILL.md) — a reference for Claude Code, Cursor, and oth
 
 figma-use communicates directly with Figma via Chrome DevTools Protocol (CDP). Just start Figma with `--remote-debugging-port=9222` and you're ready.
 
+> **Non-default port?** Pass `--port <N>` to any command, or set the `FIGMA_PORT` env var:
+> ```bash
+> open -a Figma --args --remote-debugging-port=9333
+> figma-use get components --port 9333
+> # or
+> FIGMA_PORT=9333 figma-use get components
+> ```
+
 Commands are executed via `Runtime.evaluate` in Figma's JavaScript context, with full access to the Plugin API.
 
 ### Daemon

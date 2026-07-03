@@ -1,11 +1,12 @@
 import { existsSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
 import { createServer, Server, Socket } from 'net'
 
-import { closeCDP, usePipeTransport } from '../cdp.ts'
+import { closeCDP, usePipeTransport, isPipeTransport, getCdpPort } from '../cdp.ts'
 import { sendCommandDirect } from '../client.ts'
 
 const SOCKET_PATH = '/tmp/figma-use.sock'
 const PID_FILE = '/tmp/figma-use.pid'
+const PORT_FILE = '/tmp/figma-use.port'
 
 let server: Server | null = null
 
@@ -13,6 +14,7 @@ interface Request {
   id: string
   command: string
   args?: unknown
+  port?: number
 }
 
 interface Response {
@@ -40,6 +42,20 @@ function handleConnection(socket: Socket): void {
         const response: Response = { id: req.id, ok: true }
 
         try {
+          // Guard against port mismatch: a daemon serving port A must not
+          // silently serve a client that asked for port B (different Figma).
+          const servingPort = getDaemonPort()
+          if (
+            req.port !== undefined &&
+            servingPort !== null &&
+            req.port !== servingPort
+          ) {
+            throw new Error(
+              `Daemon is serving port ${servingPort}, but this command requested port ${req.port}. ` +
+                `Restart the daemon with: figma-use daemon restart --port ${req.port}`
+            )
+          }
+
           // Use direct command (no daemon loop, cached RPC)
           response.result = await sendCommandDirect(req.command, req.args)
         } catch (e) {
@@ -48,7 +64,7 @@ function handleConnection(socket: Socket): void {
         }
 
         socket.write(JSON.stringify(response) + '\n')
-      } catch (e) {
+      } catch {
         socket.write(JSON.stringify({ id: 'error', ok: false, error: 'Invalid JSON' }) + '\n')
       }
     }
@@ -69,6 +85,9 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
   if (existsSync(SOCKET_PATH)) {
     unlinkSync(SOCKET_PATH)
   }
+  if (existsSync(PORT_FILE)) {
+    unlinkSync(PORT_FILE)
+  }
 
   // Pre-warm: build RPC and connect to Figma once
   try {
@@ -82,10 +101,13 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
   server = createServer(handleConnection)
 
   server.listen(SOCKET_PATH, () => {
-    // Write PID file
+    // Write PID + serving port files
     writeFileSync(PID_FILE, String(process.pid))
+    const port = isPipeTransport() ? null : getCdpPort()
+    if (port !== null) writeFileSync(PORT_FILE, String(port))
     console.log(`Daemon started (PID ${process.pid})`)
     console.log(`Socket: ${SOCKET_PATH}`)
+    if (port !== null && port !== 9222) console.log(`CDP port: ${port}`)
   })
 
   server.on('error', (e) => {
@@ -99,6 +121,7 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
     await closeCDP()
     if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
+    if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     process.exit(0)
   }
 
@@ -118,11 +141,13 @@ export function stopDaemon(): boolean {
     // Clean up files
     if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
+    if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     return true
   } catch {
     // Process not running, clean up stale files
     if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
+    if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     return false
   }
 }
@@ -138,6 +163,14 @@ export function isDaemonRunning(): boolean {
   } catch {
     return false
   }
+}
+
+// The CDP port the running daemon is serving (null = pipe mode or unknown).
+export function getDaemonPort(): number | null {
+  if (!isDaemonRunning()) return null
+  if (!existsSync(PORT_FILE)) return null
+  const port = parseInt(readFileSync(PORT_FILE, 'utf-8'))
+  return Number.isNaN(port) ? null : port
 }
 
 export function getDaemonInfo(): { pid: number; socket: string } | null {

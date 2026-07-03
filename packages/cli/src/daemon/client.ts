@@ -1,6 +1,8 @@
 import { existsSync } from 'fs'
 import { createConnection, Socket } from 'net'
 
+import { getCdpPort } from '../cdp.ts'
+
 const SOCKET_PATH = '/tmp/figma-use.sock'
 
 export function isDaemonAvailable(): boolean {
@@ -30,7 +32,8 @@ export async function callDaemon<T = unknown>(command: string, args?: unknown): 
     client.on('connect', () => {
       connected = true
       clearTimeout(connectTimeout)
-      client.write(JSON.stringify({ id, command, args }) + '\n')
+      // Include the requested CDP port so the daemon can detect a mismatch.
+      client.write(JSON.stringify({ id, command, args, port: getCdpPort() }) + '\n')
     })
 
     client.on('data', (data) => {

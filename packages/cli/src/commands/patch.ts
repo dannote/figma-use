@@ -2,6 +2,7 @@ import { defineCommand } from 'citty'
 
 import { isFigmaPatched, patchFigma } from '../patch-figma.ts'
 import { figmaLaunchHint } from '../format.ts'
+import { getCdpPort } from '../cdp.ts'
 
 export default defineCommand({
   meta: {
@@ -32,6 +33,6 @@ export default defineCommand({
     }
 
     console.log('Patched successfully.')
-    console.log(`Restart Figma with: ${figmaLaunchHint()}`)
+    console.log(`Restart Figma with: ${figmaLaunchHint(getCdpPort())}`)
   }
 })
