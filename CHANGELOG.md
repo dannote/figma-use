@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Custom CDP port via `--port` flag or `FIGMA_PORT` env** — connect to Figma running on any remote-debugging port, not just the default 9222. Works across all commands (`figma-use get components --port 9333`), the daemon (`figma-use daemon start --port 9333`), and error messages now show the correct port in the launch hint. The daemon detects and reports port mismatches with a restart hint.
 
+### Fixed
+
+- **npm package metadata** — removed the stale `figma-fast` bin entry that pointed to a non-existent file.
+
 ## [0.13.4] - 2026-07-02
 
 ### Fixed

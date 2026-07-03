@@ -30,13 +30,15 @@ describe('set', () => {
     })
 
     test('binds fill to variable with var: syntax', async () => {
-      // Create a variable first
-      const collection = (await run('collection create "TestColors" --json')) as any
+      // Create a variable first, with a unique name so stale variables from interrupted runs don't match.
+      const suffix = Date.now()
+      const collection = (await run(`collection create "TestColors_${suffix}" --json`)) as any
+      const variableName = `TestPrimary_${suffix}`
       const variable = (await run(
-        `variable create "TestPrimary" --collection "${collection.id}" --type COLOR --value "#3B82F6" --json`
+        `variable create "${variableName}" --collection "${collection.id}" --type COLOR --value "#3B82F6" --json`
       )) as any
 
-      const result = (await run(`set fill ${rectId} "var:TestPrimary" --json`)) as any
+      const result = (await run(`set fill ${rectId} "var:${variableName}" --json`)) as any
       expect(result.fills[0]!.color).toBe('#3B82F6')
 
       // Verify variable is bound

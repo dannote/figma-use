@@ -22,7 +22,6 @@
     "url": "git+https://github.com/dannote/figma-use.git"
   },
   "bin": {
-    "figma-fast": "bin/figma-fast.js",
     "figma-use": "bin/figma-use.js"
   },
   "files": [
@@ -50,8 +49,7 @@
     "test": "cd packages/cli && bun test",
     "lint": "oxlint packages/",
     "format": "oxfmt --write packages/",
-    "prepublishOnly": "bun run build",
-    "build:fast": "bun build packages/cli/src/fast.ts --outfile dist/fast.mjs --target node --minify"
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "agentfmt": "^0.1.3",
