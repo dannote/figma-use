@@ -92,7 +92,8 @@ const FIGMA_API_BOOTSTRAP = `
   if (window.__figmaPluginApi && typeof window.__figmaPluginApi.getNodeByIdAsync === 'function' && typeof window.__figmaPluginApi.loadFontAsync === 'function') return 'already available';
 
   if (!window.__webpackRequire__) {
-    window.webpackChunk_figma_web_bundler.push([
+    var _chunk = window.webpackChunk_figma_web_bundler || window.rspackChunk_figma_web_bundler;
+    _chunk.push([
       ['__figma_use_' + Date.now()], {},
       r => window.__webpackRequire__ = r
     ]);
@@ -101,9 +102,10 @@ const FIGMA_API_BOOTSTRAP = `
   const r = window.__webpackRequire__;
   let defineVm;
   for (const id in r.m) {
-    if (r.m[id].toString().includes('apiMode:e,pluginID')) {
+    const src = r.m[id].toString();
+    if (src.includes('apiMode') && src.includes('pluginID') && src.includes('sceneGraph')) {
       const hit = Object.values(r(id)).find(
-        v => typeof v === 'function' && v.toString().includes('apiMode')
+        v => typeof v === 'function' && v.length === 1 && v.toString().includes('apiMode') && v.toString().includes('sceneGraph')
       );
       if (hit) { defineVm = hit; break; }
     }
