@@ -34,6 +34,21 @@ async function runCli(args: string[], env?: Record<string, string>): Promise<str
   return stdout + stderr
 }
 
+async function resolvePort(env?: Record<string, string>): Promise<string> {
+  const repoRoot = join(import.meta.dir, '../../../../')
+  const proc = Bun.spawn([
+    process.execPath,
+    '-e',
+    "import { getCdpPort } from './packages/cli/src/cdp.ts'; console.log(getCdpPort())"
+  ], {
+    cwd: repoRoot,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: { ...process.env, ...env }
+  })
+  return (await new Response(proc.stdout).text()).trim()
+}
+
 describe('custom CDP port', () => {
   test('--port <N> is reflected in the connection hint', async () => {
     const out = await runWithArgs(['--port', '9555'])
@@ -67,7 +82,6 @@ describe('custom CDP port', () => {
   })
 
   test('defaults to 9222 when nothing is specified', async () => {
-    const out = await runWithArgs([], { FIGMA_PORT: '' })
-    expect(out).toContain('remote-debugging-port=9222')
+    await expect(resolvePort({ FIGMA_PORT: '' })).resolves.toBe('9222')
   })
 })
