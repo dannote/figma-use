@@ -1,6 +1,11 @@
 import { spawn, type ChildProcess } from 'child_process'
 import type { Readable, Writable } from 'stream'
 
+import {
+  chooseFileTarget,
+  FILE_TARGET_STATE_EXPRESSION,
+  type FileTargetState
+} from './figma-target.ts'
 import { figmaBinaryPath } from './format.ts'
 
 interface PendingRequest {
@@ -97,29 +102,43 @@ interface TargetInfo {
   url: string
 }
 
-async function findFigmaPageTarget(
-  attempts: number,
-  delayMs: number
-): Promise<TargetInfo | null> {
-  for (let i = 0; i < attempts; i++) {
-    const result = (await pipeSend('Target.getTargets', {}, 8000)) as {
-      targetInfos: TargetInfo[]
+// Attach only for the probe, so choosing a tab leaves no session behind.
+async function probeTarget(target: TargetInfo): Promise<FileTargetState | null> {
+  try {
+    const { sessionId: probeSession } = (await pipeSend('Target.attachToTarget', {
+      targetId: target.targetId,
+      flatten: true
+    })) as { sessionId: string }
+    try {
+      const result = (await pipeSend(
+        'Runtime.evaluate',
+        { expression: FILE_TARGET_STATE_EXPRESSION, returnByValue: true },
+        3000,
+        probeSession
+      )) as { result?: { value?: FileTargetState } }
+      return result.result?.value ?? null
+    } finally {
+      await pipeSend('Target.detachFromTarget', { sessionId: probeSession }).catch(() => {})
     }
-
-    const targets = result.targetInfos || []
-    const figmaTarget =
-      targets.find(
-        (t) =>
-          t.type === 'page' &&
-          (t.url.includes('figma.com/design') || t.url.includes('figma.com/file'))
-      ) ||
-      targets.find((t) => t.type === 'page' && t.url.includes('figma.com/board')) ||
-      targets.find((t) => t.type === 'page' && t.url.includes('figma.com'))
-
-    if (figmaTarget) return figmaTarget
-    await sleep(delayMs)
+  } catch {
+    return null
   }
-  return null
+}
+
+async function findFigmaPageTarget(): Promise<TargetInfo | undefined> {
+  return chooseFileTarget({
+    listTargets: async () => {
+      const result = (await pipeSend('Target.getTargets', {}, 8000)) as {
+        targetInfos?: TargetInfo[]
+      }
+      return result.targetInfos || []
+    },
+    probe: probeTarget,
+    // Right after launch Figma lists its file tabs one by one, then loads the
+    // one it shows.
+    waitForFileTabs: true,
+    timeoutMs: 60000
+  })
 }
 
 export async function ensurePipeConnected(): Promise<void> {
@@ -172,7 +191,7 @@ export async function ensurePipeConnected(): Promise<void> {
   }
 
   // Attach to a Figma page target
-  const target = await findFigmaPageTarget(15, 2000)
+  const target = await findFigmaPageTarget()
   if (!target) {
     throw new Error('No Figma file open. Open a file in Figma and try again.')
   }

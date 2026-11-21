@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 
 import { cdpEval } from './cdp.ts'
 import { isDaemonAvailable, callDaemon } from './daemon/index.ts'
-import { injectRpcBundleWithFallback, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
+import { injectRpcBundleWhenReady, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
 
 export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
@@ -154,7 +154,10 @@ async function ensureRpcInjected(): Promise<void> {
     if (remoteHash === hash) return
   }
 
-  rpcInjectionStrategy = await injectRpcBundleWithFallback({
+  // Connect first: a missing Figma should fail now, not after the editor wait.
+  await cdpEval('true')
+
+  rpcInjectionStrategy = await injectRpcBundleWhenReady({
     code,
     hash,
     preferredStrategy: rpcInjectionStrategy,
@@ -211,8 +214,7 @@ export async function getStatus(): Promise<{
   fileName?: string
 }> {
   try {
-    await ensureRpcInjected()
-    const fileName = await cdpEval<string>('figma.root.name')
+    const fileName = await sendCommand<string>('get-file-name')
     return { connected: true, fileName }
   } catch {
     return { connected: false }
@@ -226,8 +228,7 @@ export function handleError(error: unknown): never {
 }
 
 export async function getParentGUID(): Promise<{ sessionID: number; localID: number }> {
-  await ensureRpcInjected()
-  const id = await cdpEval<string>('figma.currentPage.id')
+  const { id } = await sendCommandDirect<{ id: string }>('get-current-page')
   const parts = id.split(':').map(Number)
   return { sessionID: parts[0] ?? 0, localID: parts[1] ?? 0 }
 }

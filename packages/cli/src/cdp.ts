@@ -5,6 +5,11 @@ import {
   closePipe,
   ensurePipeConnected
 } from './cdp-pipe.ts'
+import {
+  chooseFileTarget,
+  FILE_TARGET_STATE_EXPRESSION,
+  type FileTargetState
+} from './figma-target.ts'
 import { isFigmaPatched } from './patch-figma.ts'
 
 let pipeMode: boolean | null = null
@@ -88,6 +93,7 @@ interface CDPTarget {
   webSocketDebuggerUrl: string
   url: string
   type: string
+  title?: string
 }
 
 interface PendingRequest {
@@ -125,12 +131,7 @@ async function getCDPTarget(): Promise<CDPTarget> {
     )
   }
 
-  const targets = (await resp.json()) as CDPTarget[]
-
-  const figmaTarget =
-    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/design')) ||
-    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/file')) ||
-    targets.find((t) => t.type === 'page' && t.url.includes('figma.com/board'))
+  const figmaTarget = await chooseFigmaTarget(port, resp)
 
   if (!figmaTarget) {
     throw new Error(
@@ -140,6 +141,49 @@ async function getCDPTarget(): Promise<CDPTarget> {
 
   cachedTarget = figmaTarget
   return figmaTarget
+}
+
+// The tab commands run in: see chooseFileTarget. `listed` reuses a /json
+// response the caller already fetched to prove the port is up.
+export async function chooseFigmaTarget(
+  port: number,
+  listed: Response | null = null
+): Promise<CDPTarget | undefined> {
+  return chooseFileTarget({
+    listTargets: async () => {
+      const current = listed ?? (await fetch(`http://localhost:${port}/json`))
+      listed = null
+      return (await current.json()) as CDPTarget[]
+    },
+    probe: probeTarget
+  })
+}
+
+// One-off socket so choosing a tab leaves no session behind on the others.
+async function probeTarget(target: CDPTarget): Promise<FileTargetState | null> {
+  return new Promise((resolve) => {
+    const ws = new WebSocket(target.webSocketDebuggerUrl)
+    const done = (state: FileTargetState | null) => {
+      clearTimeout(timer)
+      ws.close()
+      resolve(state)
+    }
+    const timer = setTimeout(() => done(null), 3000)
+    ws.addEventListener('open', () => {
+      ws.send(
+        JSON.stringify({
+          id: 1,
+          method: 'Runtime.evaluate',
+          params: { expression: FILE_TARGET_STATE_EXPRESSION, returnByValue: true }
+        })
+      )
+    })
+    ws.addEventListener('message', (event) => {
+      const msg = JSON.parse(String(event.data))
+      if (msg.id === 1) done(msg.result?.result?.value ?? null)
+    })
+    ws.addEventListener('error', () => done(null))
+  })
 }
 
 function handleMessage(event: MessageEvent): void {

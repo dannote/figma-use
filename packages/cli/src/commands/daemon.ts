@@ -7,6 +7,27 @@ import { startDaemon, stopDaemon, isDaemonRunning, getDaemonInfo } from '../daem
 import { ok, fail } from '../format.ts'
 import { getCdpPort } from '../cdp.ts'
 
+// The daemon records its PID once connected, which can take a while: a pipe
+// launch starts Figma, and a cold tab loads before commands can run.
+const DAEMON_START_TIMEOUT = 150000
+
+async function spawnDaemon(daemonArgs: string[]): Promise<void> {
+  const child = spawn(process.execPath, daemonArgs, {
+    detached: true,
+    stdio: 'ignore'
+  })
+  let exited = false
+  child.on('exit', () => {
+    exited = true
+  })
+  child.unref()
+
+  const deadline = Date.now() + DAEMON_START_TIMEOUT
+  while (!isDaemonRunning() && !exited && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 250))
+  }
+}
+
 export default defineCommand({
   meta: { name: 'daemon', description: 'Manage figma-use daemon for faster command execution' },
   subCommands: {
@@ -52,15 +73,7 @@ export default defineCommand({
             if (port !== 9222) daemonArgs.push('--port', String(port))
           }
 
-          const child = spawn(process.execPath, daemonArgs, {
-            detached: true,
-            stdio: 'ignore'
-          })
-          child.unref()
-
-          // Pipe mode needs more time to launch Figma
-          const waitTime = args.pipe ? 5000 : 500
-          await new Promise((r) => setTimeout(r, waitTime))
+          await spawnDaemon(daemonArgs)
 
           if (isDaemonRunning()) {
             const info = getDaemonInfo()
@@ -68,6 +81,7 @@ export default defineCommand({
             if (args.pipe) console.log('  Figma launched with debug pipe')
           } else {
             console.error(fail('Failed to start daemon'))
+            console.error(`  Run \`figma-use daemon start -f${args.pipe ? ' --pipe' : ''}\` to see why`)
             process.exit(1)
           }
         }
@@ -127,20 +141,14 @@ export default defineCommand({
           if (port !== 9222) daemonArgs.push('--port', String(port))
         }
 
-        const child = spawn(process.execPath, daemonArgs, {
-          detached: true,
-          stdio: 'ignore'
-        })
-        child.unref()
-
-        const waitTime = args.pipe ? 5000 : 500
-        await new Promise((r) => setTimeout(r, waitTime))
+        await spawnDaemon(daemonArgs)
 
         if (isDaemonRunning()) {
           const info = getDaemonInfo()
           console.log(ok(`Daemon restarted (PID ${info?.pid})`))
         } else {
           console.error(fail('Failed to restart daemon'))
+          console.error(`  Run \`figma-use daemon start -f${args.pipe ? ' --pipe' : ''}\` to see why`)
           process.exit(1)
         }
       }
