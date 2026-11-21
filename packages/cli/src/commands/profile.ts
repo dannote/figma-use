@@ -1,10 +1,8 @@
 import { spawn } from 'child_process'
 import { defineCommand } from 'citty'
 
-import { getCdpPort } from '../cdp.ts'
+import { chooseFigmaTarget, getCdpPort } from '../cdp.ts'
 import { ok, fail, figmaLaunchHint } from '../format.ts'
-
-import type { ChromeDevToolsTarget } from '../types.ts'
 
 export default defineCommand({
   meta: { description: 'Profile any figma-use command via Chrome DevTools Protocol' },
@@ -21,26 +19,22 @@ export default defineCommand({
     const port = args.port ? Number(args.port) : getCdpPort()
     const topN = Number(args.top)
 
-    // Find Figma tab
-    const targets = await fetch(`http://localhost:${port}/json`)
-      .then((r) => r.json() as Promise<ChromeDevToolsTarget[]>)
-      .catch(() => null)
-    if (!targets) {
+    // Profile the same tab the command will run in
+    const listed = await fetch(`http://localhost:${port}/json`).catch(() => null)
+    if (!listed) {
       console.error(fail(`Cannot connect to DevTools on port ${port}`))
       console.error(`Start Figma with: ${figmaLaunchHint(port)}`)
       process.exit(1)
     }
 
-    const figmaTab = targets.find(
-      (t) => t.title?.includes('Figma') && t.type === 'page' && t.url?.includes('figma.com/design')
-    )
+    const figmaTab = await chooseFigmaTarget(port, listed)
     if (!figmaTab) {
-      console.error(fail('No Figma design tab found. Open a Figma file first.'))
+      console.error(fail('No Figma file tab found. Open a Figma file first.'))
       process.exit(1)
     }
 
     console.log(`Profiling: figma-use ${args.command}`)
-    console.log(`Target: ${figmaTab.title}\n`)
+    console.log(`Target: ${figmaTab.title ?? figmaTab.url}\n`)
 
     // Connect via WebSocket
     if (!figmaTab.webSocketDebuggerUrl) {

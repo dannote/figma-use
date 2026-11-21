@@ -356,6 +356,9 @@ async function handleCommand(command: string, args?: unknown): Promise<unknown> 
       return result
     }
 
+    case 'get-file-name':
+      return figma.root.name
+
     case 'get-current-page':
       return { id: figma.currentPage.id, name: figma.currentPage.name }
 

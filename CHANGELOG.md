@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Figma 126.12+ background tabs** — commands now run in the file you are looking at, wait for it to finish loading, and work on tabs Figma restored in the background without loading them. `status` no longer reports "Not connected" on such tabs.
+- **Pipe transport** — `daemon start --pipe` no longer attaches to Figma's preload or new-tab page, waits until the daemon has connected instead of failing after 5 seconds, and `status` reports a running daemon's connection.
+- **File tab detection** — the file browser (`/files/...`) is no longer mistaken for a file tab.
+
 ## [0.13.5] - 2026-07-03
 
 ### Added

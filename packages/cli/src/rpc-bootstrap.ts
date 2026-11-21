@@ -69,3 +69,33 @@ export async function injectRpcBundleWithFallback({
 
   throw new Error(`Failed to inject RPC into Figma (${failures.join(' | ')})`)
 }
+
+export interface InjectWhenReadyOptions extends InjectRpcBundleOptions {
+  timeoutMs?: number
+  intervalMs?: number
+  sleep?: (ms: number) => Promise<void>
+}
+
+// A cold tab (restored in the background, or attached right after launch)
+// loads its bundle on its own schedule, and nothing short of a successful
+// injection says when the plugin API can be bootstrapped. Retry until one
+// strategy works, then report the last failure if the editor never got there.
+export async function injectRpcBundleWhenReady({
+  timeoutMs = 60000,
+  intervalMs = 1000,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  ...options
+}: InjectWhenReadyOptions): Promise<RpcInjectionStrategy> {
+  for (let waited = 0; ; waited += intervalMs) {
+    try {
+      return await injectRpcBundleWithFallback(options)
+    } catch (error) {
+      if (waited >= timeoutMs) {
+        throw new Error(
+          `Figma editor did not become ready within ${timeoutMs / 1000}s. ${formatError(error)}`
+        )
+      }
+    }
+    await sleep(intervalMs)
+  }
+}
