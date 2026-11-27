@@ -1,3 +1,6 @@
+import { existsSync, readdirSync } from 'fs'
+import { join } from 'path'
+
 import { ok, fail, dim, bold, green, cyan, box as fmtBox } from 'agentfmt'
 
 import type { FigmaNode, FigmaPaint } from './types.ts'
@@ -106,9 +109,28 @@ export function figmaLaunchHint(port = 9222): string {
   return `open -a Figma --args --remote-debugging-port=${port}`
 }
 
+export function resolveWindowsFigmaBinary(localAppData?: string): string | null {
+  if (!localAppData) return null
+  const baseDir = join(localAppData, 'Figma')
+  if (existsSync(baseDir)) {
+    try {
+      // Bypass Squirrel stub (Figma.exe) so --remote-debugging-pipe fd 3/4 reaches Electron directly
+      const appDirs = readdirSync(baseDir)
+        .filter((d) => d.startsWith('app-') && existsSync(join(baseDir, d, 'Figma.exe')))
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      if (appDirs.length > 0) {
+        return join(baseDir, appDirs[appDirs.length - 1]!, 'Figma.exe')
+      }
+    } catch {
+      // Fall back to Squirrel stub path
+    }
+  }
+  return join(baseDir, 'Figma.exe')
+}
+
 export function figmaBinaryPath(): string | null {
   if (process.platform === 'darwin') return '/Applications/Figma.app/Contents/MacOS/Figma'
-  if (process.platform === 'win32') return `${process.env.LOCALAPPDATA}\\Figma\\Figma.exe`
+  if (process.platform === 'win32') return resolveWindowsFigmaBinary(process.env.LOCALAPPDATA)
   if (process.platform === 'linux') return '/usr/bin/figma'
   return null
 }

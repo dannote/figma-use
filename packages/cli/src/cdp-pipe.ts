@@ -107,14 +107,17 @@ async function findFigmaPageTarget(
     }
 
     const targets = result.targetInfos || []
+    const isEditorUrl = (url: string, prefix: string) =>
+      url.includes(prefix) &&
+      !url.includes('figma.com/files/') &&
+      !url.includes('figma.com/preload/') &&
+      !url.includes('figma.com/desktop_new_tab')
     const figmaTarget =
       targets.find(
         (t) =>
           t.type === 'page' &&
-          (t.url.includes('figma.com/design') || t.url.includes('figma.com/file'))
-      ) ||
-      targets.find((t) => t.type === 'page' && t.url.includes('figma.com/board')) ||
-      targets.find((t) => t.type === 'page' && t.url.includes('figma.com'))
+          (isEditorUrl(t.url, 'figma.com/design/') || isEditorUrl(t.url, 'figma.com/file/'))
+      ) || targets.find((t) => t.type === 'page' && isEditorUrl(t.url, 'figma.com/board/'))
 
     if (figmaTarget) return figmaTarget
     await sleep(delayMs)

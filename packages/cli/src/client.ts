@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 
 import { cdpEval } from './cdp.ts'
 import { isDaemonAvailable, callDaemon } from './daemon/index.ts'
-import { injectRpcBundleWithFallback, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
+import { injectRpcBundleWithRetry, type RpcInjectionStrategy } from './rpc-bootstrap.ts'
 
 export { printResult, printError, formatResult } from './output.ts'
 export { getFileKey } from './cdp.ts'
@@ -154,7 +154,7 @@ async function ensureRpcInjected(): Promise<void> {
     if (remoteHash === hash) return
   }
 
-  rpcInjectionStrategy = await injectRpcBundleWithFallback({
+  rpcInjectionStrategy = await injectRpcBundleWithRetry({
     code,
     hash,
     preferredStrategy: rpcInjectionStrategy,

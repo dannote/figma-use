@@ -69,3 +69,38 @@ export async function injectRpcBundleWithFallback({
 
   throw new Error(`Failed to inject RPC into Figma (${failures.join(' | ')})`)
 }
+
+export interface RetryRpcBootstrapOptions extends InjectRpcBundleOptions {
+  timeoutMs?: number
+  intervalMs?: number
+  sleep?: (ms: number) => Promise<void>
+}
+
+export function isTransientBootstrapError(error: unknown): boolean {
+  const msg = formatError(error)
+  return (
+    msg.includes('PluginHelpers is not initialized') ||
+    msg.includes("reading 'push'") ||
+    msg.includes('figma is not defined') ||
+    msg.includes('Could not find defineVmFunction') ||
+    msg.includes('Execution context was destroyed')
+  )
+}
+
+export async function injectRpcBundleWithRetry({
+  timeoutMs = 30000,
+  intervalMs = 1000,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  ...options
+}: RetryRpcBootstrapOptions): Promise<RpcInjectionStrategy> {
+  for (let waited = 0; ; waited += intervalMs) {
+    try {
+      return await injectRpcBundleWithFallback(options)
+    } catch (error) {
+      if (!isTransientBootstrapError(error) || waited >= timeoutMs) {
+        throw error
+      }
+      await sleep(intervalMs)
+    }
+  }
+}

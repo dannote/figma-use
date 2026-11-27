@@ -2,11 +2,18 @@ import { existsSync } from 'fs'
 import { createConnection, Socket } from 'net'
 
 import { getCdpPort } from '../cdp.ts'
+import { getDaemonPaths } from './paths.ts'
 
-const SOCKET_PATH = '/tmp/figma-use.sock'
+const {
+  socketPath: SOCKET_PATH,
+  pidFile: PID_FILE,
+  isNamedPipe: IS_NAMED_PIPE
+} = getDaemonPaths()
 
 export function isDaemonAvailable(): boolean {
-  return existsSync(SOCKET_PATH)
+  // On Windows, existsSync() on a named pipe path can fail or block;
+  // check the PID file written once the named pipe server is listening.
+  return IS_NAMED_PIPE ? existsSync(PID_FILE) : existsSync(SOCKET_PATH)
 }
 
 export async function callDaemon<T = unknown>(command: string, args?: unknown): Promise<T> {

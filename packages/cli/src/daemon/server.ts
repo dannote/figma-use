@@ -3,10 +3,20 @@ import { createServer, Server, Socket } from 'net'
 
 import { closeCDP, usePipeTransport, isPipeTransport, getCdpPort } from '../cdp.ts'
 import { sendCommandDirect } from '../client.ts'
+import { getDaemonPaths } from './paths.ts'
 
-const SOCKET_PATH = '/tmp/figma-use.sock'
-const PID_FILE = '/tmp/figma-use.pid'
-const PORT_FILE = '/tmp/figma-use.port'
+const {
+  socketPath: SOCKET_PATH,
+  pidFile: PID_FILE,
+  portFile: PORT_FILE,
+  isNamedPipe: IS_NAMED_PIPE
+} = getDaemonPaths()
+
+function cleanupSocketFile(): void {
+  if (!IS_NAMED_PIPE && existsSync(SOCKET_PATH)) {
+    unlinkSync(SOCKET_PATH)
+  }
+}
 
 let server: Server | null = null
 
@@ -82,9 +92,7 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
   }
 
   // Clean up existing socket
-  if (existsSync(SOCKET_PATH)) {
-    unlinkSync(SOCKET_PATH)
-  }
+  cleanupSocketFile()
   if (existsSync(PORT_FILE)) {
     unlinkSync(PORT_FILE)
   }
@@ -119,7 +127,7 @@ export async function startDaemon(options?: { pipe?: boolean }): Promise<void> {
   const shutdown = async () => {
     console.log('\nShutting down...')
     await closeCDP()
-    if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
+    cleanupSocketFile()
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
     if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     process.exit(0)
@@ -139,13 +147,13 @@ export function stopDaemon(): boolean {
   try {
     process.kill(pid, 'SIGTERM')
     // Clean up files
-    if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
+    cleanupSocketFile()
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
     if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     return true
   } catch {
     // Process not running, clean up stale files
-    if (existsSync(SOCKET_PATH)) unlinkSync(SOCKET_PATH)
+    cleanupSocketFile()
     if (existsSync(PID_FILE)) unlinkSync(PID_FILE)
     if (existsSync(PORT_FILE)) unlinkSync(PORT_FILE)
     return false
